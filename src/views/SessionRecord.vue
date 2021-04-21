@@ -65,6 +65,10 @@ export default {
       hour: 0,
       sec: 1,
       interval: null,
+      configWebCam: {
+        video: true,
+        audio: false,
+      },
       configScreen: {
         video: {
           cursor: "always",
@@ -72,23 +76,30 @@ export default {
         audio: false,
       },
       recordScreen: null,
+      recordWebCam: null,
     };
   },
   methods: {
-    startRecord() {
-      if(this.recording.isPaused) {
-        this.recordScreen.resume()
-        this.startTimer()
+    async startRecord() {
+      if (this.recording.isPaused) {
+        this.recordScreen.resume();
+        this.recordWebCam.resume();
+        this.startTimer();
+      } else {
+        await this.startScreenCapture();
+        await this.startWebCamCapture();
+        this.startTimer();
       }
-      else this.startScreenCapture();
     },
     stopRecord() {
-      this.stopScreenCapture()
-      this.stopTimer()
+      this.stopScreenCapture();
+      this.stopWebCamCapture();
+      this.stopTimer();
+      this.recording.color = 'grey'
     },
     pauseRecord() {
-      this.recordScreen.pause()
-      this.pauseTimer()
+      this.recordScreen.pause();
+      this.pauseTimer();
     },
     startTimer() {
       this.recording.value = true;
@@ -137,11 +148,11 @@ export default {
       window.clearInterval(this.interval);
     },
     stopScreenCapture() {
-      this.recordScreen.stop()
+      this.recordScreen.stop();
     },
-    startScreenCapture() {
+    async startScreenCapture() {
       // Request permission for screen capture
-      navigator.mediaDevices
+      return navigator.mediaDevices
         .getDisplayMedia(this.configScreen)
         .then((captureStream) => {
           // Create media recorder object
@@ -157,7 +168,6 @@ export default {
 
           // OnStop Screen Record
           this.recordScreen.onstop = function() {
-
             // Generate blob from the frames
             let blob = new Blob(recordingScreen, { type: "video/mp4;" });
             recordingScreen = [];
@@ -165,24 +175,57 @@ export default {
             const mediaScreen = window.URL.createObjectURL(blob);
 
             // End screen capture
-            captureStream.getTracks().forEach(track => track.stop());
+            captureStream.getTracks().forEach((track) => track.stop());
 
             // TODO: Send to API
             console.log(uploadMediaScreen, mediaScreen);
           };
 
-          // Init timer ony if screen is recording
-          try {
-            this.recordScreen.start();
-            this.startTimer();
-          } catch (e) {
-            console.error('Error on starting record')
-          }
+          // Init record screen
+          this.recordScreen.start();
         })
         .catch((err) => {
           console.error("Error:" + err);
-          return null;
         });
+    },
+    async startWebCamCapture() {
+      // Request permission for screen capture
+      return navigator.mediaDevices
+        .getUserMedia(this.configWebCam)
+        .then((mediaStreamObj) => {
+          // Create media recorder object
+          this.recordWebCam = new MediaRecorder(mediaStreamObj);
+          let recordingWebCam = [];
+
+          // Define screen capture events
+
+          // Save frames to recordingWebCam array
+          this.recordWebCam.ondataavailable = (ev) => {
+            recordingWebCam.push(ev.data);
+          };
+
+          // OnStop WebCam Record
+          this.recordWebCam.onstop = () => {
+            // Generate blob from the frames
+            let blob = new Blob(recordingWebCam, { type: "video/mp4;" });
+            recordingWebCam = [];
+            const uploadMediaWebCam = { blob: blob, name: mediaStreamObj.id };
+            const mediaWebCam = window.URL.createObjectURL(blob);
+
+            // End webcam capture
+            mediaStreamObj.getTracks().forEach((track) => track.stop());
+
+            // TODO: Send to API
+            console.log(uploadMediaWebCam, mediaWebCam);
+          };
+
+          // Init record webcam
+          this.recordWebCam.start();
+        })
+        .catch((e) => console.log("Error", e));
+    },
+    stopWebCamCapture() {
+      this.recordWebCam.stop();
     },
   },
 };
