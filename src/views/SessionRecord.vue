@@ -6,6 +6,7 @@
       <v-col cols="4" class="pt-9">
         <v-text-field solo dense light placeholder="URL" v-model="url" />
       </v-col>
+      <p class="pt-4">Educational proposal only.</p>
       <v-spacer />
       <v-toolbar-items>
         <v-row class="ma-0" align="center">
@@ -18,13 +19,13 @@
           <p class="pt-4 pr-4 pl-2">
             {{ displayTime.hour }}:{{ displayTime.min }}:{{ displayTime.sec }}
           </p>
-          <v-btn icon small @click="stopTimer()" :disabled="!recording.value">
+          <v-btn icon small @click="stopRecord()" :disabled="!recording.value">
             <v-icon color="red">mdi-stop-circle-outline</v-icon>
           </v-btn>
           <v-btn
             icon
             small
-            @click="pauseTimer()"
+            @click="pauseRecord()"
             :disabled="recording.isPaused || !recording.value ? true : false"
           >
             <v-icon>mdi-pause-circle-outline</v-icon>
@@ -32,7 +33,7 @@
           <v-btn
             icon
             small
-            @click="startTimer()"
+            @click="startRecord()"
             :disabled="recording.isPaused || !recording.value ? false : true"
           >
             <v-icon>mdi-play-circle-outline</v-icon>
@@ -64,9 +65,31 @@ export default {
       hour: 0,
       sec: 1,
       interval: null,
+      configScreen: {
+        video: {
+          cursor: "always",
+        },
+        audio: false,
+      },
+      recordScreen: null,
     };
   },
   methods: {
+    startRecord() {
+      if(this.recording.isPaused) {
+        this.recordScreen.resume()
+        this.startTimer()
+      }
+      else this.startScreenCapture();
+    },
+    stopRecord() {
+      this.stopScreenCapture()
+      this.stopTimer()
+    },
+    pauseRecord() {
+      this.recordScreen.pause()
+      this.pauseTimer()
+    },
     startTimer() {
       this.recording.value = true;
       this.recording.color = "red";
@@ -107,11 +130,59 @@ export default {
       this.sec = 0;
       this.hour = 0;
       this.displayTime = {
-          min: '00m',
-          hour: '00h',
-          sec: '00s'
-      }
+        min: "00m",
+        hour: "00h",
+        sec: "00s",
+      };
       window.clearInterval(this.interval);
+    },
+    stopScreenCapture() {
+      this.recordScreen.stop()
+    },
+    startScreenCapture() {
+      // Request permission for screen capture
+      navigator.mediaDevices
+        .getDisplayMedia(this.configScreen)
+        .then((captureStream) => {
+          // Create media recorder object
+          this.recordScreen = new MediaRecorder(captureStream);
+          let recordingScreen = [];
+
+          // Define screen capture events
+
+          // Save frames to recordingScreen array
+          this.recordScreen.ondataavailable = function(ev) {
+            recordingScreen.push(ev.data);
+          };
+
+          // OnStop Screen Record
+          this.recordScreen.onstop = function() {
+
+            // Generate blob from the frames
+            let blob = new Blob(recordingScreen, { type: "video/mp4;" });
+            recordingScreen = [];
+            const uploadMediaScreen = { blob: blob, name: captureStream.id };
+            const mediaScreen = window.URL.createObjectURL(blob);
+
+            // End screen capture
+            captureStream.getTracks().forEach(track => track.stop());
+
+            // TODO: Send to API
+            console.log(uploadMediaScreen, mediaScreen);
+          };
+
+          // Init timer ony if screen is recording
+          try {
+            this.recordScreen.start();
+            this.startTimer();
+          } catch (e) {
+            console.error('Error on starting record')
+          }
+        })
+        .catch((err) => {
+          console.error("Error:" + err);
+          return null;
+        });
     },
   },
 };
