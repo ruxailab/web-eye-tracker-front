@@ -42,11 +42,16 @@
       </v-toolbar-items>
     </v-toolbar>
     <iframe :src="url" style="border: 0; width: 100%; height: 93%" />
+
+    <!-- Confirm Send Dialog -->
+    <dialog-confirm-send :dialog="dialog" v-on:dialog="dialog = false" v-on:consent="sendToAPI"/>
   </div>
 </template>
 
 <script>
+import DialogConfirmSend from '../components/DialogConfirmSend.vue';
 export default {
+  components: { DialogConfirmSend },
   name: "Session",
   data() {
     return {
@@ -77,9 +82,13 @@ export default {
       },
       recordScreen: null,
       recordWebCam: null,
+      dialog: false,
     };
   },
   methods: {
+    async sendToAPI(consent) {
+      console.log('send to api',consent)
+    },
     async startRecord() {
       if (this.recording.isPaused) {
         this.recordScreen.resume();
@@ -96,6 +105,7 @@ export default {
       this.stopWebCamCapture();
       this.stopTimer();
       this.recording.color = 'grey'
+      this.dialog = true
     },
     pauseRecord() {
       this.recordScreen.pause();
