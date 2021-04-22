@@ -99,6 +99,7 @@ export default {
     },
     pauseRecord() {
       this.recordScreen.pause();
+      this.recordWebCam.pause();
       this.pauseTimer();
     },
     startTimer() {
@@ -156,7 +157,7 @@ export default {
         .getDisplayMedia(this.configScreen)
         .then((captureStream) => {
           // Create media recorder object
-          this.recordScreen = new MediaRecorder(captureStream);
+          this.recordScreen = new MediaRecorder(captureStream,{mimeType: 'video/webm; codecs=vp9'});
           let recordingScreen = [];
 
           // Define screen capture events
@@ -167,18 +168,20 @@ export default {
           };
 
           // OnStop Screen Record
+          const th = this
           this.recordScreen.onstop = function() {
             // Generate blob from the frames
-            let blob = new Blob(recordingScreen, { type: "video/mp4;" });
+            let blob = new Blob(recordingScreen, { type: "video/webm" });
             recordingScreen = [];
             const uploadMediaScreen = { blob: blob, name: captureStream.id };
             const mediaScreen = window.URL.createObjectURL(blob);
 
+            // TODO: Send to API
+            th.downloadVideo(mediaScreen, `ScreenCap.webm`)
+            console.log(uploadMediaScreen, mediaScreen);
+
             // End screen capture
             captureStream.getTracks().forEach((track) => track.stop());
-
-            // TODO: Send to API
-            console.log(uploadMediaScreen, mediaScreen);
           };
 
           // Init record screen
@@ -194,7 +197,7 @@ export default {
         .getUserMedia(this.configWebCam)
         .then((mediaStreamObj) => {
           // Create media recorder object
-          this.recordWebCam = new MediaRecorder(mediaStreamObj);
+          this.recordWebCam = new MediaRecorder(mediaStreamObj, {mimeType: 'video/webm; codecs=vp9'});
           let recordingWebCam = [];
 
           // Define screen capture events
@@ -205,18 +208,20 @@ export default {
           };
 
           // OnStop WebCam Record
+          const th = this
           this.recordWebCam.onstop = () => {
             // Generate blob from the frames
-            let blob = new Blob(recordingWebCam, { type: "video/mp4;" });
+            let blob = new Blob(recordingWebCam, { type: "video/webm" });
             recordingWebCam = [];
             const uploadMediaWebCam = { blob: blob, name: mediaStreamObj.id };
             const mediaWebCam = window.URL.createObjectURL(blob);
 
-            // End webcam capture
-            mediaStreamObj.getTracks().forEach((track) => track.stop());
-
             // TODO: Send to API
             console.log(uploadMediaWebCam, mediaWebCam);
+            th.downloadVideo(mediaWebCam, `WebCam.webm`)
+
+            // End webcam capture
+            mediaStreamObj.getTracks().forEach((track) => track.stop());
           };
 
           // Init record webcam
@@ -227,6 +232,15 @@ export default {
     stopWebCamCapture() {
       this.recordWebCam.stop();
     },
+    downloadVideo(url, filename) {
+      var a = document.createElement("a")
+      document.body.appendChild(a)
+      a.style = "display:none"
+      a.href = url
+      a.download = filename
+      a.click()
+      window.URL.revokeObjectURL(url)
+    }
   },
 };
 </script>
