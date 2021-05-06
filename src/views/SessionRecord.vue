@@ -61,7 +61,6 @@ export default {
   name: "Session",
   data() {
     return {
-      loading: false,
       url: "",
       webcamfile: null,
       screenfile: null,
@@ -109,14 +108,8 @@ export default {
           { lastModifiedDate: new Date(), type: this.screenfile.blob.type }
         );
 
-        this.loading = true;
-        try {
-          await api.createSession(this.webcamfile, this.screenfile);
-          this.loading = false;
-        } catch (e) {
-          console.error("Error creating session", e);
-          this.loading = false;
-        }
+        this.$router.push('/session-upload')
+        await api.createSession(this.webcamfile, this.screenfile);
       } else {
         alert("Session discarded!");
       }

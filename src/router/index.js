@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import SessionRecord from '@/views/SessionRecord.vue'
+import SessionUpload from '@/views/UploadSession.vue'
 
 Vue.use(VueRouter)
 
@@ -10,14 +11,11 @@ const routes = [
     name: 'SessionRecord',
     component: SessionRecord
   },
-  // {
-  //   path: '/about',
-  //   name: 'About',
-  //   // route level code-splitting
-  //   // this generates a separate chunk (about.[hash].js) for this route
-  //   // which is lazy-loaded when the route is visited.
-  //   component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
-  // }
+  {
+    path: '/session-upload',
+    name: 'SessionUpload',
+    component: SessionUpload
+  },
 ]
 
 const router = new VueRouter({
