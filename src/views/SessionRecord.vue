@@ -44,12 +44,16 @@
     <iframe :src="url" style="border: 0; width: 100%; height: 93%" />
 
     <!-- Confirm Send Dialog -->
-    <dialog-confirm-send :dialog="dialog" v-on:dialog="dialog = false" v-on:consent="sendToAPI"/>
+    <dialog-confirm-send
+      :dialog="dialog"
+      v-on:dialog="dialog = false"
+      v-on:consent="sendToAPI"
+    />
   </div>
 </template>
 
 <script>
-import DialogConfirmSend from '../components/DialogConfirmSend.vue';
+import DialogConfirmSend from "../components/DialogConfirmSend.vue";
 export default {
   components: { DialogConfirmSend },
   name: "Session",
@@ -87,7 +91,7 @@ export default {
   },
   methods: {
     async sendToAPI(consent) {
-      console.log('send to api',consent)
+      console.log("send to api", consent);
     },
     async startRecord() {
       if (this.recording.isPaused) {
@@ -101,11 +105,11 @@ export default {
       }
     },
     stopRecord() {
-      this.stopScreenCapture();
-      this.stopWebCamCapture();
+      this.recordScreen.state != 'inactive' ? this.stopScreenCapture() : null;
+      this.recordWebCam.state != 'inactive' ? this.stopWebCamCapture() : null;
       this.stopTimer();
-      this.recording.color = 'grey'
-      this.dialog = true
+      this.recording.color = "grey";
+      this.dialog = true;
     },
     pauseRecord() {
       this.recordScreen.pause();
@@ -167,7 +171,9 @@ export default {
         .getDisplayMedia(this.configScreen)
         .then((captureStream) => {
           // Create media recorder object
-          this.recordScreen = new MediaRecorder(captureStream,{mimeType: 'video/webm; codecs=vp9'});
+          this.recordScreen = new MediaRecorder(captureStream, {
+            mimeType: "video/webm; codecs=vp9",
+          });
           let recordingScreen = [];
 
           // Define screen capture events
@@ -178,7 +184,7 @@ export default {
           };
 
           // OnStop Screen Record
-          const th = this
+          const th = this;
           this.recordScreen.onstop = function() {
             // Generate blob from the frames
             let blob = new Blob(recordingScreen, { type: "video/webm" });
@@ -187,11 +193,12 @@ export default {
             const mediaScreen = window.URL.createObjectURL(blob);
 
             // TODO: Send to API
-            th.downloadVideo(mediaScreen, `ScreenCap.webm`)
+            th.downloadVideo(mediaScreen, `ScreenCap.webm`);
             console.log(uploadMediaScreen, mediaScreen);
 
             // End screen capture
             captureStream.getTracks().forEach((track) => track.stop());
+            th.stopRecord()
           };
 
           // Init record screen
@@ -199,6 +206,7 @@ export default {
         })
         .catch((err) => {
           console.error("Error:" + err);
+          this.stopRecord()
         });
     },
     async startWebCamCapture() {
@@ -207,7 +215,9 @@ export default {
         .getUserMedia(this.configWebCam)
         .then((mediaStreamObj) => {
           // Create media recorder object
-          this.recordWebCam = new MediaRecorder(mediaStreamObj, {mimeType: 'video/webm; codecs=vp9'});
+          this.recordWebCam = new MediaRecorder(mediaStreamObj, {
+            mimeType: "video/webm; codecs=vp9",
+          });
           let recordingWebCam = [];
 
           // Define screen capture events
@@ -218,7 +228,7 @@ export default {
           };
 
           // OnStop WebCam Record
-          const th = this
+          const th = this;
           this.recordWebCam.onstop = () => {
             // Generate blob from the frames
             let blob = new Blob(recordingWebCam, { type: "video/webm" });
@@ -228,29 +238,33 @@ export default {
 
             // TODO: Send to API
             console.log(uploadMediaWebCam, mediaWebCam);
-            th.downloadVideo(mediaWebCam, `WebCam.webm`)
+            th.downloadVideo(mediaWebCam, `WebCam.webm`);
 
             // End webcam capture
             mediaStreamObj.getTracks().forEach((track) => track.stop());
+            th.stopRecord()
           };
 
           // Init record webcam
           this.recordWebCam.start();
         })
-        .catch((e) => console.log("Error", e));
+        .catch((e) => {
+          console.log("Error", e)
+          this.stopRecord()
+        });
     },
     stopWebCamCapture() {
       this.recordWebCam.stop();
     },
     downloadVideo(url, filename) {
-      var a = document.createElement("a")
-      document.body.appendChild(a)
-      a.style = "display:none"
-      a.href = url
-      a.download = filename
-      a.click()
-      window.URL.revokeObjectURL(url)
-    }
+      var a = document.createElement("a");
+      document.body.appendChild(a);
+      a.style = "display:none";
+      a.href = url;
+      a.download = filename;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    },
   },
 };
 </script>
