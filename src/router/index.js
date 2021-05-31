@@ -7,6 +7,7 @@ import LandingPage from '@/views/LandingPage.vue'
 import Login from '@/views/Login'
 import About from '@/views/About'
 import Dashboard from '@/views/Dashboard'
+import SessionView from '@/views/SessionView'
 
 Vue.use(VueRouter)
 
@@ -40,6 +41,11 @@ const routes = [
     path: '/dashboard',
     name: 'Dashboard',
     component: Dashboard,
+  },
+  {
+    path: '/sessions/:id',
+    name: 'SessionView',
+    component: SessionView,
   },
 ]
 
