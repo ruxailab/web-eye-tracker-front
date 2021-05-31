@@ -15,7 +15,7 @@
     </v-card-title>
     <v-data-table :headers="headers" :items="data" :search="search">
       <template v-slot:item.actions="{ item }">
-        <v-btn icon :to="`/sessions/${item.id}`">
+        <v-btn icon :to="`/sessions/view/${item.id}`">
           <v-icon>mdi-file-eye</v-icon>
         </v-btn>
       </template>

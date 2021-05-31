@@ -8,6 +8,7 @@ import Login from '@/views/Login'
 import About from '@/views/About'
 import Dashboard from '@/views/Dashboard'
 import SessionView from '@/views/SessionView'
+import SessionForm from '@/views/SessionForm'
 
 Vue.use(VueRouter)
 
@@ -43,9 +44,14 @@ const routes = [
     component: Dashboard,
   },
   {
-    path: '/sessions/:id',
+    path: '/sessions/view/:id',
     name: 'SessionView',
     component: SessionView,
+  },
+  {
+    path: '/sessions/new',
+    name: 'SessionForm',
+    component: SessionForm,
   },
 ]
 
