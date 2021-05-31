@@ -273,7 +273,7 @@ export default {
           this.recordWebCam.start();
         })
         .catch((e) => {
-          console.log("Error", e);
+          console.error("Error", e);
           this.stopRecord();
         });
     },

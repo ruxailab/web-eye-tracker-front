@@ -13,7 +13,6 @@ export default {
         })
     },
     checkResponseStatus: () => {
-        console.log('hi')
         return {msg: 'Hello', value: 2}
     }
 }

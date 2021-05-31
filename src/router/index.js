@@ -1,10 +1,12 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import store from '@/store/index'
 import SessionRecord from '@/views/SessionRecord.vue'
 import SessionUpload from '@/views/UploadSession.vue'
 import LandingPage from '@/views/LandingPage.vue'
 import Login from '@/views/Login'
 import About from '@/views/About'
+import Dashboard from '@/views/Dashboard'
 
 Vue.use(VueRouter)
 
@@ -34,12 +36,26 @@ const routes = [
     name: 'About',
     component: About,
   },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: Dashboard,
+  },
 ]
 
 const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
   routes
+})
+
+router.beforeResolve(async (to, from, next) => {
+  var user = store.state.auth.user
+  user = user ?? await store.dispatch('autoSignIn')
+  if((to.path == '/login' || to.path == '/') && user) next('/dashboard')
+  else if(!user && to.path !== '/login') next('/login')
+
+  next()
 })
 
 export default router
