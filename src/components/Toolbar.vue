@@ -4,7 +4,7 @@
       <v-app-bar-title>Eye Lab</v-app-bar-title>
     </div>
     <v-spacer />
-    <v-btn text dark to="/">
+    <v-btn text dark to="/" v-if="$route.name != 'Dashboard'">
       Home
     </v-btn>
     <v-btn text dark to="/about" v-if="$route.name != 'About'">
