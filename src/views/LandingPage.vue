@@ -9,7 +9,7 @@
         <h1 class="white--text text-end mx-12">Eye Lab</h1>
         <p class="white--text mt-12 text-end mx-12" style="font-size:20px">{{ desc }}</p>
         <v-row justify="end" class="mx-12 mt-12">
-        <v-btn dark outlined class="mt-12">get started</v-btn>
+        <v-btn dark outlined class="mt-12" to="/dashboard">get started</v-btn>
         </v-row>
       </v-col>
     </v-row>
