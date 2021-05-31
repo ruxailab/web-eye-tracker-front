@@ -13,11 +13,13 @@ export default {
       const userDB = (({ displayName, email }) => ({ displayName, email }))(
         user
       );
-      await firebase
+      firebase
         .firestore()
         .collection("users")
         .doc(user.uid)
-        .set(userDB);
+        .set(userDB)
+        .catch((e) => console.error("Error updating document", e));
+
       return user;
     } catch (e) {
       console.error("error" + e);

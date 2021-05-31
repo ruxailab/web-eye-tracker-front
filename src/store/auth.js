@@ -1,4 +1,4 @@
-import auth from '@/models/auth'
+import auth from "@/models/auth";
 
 export default {
   state: {
@@ -15,7 +15,7 @@ export default {
   },
   mutations: {
     setUser(state, payload) {
-      state.user = payload
+      state.user = payload;
     },
     setLoading(state, payload) {
       state.loading = payload;
@@ -24,21 +24,28 @@ export default {
   actions: {
     async signinwithgoogle({ commit }) {
       try {
-        var user = await auth.signInWithGoogle(commit)
-        commit('setUser', user);
+        var user = await auth.signInWithGoogle(commit);
+        user = (({ displayName, email, uid }) => ({ displayName, email, uid }))(
+          user
+        );
+        commit("setUser", user);
+        return user;
       } catch (err) {
-        console.error('"Error when creating user.', err)
+        console.error('"Error when creating user.', err);
       }
     },
     async autoSignIn({ commit }) {
       try {
-        var user = await auth.autoSignIn()
-        if (!user) return null
-        commit('setUser', user)
-        return user
+        var user = await auth.autoSignIn();
+        if (!user) return null;
+        user = (({ displayName, email, uid }) => ({ displayName, email, uid }))(
+          user
+        );
+        commit("setUser", user);
+        return user;
       } catch (err) {
-        console.error('Error when signin.', err)
+        console.error("Error when signin.", err);
       }
     },
   },
-}
+};

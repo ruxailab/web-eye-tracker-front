@@ -53,7 +53,7 @@ router.beforeResolve(async (to, from, next) => {
   var user = store.state.auth.user
   user = user ?? await store.dispatch('autoSignIn')
   if((to.path == '/login' || to.path == '/') && user) next('/dashboard')
-  else if(!user && to.path !== '/login') next('/login')
+  else if((to.path == '/dashboard') && !user) next('/login')
 
   next()
 })

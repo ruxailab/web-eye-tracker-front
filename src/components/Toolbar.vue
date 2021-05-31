@@ -31,9 +31,10 @@ import auth from '@/models/auth'
 
 export default {
   methods: {
-    logout() {
-      auth.logout()
+    async logout() {
+      await auth.logout()
       this.$store.commit('setUser', null)
+      this.$router.push('/')
     }
   }
 }
