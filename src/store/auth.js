@@ -6,10 +6,6 @@ export default {
     loading: null,
   },
   getters: {
-    isLoggedIn(state) {
-      if (state.user) return true;
-      return false;
-    },
     getLoading(state) {
       return state.loading;
     },

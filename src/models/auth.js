@@ -10,12 +10,6 @@ export default {
         await auth.logout()
     },
 
-    isLoggedIn: async () => {
-        var auth = await auth.getCurrentUser()
-        if (auth == null) return false
-        return true
-    },
-
     autoSignIn: async () => {
         var user = await auth.getCurrentUser()
         return user

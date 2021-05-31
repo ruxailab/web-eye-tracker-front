@@ -44,9 +44,10 @@ export default {
     Toolbar,
   },
   methods: {
-      login() {
-          this.$store.dispatch('signinwithgoogle')
-      }
-  }
+    async login() {
+      await this.$store.dispatch("signinwithgoogle");
+      this.$router.push("/dashboard");
+    },
+  },
 };
 </script>
