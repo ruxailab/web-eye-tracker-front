@@ -14,6 +14,9 @@
       ></v-text-field>
     </v-card-title>
     <v-data-table :headers="headers" :items="data" :search="search">
+      <template v-slot:item.created_date="{ item }">
+        {{parseDate(item.created_date)}}
+      </template>
       <template v-slot:item.actions="{ item }">
         <v-btn icon :to="`/sessions/view/${item.id}`">
           <v-icon>mdi-file-eye</v-icon>
@@ -24,6 +27,7 @@
 </template>
 
 <script>
+new Date().toDateString
 export default {
   props: ["data"],
   data() {
@@ -34,12 +38,17 @@ export default {
           text: "Created",
           align: "start",
           sortable: true,
-          value: "created",
+          value: "created_date",
         },
         { text: "Title", value: "title", sortable: true },
         { text: "", value: "actions", align: "end" },
       ],
     };
   },
+  methods: {
+    parseDate(created_date) {
+      return (new Date(parseInt(created_date)*1000)).toString().substring(0,24)
+    }
+  }
 };
 </script>

@@ -7,12 +7,16 @@ export default {
         responseStatus: {
             message: 'Sending the data to our server...',
             value: 0
-        }
+        },
+        sessions: null,
+        currentSession: null
     },
     mutations: {
         setSending: (state,payload) => state.sending = payload,
         setError: (state,payload) => state.error = payload,
         setResponseStatus: (state,payload) => state.responseStatus = payload,
+        setSessions: (state, payload) => state.sessions = payload,
+        setCurrentSession: (state, payload) => state.currentSession = payload
     },
     actions: {
         checkResponseStatus: async ({commit}) => {
@@ -24,6 +28,15 @@ export default {
                 commit('setError', e)
             }
             
+        },
+        getUserSessions: async ({commit}, payload) => {
+            try {
+                const { data } = await api.getUserSessions(payload)
+                commit('setSessions', data)
+            }
+            catch (e) {
+                commit('setError', e)
+            }
         }
     }
 }

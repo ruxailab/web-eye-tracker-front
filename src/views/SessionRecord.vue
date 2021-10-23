@@ -1,12 +1,7 @@
 <template>
   <div class="session">
     <v-toolbar dense dark>
-      <v-toolbar-title>Eye Lab</v-toolbar-title>
-      <v-spacer />
-      <v-col cols="4" class="pt-9">
-        <v-text-field solo dense light placeholder="URL" v-model="url" />
-      </v-col>
-      <p class="pt-4">Educational proposal only.</p>
+      <v-toolbar-title>Session: {{currentSession.title}}</v-toolbar-title>
       <v-spacer />
       <v-toolbar-items>
         <v-row class="ma-0" align="center">
@@ -41,7 +36,7 @@
         </v-row>
       </v-toolbar-items>
     </v-toolbar>
-    <iframe :src="url" style="border: 0; width: 100%; height: 93%" />
+    <iframe :src="currentSession.website_url" style="border: 0; width: 100%; height: 93%" />
 
     <!-- Confirm Send Dialog -->
     <dialog-confirm-send
@@ -61,7 +56,6 @@ export default {
   name: "Session",
   data() {
     return {
-      url: "",
       webcamfile: null,
       screenfile: null,
       displayTime: {
@@ -93,6 +87,11 @@ export default {
       dialog: false,
     };
   },
+  computed: {
+    currentSession() {
+      return this.$store.state.session.currentSession
+    }
+  },
   methods: {
     async sendToAPI(consent) {
       if (consent) {
@@ -107,9 +106,8 @@ export default {
           `${this.screenfile.name}.webm`,
           { lastModifiedDate: new Date(), type: this.screenfile.blob.type }
         );
-
-        // this.$router.push('/session-upload')
-        await api.createSession(this.webcamfile, this.screenfile);
+        await api.createSession(this.currentSession, this.webcamfile, this.screenfile);
+        this.$router.push('/session-upload')
       } else {
         alert("Session discarded!");
       }

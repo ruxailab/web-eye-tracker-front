@@ -1,22 +1,47 @@
 <template>
-  <div>
+  <div id="box">
     <toolbar />
     <v-row justify="center" class="mt-12">
       <v-col cols="12" lg="8" md="8">
         <v-row align="center">
           <v-col cols="12" lg="7" md="7">
             <h2 class="mb-4">New Session</h2>
-            <v-text-field outlined dense placeholder="Title" label="Title" />
-            <v-text-field outlined dense placeholder="URL" label="URL" />
-            <v-textarea
-              outlined
-              placeholder="Description"
-              label="Description"
-            />
-            <v-row justify="end" class="ma-0">
-              <v-btn outlined color="red" class="mr-6" to="/sessions">cancel</v-btn>
-              <v-btn color="success" to="/session-record">start</v-btn>
-            </v-row>
+            <v-form ref="form" lazy-validation v-model="isFormValid">
+              <v-text-field
+                v-model="title"
+                outlined
+                dense
+                placeholder="Title"
+                label="Title"
+                :rules="rules.required"
+              />
+              <v-text-field
+                v-model="website_url"
+                outlined
+                dense
+                placeholder="URL"
+                label="URL"
+                :rules="rules.required"
+              />
+              <v-textarea
+                v-model="description"
+                outlined
+                placeholder="Description"
+                label="Description"
+                :rules="rules.required"
+              />
+              <v-row justify="end" class="ma-0">
+                <v-btn outlined color="red" class="mr-6" to="/sessions"
+                  >cancel</v-btn
+                >
+                <v-btn
+                  color="success"
+                  @click="setCurrentSession()"
+                  :disabled="!isFormValid"
+                  >start</v-btn
+                >
+              </v-row>
+            </v-form>
           </v-col>
           <v-col cols="12" lg="5" md="5">
             <v-card height="100%" outlined>
@@ -46,6 +71,44 @@ import Toolbar from "@/components/Toolbar";
 export default {
   components: {
     Toolbar,
+  },
+  data() {
+    return {
+      title: "",
+      description: "",
+      website_url: "",
+      rules: {
+        required: [(v) => !!v || "Field is required!"],
+      },
+      isFormValid: true,
+    };
+  },
+  methods: {
+    setCurrentSession() {
+      if (this.$refs.form.validate()) {
+        this.$store.commit("setCurrentSession", {
+          title: this.title,
+          description: this.description,
+          website_url: this.website_url,
+          user_id: this.$store.state.auth.user.uid,
+        });
+
+        // element which needs to enter full-screen mode
+        var element = document.querySelector("#box");
+
+        // make the element go to full-screen mode
+        element.requestFullscreen()
+          .then(function() {
+            // element has entered fullscreen mode successfully
+          })
+          .catch(function(error) {
+            console.log(error);
+            // element could not enter fullscreen mode
+          });
+
+        this.$router.push("/session-record");
+      }
+    },
   },
 };
 </script>

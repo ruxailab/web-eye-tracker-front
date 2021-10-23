@@ -38,46 +38,15 @@ export default {
     SessionsTable,
   },
   data() {
-    return {
-      sessions: [
-        {
-          id: "001",
-          title: "Session 1",
-          desc: "Session Lorem Ipsum",
-          created: new Date().toDateString(),
-        },
-        {
-          id: "002",
-          title: "Session 2",
-          desc: "Session Lorem Ipsum",
-          created: new Date().toDateString(),
-        },
-        {
-          id: "003",
-          title: "Session 3",
-          desc: "Session Lorem Ipsum",
-          created: new Date().toDateString(),
-        },
-        {
-          id: "004",
-          title: "Session 4",
-          desc: "Session Lorem Ipsum",
-          created: new Date().toDateString(),
-        },
-        {
-          id: "005",
-          title: "Session 5",
-          desc: "Session Lorem Ipsum",
-          created: new Date().toDateString(),
-        },
-        {
-          id: "006",
-          title: "Session 6",
-          desc: "Session Lorem Ipsum",
-          created: new Date().toDateString(),
-        },
-      ],
-    };
+    return {}
   },
+  computed: {
+    sessions() {
+      return this.$store.state.session.sessions ?? []
+    }
+  },
+  created() {
+    this.$store.dispatch('getUserSessions', this.$store.state.auth.user.uid)
+  }
 };
 </script>
