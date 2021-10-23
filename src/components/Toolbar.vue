@@ -7,6 +7,9 @@
     <v-btn text dark to="/" v-if="$route.name != 'Dashboard'">
       {{ $route.name != 'Login' ? 'Sessions' : 'Home' }}
     </v-btn>
+    <v-btn text dark to="/callibration" v-if="$route.name != 'Login' && $route.name != 'Callibration' && $store.state.auth.user != null">
+      Callibration
+    </v-btn>
     <v-btn text dark to="/about" v-if="$route.name != 'About'">
       About
     </v-btn>
