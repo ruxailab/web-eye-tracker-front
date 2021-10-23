@@ -1,14 +1,15 @@
 <template>
   <div>
     <toolbar />
+    <div v-if="session">
     <v-row justify="center" class="mt-12">
       <v-col cols="12" lg="8" md="8">
         <v-card outlined class="pa-2">
           <v-row align="center" class="mr-2">
             <v-col cols="12" lg="8" md="8">
               <v-card-title>{{ session.title }}</v-card-title>
-              <v-card-subtitle>{{ session.created }}</v-card-subtitle>
-              <p class="mx-4">{{ session.desc }}</p>
+              <v-card-subtitle>{{ parseDate(session.created_date) }}</v-card-subtitle>
+              <p class="mx-4">{{ session.description }}</p>
             </v-col>
             <v-col cols="12" lg="4" md="4">
               <v-btn width="100%" class="my-6" outlined>
@@ -48,6 +49,15 @@
       </template>
       <span>Back to sessions</span>
     </v-tooltip>
+    </div>
+    <v-row justify="center" class="mt-12 pt-12" v-else>
+    <v-progress-circular
+      :size="50"
+      :width="7"
+      color="black"
+      indeterminate
+    ></v-progress-circular>
+    </v-row>
   </div>
 </template>
 
@@ -58,20 +68,18 @@ export default {
   components: {
     Toolbar,
   },
-  data() {
-    return {
-      session: null,
-    };
+  computed: {
+    session() {
+      return this.$store.state.session.currentSession
+    }
   },
-  created() {
-    // TODO: Fetch from the db the session based on route params id
-    this.session = {
-      id: "001",
-      title: "Session 1",
-      desc:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nuncsed felis at dolor hendrerit cursus. Lorem ipsum dolor sit amet,consectetur adipiscing elit. Nunc sed felis at dolor hendreritcursus.Lorem ipsum dolor sit amet, consectetur adipiscingelit. Nunc sed felis at dolor hendrerit cursus. Lorem ipsumdolor sit amet, consectetur adipiscing elit. Nunc sed felis atdolor hendrerit cursus.",
-      created: new Date().toDateString(),
-    };
+  methods: {
+    parseDate(created_date) {
+      return (new Date(parseInt(created_date)*1000)).toString().substring(0,24)
+    }
+  },
+  async created() {
+    await this.$store.dispatch('getSessionById', this.$route.params.id)
   },
 };
 </script>

@@ -27,7 +27,6 @@
 </template>
 
 <script>
-new Date().toDateString
 export default {
   props: ["data"],
   data() {

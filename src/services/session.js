@@ -21,5 +21,8 @@ export default {
     },
     checkResponseStatus: () => {
         return {msg: 'Sending Video...', value: 2}
+    },
+    getSessionById: (id) => {
+        return axios.get(`/api/session?id=${id}`)
     }
 }
