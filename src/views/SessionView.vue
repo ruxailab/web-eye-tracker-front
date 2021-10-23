@@ -20,7 +20,7 @@
                 Create heatmap
                 <v-icon right>mdi-fire</v-icon>
               </v-btn>
-              <v-btn width="100%" class="mt-6" outlined color="red">
+              <v-btn width="100%" class="mt-6" outlined color="red" @click="deleteSession()">
                 Delete session
                 <v-icon right>mdi-delete-outline</v-icon>
               </v-btn>
@@ -63,6 +63,7 @@
 
 <script>
 import Toolbar from "@/components/Toolbar";
+import api from '@/services/session'
 
 export default {
   components: {
@@ -76,6 +77,10 @@ export default {
   methods: {
     parseDate(created_date) {
       return (new Date(parseInt(created_date)*1000)).toString().substring(0,24)
+    },
+    async deleteSession() {
+      await api.deleteSession(this.session.id)
+      this.$router.push('/dashboard')
     }
   },
   async created() {
