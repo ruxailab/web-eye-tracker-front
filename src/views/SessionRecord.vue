@@ -108,7 +108,7 @@ export default {
           { lastModifiedDate: new Date(), type: this.screenfile.blob.type }
         );
 
-        this.$router.push('/session-upload')
+        // this.$router.push('/session-upload')
         await api.createSession(this.webcamfile, this.screenfile);
       } else {
         alert("Session discarded!");

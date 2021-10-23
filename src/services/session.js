@@ -13,6 +13,6 @@ export default {
         })
     },
     checkResponseStatus: () => {
-        return {msg: 'Hello', value: 2}
+        return {msg: 'Sending Video...', value: 2}
     }
 }

@@ -14,8 +14,8 @@
               label="Description"
             />
             <v-row justify="end" class="ma-0">
-              <v-btn outlined color="red" class="mr-6">cancel</v-btn>
-              <v-btn color="success">start</v-btn>
+              <v-btn outlined color="red" class="mr-6" to="/sessions">cancel</v-btn>
+              <v-btn color="success" to="/session-record">start</v-btn>
             </v-row>
           </v-col>
           <v-col cols="12" lg="5" md="5">
