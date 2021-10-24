@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div id="box">
     <Toolbar />
     <v-container class="mt-12">
       <v-row justify="center" align="start">
@@ -18,7 +18,9 @@
               cursus.
             </p>
             <v-card-actions class="px-4 mt-12 mb-4">
-              <v-btn block outlined color="green" to="/callibration/record">start Callibration</v-btn>
+              <v-btn block outlined color="green" :disabled="!isCameraOn" @click="goToCallibRecord()"
+                >start Callibration</v-btn
+              >
             </v-card-actions>
           </v-card>
         </v-col>
@@ -67,6 +69,7 @@ export default {
       model: null,
       predictions: [],
       isModelLoaded: false,
+      webcamStream: null
     };
   },
   watch: {
@@ -78,6 +81,26 @@ export default {
     },
   },
   methods: {
+    goToCallibRecord() {
+      // element which needs to enter full-screen mode
+      var element = document.querySelector("#box");
+
+      // make the element go to full-screen mode
+      element
+        .requestFullscreen()
+        .then(function() {
+          // element has entered fullscreen mode 
+        })
+        .catch(function(error) {
+          console.log(error);
+          // element could not enter fullscreen mode
+        });
+
+        this.webcamStream.getTracks().forEach((track) => {
+          track.stop()
+        })
+        this.$router.push('/callibration/record')
+    },
     setupCamera() {
       let video = document.getElementById("video-tag");
       navigator.mediaDevices
@@ -89,6 +112,8 @@ export default {
           // stream is a MediaStream object
           video.srcObject = stream;
           this.isCameraOn = true;
+
+          this.webcamStream = stream
 
           await tf.getBackend();
           this.model = await blazeface.load();
@@ -122,10 +147,10 @@ export default {
         ctx.stroke();
 
         // drawing small rectangles for the face landmarks
-        ctx.fillStyle = "red";
-        pred.landmarks.forEach((landmark) => {
-          ctx.fillRect(landmark[0], landmark[1], 5, 5);
-        });
+        // ctx.fillStyle = "red";
+        // pred.landmarks.forEach((landmark) => {
+        //   ctx.fillRect(landmark[0], landmark[1], 5, 5);
+        // });
       });
     },
   },
