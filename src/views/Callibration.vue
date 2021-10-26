@@ -37,13 +37,14 @@
             </v-btn>
           </v-row>
           <div v-if="!isModelLoaded && isCameraOn">
-            <v-row justify="center" class="mt-8">
+            <v-row justify="center" class="mt-8" align="center">
               <v-progress-circular
                 :size="50"
                 :width="7"
                 color="black"
                 indeterminate
               ></v-progress-circular>
+              <h2 class="ml-4">Loading model...</h2>
             </v-row>
           </div>
           <video autoplay id="video-tag" style="display: none"></video>
@@ -57,7 +58,7 @@
 <script>
 import Toolbar from "@/components/Toolbar.vue";
 const tf = require("@tensorflow/tfjs");
-const blazeface = require("@tensorflow-models/blazeface");
+const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection")
 
 export default {
   components: {
@@ -109,6 +110,7 @@ export default {
           video: { width: 600, height: 500 },
         })
         .then(async (stream) => {
+          console.log('ahahhaha');
           // stream is a MediaStream object
           video.srcObject = stream;
           this.isCameraOn = true;
@@ -116,7 +118,10 @@ export default {
           this.webcamStream = stream
 
           await tf.getBackend();
-          this.model = await blazeface.load();
+          // Load the faceLandmarksDetection model assets.
+          this.model = await faceLandmarksDetection.load(faceLandmarksDetection.SupportedPackages.mediapipeFacemesh);
+          console.log(this.model);
+
           this.isModelLoaded = true;
           this.detectFace();
         });
@@ -125,32 +130,44 @@ export default {
       let video = document.getElementById("video-tag");
       let canvas = document.getElementById("canvas");
       let ctx = canvas.getContext("2d");
-      const prediction = await this.model.estimateFaces(video, false);
-      this.predictions = prediction;
+      
+      this.predictions = await this.model.estimateFaces({
+        input: document.getElementById("video-tag")
+      });
+
       // draw the video first
       ctx.drawImage(video, 0, 0, 600, 500);
 
-      prediction.forEach((pred) => {
+      this.predictions.forEach((pred) => {
         // draw the rectangle enclosing the face
+        ctx.fillStyle = "red";
+
+        // left iris
+        ctx.fillRect(
+          pred.scaledMesh[468]['0'],
+          pred.scaledMesh[468]['1'],
+          5,5
+        );
+
+        // right iris
+        ctx.fillRect(
+          pred.scaledMesh[473]['0'],
+          pred.scaledMesh[473]['1'],
+          5,5
+        );
+        
+        // face contour
         ctx.beginPath();
         ctx.lineWidth = "4";
         ctx.strokeStyle = "blue";
-        // the last two arguments are width and height
-        // since blazeface returned only the coordinates,
-        // we can find the width and height by subtracting them.
         ctx.rect(
-          pred.topLeft[0],
-          pred.topLeft[1],
-          pred.bottomRight[0] - pred.topLeft[0],
-          pred.bottomRight[1] - pred.topLeft[1]
+          pred.boundingBox.topLeft[0],
+          pred.boundingBox.topLeft[1],
+          pred.boundingBox.bottomRight[0] - pred.boundingBox.topLeft[0],
+          pred.boundingBox.bottomRight[1] - pred.boundingBox.topLeft[1]
         );
         ctx.stroke();
 
-        // drawing small rectangles for the face landmarks
-        // ctx.fillStyle = "red";
-        // pred.landmarks.forEach((landmark) => {
-        //   ctx.fillRect(landmark[0], landmark[1], 5, 5);
-        // });
       });
     },
   },
