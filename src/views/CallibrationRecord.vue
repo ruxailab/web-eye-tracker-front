@@ -8,24 +8,28 @@
         </v-btn>
         <v-btn block class="mt-4" outlined color="red" to="/">
           Discard
-           <v-icon right>mdi-delete</v-icon>
+          <v-icon right>mdi-delete</v-icon>
         </v-btn>
       </v-col>
     </v-row>
     <canvas id="canvas" v-else />
+    <video autoplay id="video-tag" style="display: none"></video>
   </div>
 </template>
 
 <script>
-import api from '@/services/callib'
+// import api from "@/services/callib";
+const tf = require("@tensorflow/tfjs");
+const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
 
 export default {
   data() {
     return {
+      model: null,
       canvas: null,
       w: 0,
       h: 0,
-      interval: 2000,
+      interval: 2500,
       radius: 20,
       offset: 30,
       ctx: null,
@@ -34,12 +38,21 @@ export default {
       webcamfile: null,
       recordWebCam: null,
       configWebCam: {
-        video: true,
         audio: false,
+        video: { width: 600, height: 500 },
       },
-      mouseEvents: [],
+      mouseIrisPoints: [],
       callibFinished: false,
+      predictions: [],
     };
+  },
+  watch: {
+    predictions: {
+      handler() {
+        this.detectFace();
+      },
+      deep: true,
+    },
   },
   mounted() {
     this.startCallib();
@@ -54,22 +67,30 @@ export default {
     startMouseEventCapture() {
       const th = this;
       onmousemove = function(event) {
-        th.mouseEvents.push({
-          x: event.clientX,
-          y: event.clientY,
-        });
+        if (th.predictions[0]) {
+          th.mouseIrisPoints.push({
+            mouse_x: event.clientX,
+            mouse_y: event.clientY,
+            left_iris_x: th.predictions[0].scaledMesh[468]["0"],
+            left_iris_y: th.predictions[0].scaledMesh[468]["1"],
+            right_iris_x: th.predictions[0].scaledMesh[473]["0"],
+            right_iris_y: th.predictions[0].scaledMesh[473]["1"],
+          });
+        }
       };
     },
     async startWebCamCapture() {
       // Request permission for screen capture
       return navigator.mediaDevices
         .getUserMedia(this.configWebCam)
-        .then((mediaStreamObj) => {
+        .then(async (mediaStreamObj) => {
           // Create media recorder object
           this.recordWebCam = new MediaRecorder(mediaStreamObj, {
             mimeType: "video/webm; codecs=vp9",
           });
           let recordingWebCam = [];
+          let video = document.getElementById("video-tag");
+          video.srcObject = mediaStreamObj;
 
           // Define screen capture events
 
@@ -92,13 +113,26 @@ export default {
             th.stopRecord();
           };
 
+          // Start Tensorflow Model
+          await tf.getBackend();
+          // Load the faceLandmarksDetection model assets.
+          this.model = await faceLandmarksDetection.load(
+            faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
+          );
+
           // Init record webcam
           this.recordWebCam.start();
+          this.detectFace();
         })
         .catch((e) => {
           console.error("Error", e);
           this.stopRecord();
         });
+    },
+    async detectFace() {
+      this.predictions = await this.model.estimateFaces({
+        input: document.getElementById("video-tag"),
+      });
     },
     stopRecord() {
       this.recordWebCam.state != "inactive" ? this.stopWebCamCapture() : null;
@@ -108,6 +142,7 @@ export default {
       this.callibFinished = true;
     },
     async saveCallib() {
+      console.log(this.mouseIrisPoints);
       // Format blobs into File
       this.webcamfile = new File(
         [this.webcamfile.blob],
@@ -116,14 +151,15 @@ export default {
       );
 
       // Upload data to api
-      api.saveCalibration({
-          webcamfile: this.webcamfile,
-          user_id: this.$store.state.auth.user.uid,
-          mouse_events: this.mouseEvents
-      }).then(() => {
-          this.$router.push('/')
-      })
-
+      // api
+      //   .saveCalibration({
+      //     webcamfile: this.webcamfile,
+      //     user_id: this.$store.state.auth.user.uid,
+      //     mouse_events: this.mouseEvents,
+      //   })
+      //   .then(() => {
+      //     this.$router.push("/");
+      //   });
     },
     move() {
       let id;
@@ -163,145 +199,58 @@ export default {
       this.h = this.canvas.height = window.innerHeight;
       this.ctx = this.canvas.getContext("2d");
 
+      // 34 POINTS -> Implements 9-Point Calibration Method
       this.callibPoints = [
+        // ROUND 1
         // top to down
         { x: this.offset, y: this.offset },
         { x: this.w / 2, y: this.offset },
         { x: this.w - this.offset, y: this.offset },
-        { x: this.offset, y: this.h / 2 },
-        { x: this.w / 2, y: this.h / 2 },
+
         { x: this.w - this.offset, y: this.h / 2 },
+        { x: this.w / 2, y: this.h / 2 },
+        { x: this.offset, y: this.h / 2 },
+
         { x: this.offset, y: this.h - this.offset },
         { x: this.w / 2, y: this.h - this.offset },
         { x: this.w - this.offset, y: this.h - this.offset },
+
         // down to top
-        { x: this.offset, y: this.h - this.offset },
         { x: this.w / 2, y: this.h - this.offset },
-        { x: this.w - this.offset, y: this.h - this.offset },
+        { x: this.offset, y: this.h - this.offset },
+
         { x: this.offset, y: this.h / 2 },
         { x: this.w / 2, y: this.h / 2 },
         { x: this.w - this.offset, y: this.h / 2 },
-        { x: this.offset, y: this.offset },
-        { x: this.w / 2, y: this.offset },
+
         { x: this.w - this.offset, y: this.offset },
-        // random points
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
+        { x: this.w / 2, y: this.offset },
+        { x: this.offset, y: this.offset },
+
+        // ROUND 2
         // top to down
-        { x: this.offset, y: this.offset },
         { x: this.w / 2, y: this.offset },
         { x: this.w - this.offset, y: this.offset },
-        { x: this.offset, y: this.h / 2 },
-        { x: this.w / 2, y: this.h / 2 },
+
         { x: this.w - this.offset, y: this.h / 2 },
+        { x: this.w / 2, y: this.h / 2 },
+        { x: this.offset, y: this.h / 2 },
+
         { x: this.offset, y: this.h - this.offset },
         { x: this.w / 2, y: this.h - this.offset },
         { x: this.w - this.offset, y: this.h - this.offset },
+
         // down to top
-        { x: this.offset, y: this.h - this.offset },
         { x: this.w / 2, y: this.h - this.offset },
-        { x: this.w - this.offset, y: this.h - this.offset },
+        { x: this.offset, y: this.h - this.offset },
+
         { x: this.offset, y: this.h / 2 },
         { x: this.w / 2, y: this.h / 2 },
         { x: this.w - this.offset, y: this.h / 2 },
-        { x: this.offset, y: this.offset },
-        { x: this.w / 2, y: this.offset },
+
         { x: this.w - this.offset, y: this.offset },
-        // random points
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
-        {
-          x: this.rndNum(this.offset, this.w - this.offset),
-          y: this.rndNum(this.offset, this.h - this.offset),
-        },
+        { x: this.w / 2, y: this.offset },
+        { x: this.offset, y: this.offset },
       ];
     },
   },

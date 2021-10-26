@@ -83,20 +83,6 @@ export default {
   },
   methods: {
     goToCallibRecord() {
-      // element which needs to enter full-screen mode
-      var element = document.querySelector("#box");
-
-      // make the element go to full-screen mode
-      element
-        .requestFullscreen()
-        .then(function() {
-          // element has entered fullscreen mode 
-        })
-        .catch(function(error) {
-          console.log(error);
-          // element could not enter fullscreen mode
-        });
-
         this.webcamStream.getTracks().forEach((track) => {
           track.stop()
         })
@@ -135,7 +121,6 @@ export default {
 
       // draw the video first
       ctx.drawImage(video, 0, 0, 600, 500);
-
       this.predictions.forEach((pred) => {
         // draw the rectangle enclosing the face
         ctx.fillStyle = "red";
