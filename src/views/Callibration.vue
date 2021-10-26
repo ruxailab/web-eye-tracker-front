@@ -110,7 +110,6 @@ export default {
           video: { width: 600, height: 500 },
         })
         .then(async (stream) => {
-          console.log('ahahhaha');
           // stream is a MediaStream object
           video.srcObject = stream;
           this.isCameraOn = true;
@@ -120,7 +119,6 @@ export default {
           await tf.getBackend();
           // Load the faceLandmarksDetection model assets.
           this.model = await faceLandmarksDetection.load(faceLandmarksDetection.SupportedPackages.mediapipeFacemesh);
-          console.log(this.model);
 
           this.isModelLoaded = true;
           this.detectFace();
