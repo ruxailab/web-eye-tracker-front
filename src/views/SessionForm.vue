@@ -50,12 +50,19 @@
                 How to do it
               </v-card-title>
               <p class="mx-4">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc
-                sed felis at dolor hendrerit cursus. <br /><br />Lorem ipsum
-                dolor sit amet, consectetur adipiscing elit. Nunc sed felis at
-                dolor hendrerit cursus. <br /><br />Lorem ipsum dolor sit amet,
-                consectetur adipiscing elit. Nunc sed felis at dolor hendrerit
-                cursus.
+                Is it your first time doing this? No problem!
+                <br><br>
+                This form is the start point of a new eye tracking session. Fill up
+                with information about your session, give it a good title, the URL of the 
+                website you will be analysing and describe your testing environment or
+                participant. 
+                <br><br>
+                Feel free to use the description the way you want, but make sure that the URL 
+                you provide can be accessed by any website using iframes.
+                <br><br>
+                In the next steps you will enter fullscreen mode, and whenever you are ready to start
+                the experiment just press the PLAY button. If you want to take a break, press PAUSE, and if you
+                finished you can press STOP.
               </p>
             </v-card>
           </v-col>
