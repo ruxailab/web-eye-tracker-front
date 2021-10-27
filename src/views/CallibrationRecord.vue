@@ -44,12 +44,13 @@ export default {
       mouseIrisPoints: [],
       callibFinished: false,
       predictions: [],
+      isStop: false,
     };
   },
   watch: {
     predictions: {
       handler() {
-        this.detectFace();
+        if (!this.isStop) this.detectFace();
       },
       deep: true,
     },
@@ -67,15 +68,17 @@ export default {
     startMouseEventCapture() {
       const th = this;
       onmousemove = function(event) {
-        if (th.predictions[0]) {
-          th.mouseIrisPoints.push({
-            mouse_x: event.clientX,
-            mouse_y: event.clientY,
-            left_iris_x: th.predictions[0].scaledMesh[468]["0"],
-            left_iris_y: th.predictions[0].scaledMesh[468]["1"],
-            right_iris_x: th.predictions[0].scaledMesh[473]["0"],
-            right_iris_y: th.predictions[0].scaledMesh[473]["1"],
-          });
+        if (!this.isStop) {
+          if (th.predictions[0]) {
+            th.mouseIrisPoints.push({
+              mouse_x: event.clientX,
+              mouse_y: event.clientY,
+              left_iris_x: th.predictions[0].scaledMesh[468]["0"],
+              left_iris_y: th.predictions[0].scaledMesh[468]["1"],
+              right_iris_x: th.predictions[0].scaledMesh[473]["0"],
+              right_iris_y: th.predictions[0].scaledMesh[473]["1"],
+            });
+          }
         }
       };
     },
@@ -167,6 +170,7 @@ export default {
       if (this.index == this.callibPoints.length) {
         this.stopRecord();
         cancelAnimationFrame(id);
+        this.isStop = true;
         return;
       }
 
