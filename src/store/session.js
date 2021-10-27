@@ -9,14 +9,16 @@ export default {
             value: 0
         },
         sessions: null,
-        currentSession: null
+        currentSession: null,
+        currentCalibPoints: []
     },
     mutations: {
         setSending: (state,payload) => state.sending = payload,
         setError: (state,payload) => state.error = payload,
         setResponseStatus: (state,payload) => state.responseStatus = payload,
         setSessions: (state, payload) => state.sessions = payload,
-        setCurrentSession: (state, payload) => state.currentSession = payload
+        setCurrentSession: (state, payload) => state.currentSession = payload,
+        setCurrentCalib: (state, payload) => state.currentCalibPoints = payload
     },
     actions: {
         checkResponseStatus: async ({commit}) => {

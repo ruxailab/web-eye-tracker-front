@@ -98,6 +98,7 @@ export default {
           description: this.description,
           website_url: this.website_url,
           user_id: this.$store.state.auth.user.uid,
+          calib_points: this.$store.state.session.currentCalibPoints
         });
 
         // element which needs to enter full-screen mode

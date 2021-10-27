@@ -18,7 +18,6 @@
 </template>
 
 <script>
-// import api from "@/services/callib";
 const tf = require("@tensorflow/tfjs");
 const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
 
@@ -146,23 +145,9 @@ export default {
     },
     async saveCallib() {
       console.log(this.mouseIrisPoints);
-      // Format blobs into File
-      this.webcamfile = new File(
-        [this.webcamfile.blob],
-        `${this.webcamfile.name}.webm`,
-        { lastModifiedDate: new Date(), type: this.webcamfile.blob.type }
-      );
-
-      // Upload data to api
-      // api
-      //   .saveCalibration({
-      //     webcamfile: this.webcamfile,
-      //     user_id: this.$store.state.auth.user.uid,
-      //     mouse_events: this.mouseEvents,
-      //   })
-      //   .then(() => {
-      //     this.$router.push("/");
-      //   });
+      // Save calib data to store
+      this.$store.commit('setCurrentCalib', this.mouseIrisPoints)
+      this.$router.push('/sessions/new')
     },
     move() {
       let id;

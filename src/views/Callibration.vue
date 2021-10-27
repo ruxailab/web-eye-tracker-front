@@ -7,15 +7,17 @@
           <v-card outlined>
             <v-card-title>
               <v-icon left>mdi-information</v-icon>
-              Callibration System
+              Calibration System
             </v-card-title>
             <p class="mx-4">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc sed
-              felis at dolor hendrerit cursus. <br /><br />Lorem ipsum dolor sit
-              amet, consectetur adipiscing elit. Nunc sed felis at dolor
-              hendrerit cursus. <br /><br />Lorem ipsum dolor sit amet,
-              consectetur adipiscing elit. Nunc sed felis at dolor hendrerit
-              cursus.
+              The calibration works by associating the position of your eyes' iris with the coordinates
+              of the mouse cursor.
+              <br><br>
+              Before starting the process, turn on the camera and make sure your face and eyes
+              are being captured by the model. After clicking start please don't leave the current position.
+              <br><br>
+              Your task during the calibration is to follow the red circles with your mouse. Please look at the
+              cursor while moving it to the next circle.
             </p>
             <v-card-actions class="px-4 mt-12 mb-4">
               <v-btn block outlined color="green" :disabled="!isCameraOn" @click="goToCallibRecord()"

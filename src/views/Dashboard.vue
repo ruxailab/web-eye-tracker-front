@@ -18,7 +18,7 @@
           fixed
           v-bind="attrs"
           v-on="on"
-          :to="`/sessions/new`"
+          :to="`/callibration`"
         >
           <v-icon>mdi-plus</v-icon>
         </v-btn>

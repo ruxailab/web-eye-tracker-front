@@ -255,9 +255,9 @@ export default {
             let blob = new Blob(recordingWebCam, { type: "video/webm" });
             recordingWebCam = [];
             const uploadMediaWebCam = { blob: blob, name: mediaStreamObj.id };
+            
+            // Download on browser
             // const mediaWebCam = window.URL.createObjectURL(blob);
-
-            // TODO: Send to API
             // console.log(uploadMediaWebCam, mediaWebCam);
             // th.downloadVideo(mediaWebCam, `WebCam.webm`);
             th.webcamfile = uploadMediaWebCam;
