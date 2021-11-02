@@ -9,6 +9,7 @@ export default {
         formData.append('description', data.description)
         formData.append('website_url', data.website_url)
         formData.append('user_id', data.user_id)
+        formData.append('iris_points', JSON.stringify(data.iris_points))
         formData.append('calib_points', JSON.stringify(data.calib_points))
 
         return axios.post(`/api/session`, formData, {

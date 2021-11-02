@@ -1,7 +1,7 @@
 <template>
   <div class="session">
     <v-toolbar dense dark>
-      <v-toolbar-title>Session: {{currentSession.title}}</v-toolbar-title>
+      <v-toolbar-title>Session: {{ currentSession.title }}</v-toolbar-title>
       <v-spacer />
       <v-toolbar-items>
         <v-row class="ma-0" align="center">
@@ -36,8 +36,11 @@
         </v-row>
       </v-toolbar-items>
     </v-toolbar>
-    <iframe :src="currentSession.website_url" style="border: 0; width: 100%; height: 93%" />
-
+    <iframe
+      :src="currentSession.website_url"
+      style="border: 0; width: 100%; height: 93%"
+    />
+    <video autoplay id="video-tag" style="display: none"></video>
     <!-- Confirm Send Dialog -->
     <dialog-confirm-send
       :dialog="dialog"
@@ -48,6 +51,8 @@
 </template>
 
 <script>
+const tf = require("@tensorflow/tfjs");
+const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
 import DialogConfirmSend from "@/components/DialogConfirmSend.vue";
 import api from "@/services/session.js";
 
@@ -56,6 +61,7 @@ export default {
   name: "Session",
   data() {
     return {
+      model: null,
       webcamfile: null,
       screenfile: null,
       displayTime: {
@@ -85,12 +91,23 @@ export default {
       recordScreen: null,
       recordWebCam: null,
       dialog: false,
+      irisPoints: [],
+      predictions: [],
+      isStop: false,
     };
+  },
+  watch: {
+    predictions: {
+      handler() {
+        if (!this.isStop) this.detectFace();
+      },
+      deep: true,
+    },
   },
   computed: {
     currentSession() {
-      return this.$store.state.session.currentSession
-    }
+      return this.$store.state.session.currentSession;
+    },
   },
   methods: {
     async sendToAPI(consent) {
@@ -106,6 +123,8 @@ export default {
           `${this.screenfile.name}.webm`,
           { lastModifiedDate: new Date(), type: this.screenfile.blob.type }
         );
+
+        this.currentSession.iris_points = this.irisPoints
         await api.createSession(this.currentSession, this.webcamfile, this.screenfile);
         this.$router.push('/session-upload')
       } else {
@@ -117,6 +136,7 @@ export default {
         this.recordScreen.resume();
         this.recordWebCam.resume();
         this.startTimer();
+        this.isStop = false;
       } else {
         await this.startScreenCapture();
         await this.startWebCamCapture();
@@ -134,6 +154,7 @@ export default {
       this.recordScreen.pause();
       this.recordWebCam.pause();
       this.pauseTimer();
+      this.isStop = true;
     },
     startTimer() {
       this.recording.value = true;
@@ -234,12 +255,14 @@ export default {
       // Request permission for screen capture
       return navigator.mediaDevices
         .getUserMedia(this.configWebCam)
-        .then((mediaStreamObj) => {
+        .then(async (mediaStreamObj) => {
           // Create media recorder object
           this.recordWebCam = new MediaRecorder(mediaStreamObj, {
             mimeType: "video/webm; codecs=vp9",
           });
           let recordingWebCam = [];
+          let video = document.getElementById("video-tag");
+          video.srcObject = mediaStreamObj;
 
           // Define screen capture events
 
@@ -255,7 +278,7 @@ export default {
             let blob = new Blob(recordingWebCam, { type: "video/webm" });
             recordingWebCam = [];
             const uploadMediaWebCam = { blob: blob, name: mediaStreamObj.id };
-            
+
             // Download on browser
             // const mediaWebCam = window.URL.createObjectURL(blob);
             // console.log(uploadMediaWebCam, mediaWebCam);
@@ -267,16 +290,40 @@ export default {
             th.stopRecord();
           };
 
+          // Start Tensorflow Model
+          await tf.getBackend();
+          // Load the faceLandmarksDetection model assets.
+          this.model = await faceLandmarksDetection.load(
+            faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
+          );
+
           // Init record webcam
           this.recordWebCam.start();
+          this.detectFace();
         })
         .catch((e) => {
           console.error("Error", e);
           this.stopRecord();
         });
     },
+    async detectFace() {
+      this.predictions = await this.model.estimateFaces({
+        input: document.getElementById("video-tag"),
+      });
+      if (!this.isStop) {
+        if (this.predictions[0]) {
+          this.irisPoints.push({
+            left_iris_x: this.predictions[0].scaledMesh[468]["0"],
+            left_iris_y: this.predictions[0].scaledMesh[468]["1"],
+            right_iris_x: this.predictions[0].scaledMesh[473]["0"],
+            right_iris_y: this.predictions[0].scaledMesh[473]["1"],
+          });
+        }
+      }
+    },
     stopWebCamCapture() {
       this.recordWebCam.stop();
+      this.isStop = true;
     },
     downloadVideo(url, filename) {
       var a = document.createElement("a");

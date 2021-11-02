@@ -1,5 +1,5 @@
 <template>
-  <div id="box">
+  <div>
     <toolbar />
     <v-row justify="center" class="mt-12">
       <v-col cols="12" lg="8" md="8">
@@ -60,7 +60,7 @@
                 Feel free to use the description the way you want, but make sure that the URL 
                 you provide can be accessed by any website using iframes.
                 <br><br>
-                In the next steps you will enter fullscreen mode, and whenever you are ready to start
+                In the next step whenever you are ready to start
                 the experiment just press the PLAY button. If you want to take a break, press PAUSE, and if you
                 finished you can press STOP.
               </p>
@@ -100,19 +100,6 @@ export default {
           user_id: this.$store.state.auth.user.uid,
           calib_points: this.$store.state.session.currentCalibPoints
         });
-
-        // element which needs to enter full-screen mode
-        var element = document.querySelector("#box");
-
-        // make the element go to full-screen mode
-        element.requestFullscreen()
-          .then(function() {
-            // element has entered fullscreen mode successfully
-          })
-          .catch(function(error) {
-            console.log(error);
-            // element could not enter fullscreen mode
-          });
 
         this.$router.push("/session-record");
       }
