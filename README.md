@@ -1,4 +1,4 @@
-# 👁️ Eye Lab
+# 👁️ Eye Lab: Gaze Tracker WEB
 
 Eye Lab is an open source tool to create eye tracking usability tests. It started as a final undergraduation work for Computer Engineering of student [Karine Pistili](https://www.linkedin.com/in/karine-pistili/) that created the first prototype. The idea is to evolve it to a more complete and useful tool with the help of the community.
 
@@ -58,6 +58,11 @@ After creating the .env you just need to login into your firebase account via te
 ```
 firebase deploy --only hosting
 ```
+
+### 5. GitHub CI/CD
+
+This project has the Firebase Hosting Workflow from the Github Actions. If you want to use it on your on repository feel free to edit *.github/workflows* files with your settings.
+
 
 ## 🧑‍🤝‍🧑 Contributing
 
