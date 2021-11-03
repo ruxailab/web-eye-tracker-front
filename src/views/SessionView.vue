@@ -24,7 +24,7 @@
                   <v-icon right>mdi-code-json</v-icon>
                 </v-btn>
                 <v-btn width="100%" outlined @click="createHeatmap()">
-                  Create heatmap
+                  View heatmap
                   <v-icon right>mdi-fire</v-icon>
                 </v-btn>
                 <v-btn
