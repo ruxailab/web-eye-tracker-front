@@ -73,7 +73,11 @@
     </v-row>
 
     <v-dialog fullscreen v-model="showHeatmap">
-      <Heatmap  @close="showHeatmap = false" :gaze_points="points"/>
+      <Heatmap
+        @close="showHeatmap = false"
+        :gaze_points="points"
+        :screen_record="screen_record"
+      />
     </v-dialog>
   </div>
 </template>
@@ -81,7 +85,7 @@
 <script>
 import Toolbar from "@/components/Toolbar";
 import api from "@/services/session";
-import Heatmap from "@/components/HeatmapViewer.vue"
+import Heatmap from "@/components/HeatmapViewer.vue";
 
 export default {
   components: {
@@ -91,8 +95,9 @@ export default {
   data() {
     return {
       showHeatmap: false,
-      points: []
-    }
+      points: [],
+      screen_record: null,
+    };
   },
   computed: {
     session() {
@@ -101,12 +106,17 @@ export default {
   },
   methods: {
     async createHeatmap() {
-      this.showHeatmap = true
-      const { data } = (await api.getSessionResults(this.session.id))
-      this.points = data
+      const { data } = await api.getSessionResults(this.session.id);
+      this.points = data;
+
+      this.screen_record = (
+        await api.getSessionScreenRecord(this.session.id)
+      ).data;
+
+      this.showHeatmap = true;
     },
     async downloadJSON() {
-      const { data } = (await api.getSessionResults(this.session.id))
+      const { data } = await api.getSessionResults(this.session.id);
       var dataStr =
         "data:text/json;charset=utf-8," +
         encodeURIComponent(JSON.stringify(data));
@@ -131,7 +141,7 @@ export default {
     await this.$store.dispatch("getSessionById", this.$route.params.id);
   },
   beforeDestroy() {
-    this.$store.commit('setCurrentSession', null)
-  }
+    this.$store.commit("setCurrentSession", null);
+  },
 };
 </script>

@@ -32,5 +32,10 @@ export default {
     },
     getSessionResults: (id) => {
         return axios.get(`/api/session/results?id=${id}`)
+    },
+    getSessionScreenRecord: (id) => {
+        return axios.get(`/api/session/results/record?id=${id}`, {
+            responseType: 'blob',
+        })
     }
 }

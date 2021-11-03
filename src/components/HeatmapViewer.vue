@@ -1,9 +1,7 @@
 <template>
-  <v-card>
+  <v-card id="card">
     <div class="video-view">
-      <video controls class="video-container">
-        <source src="a" />
-      </video>      
+      <video autoplay class="video-container" id="video" />
       <div class="video-content">
         <v-btn
           icon
@@ -17,10 +15,22 @@
         >
           <v-icon>mdi-close</v-icon>
         </v-btn>
-        <v-btn @click="createHeatmap()">show</v-btn>
+        <div style="width:200vh">
+          <v-row justify="center" class="mt-5">
+            <v-btn
+            class="mt-4"
+              @click="createHeatmap()"
+              v-if="!isplay"
+              color="green"
+              outlined
+              >Play Session Result
+              <v-icon righ>mdi-play</v-icon>
+            </v-btn>
+          </v-row>
+        </div>
       </div>
       <div class="heatmap-container">
-          <div id="heatmap"/>
+        <div id="heatmap" />
       </div>
     </div>
   </v-card>
@@ -30,9 +40,29 @@
 const h337 = require("heatmap.js");
 
 export default {
-  props: ["gaze_points"],
+  props: ["gaze_points", "screen_record"],
+  data() {
+    return {
+      isplay: false,
+    };
+  },
   methods: {
-    createHeatmap() {
+    async createHeatmap() {
+      this.isplay = true;
+      document.getElementById("video").src = URL.createObjectURL(
+        this.screen_record
+      );
+      const elem = document.getElementById("card");
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) {
+        /* Safari */
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        /* IE11 */
+        elem.msRequestFullscreen();
+      }
+
       const container = document.getElementById("heatmap");
       var heatmap = h337.create({
         container: container,
@@ -62,7 +92,7 @@ export default {
 
 <style scoped>
 #heatmap {
-    height: 100vh;
+  height: 100vh;
   width: 100%;
   position: absolute;
   top: 0;
@@ -76,7 +106,7 @@ export default {
   top: 0;
   left: 0;
   z-index: 1;
-  background-color: rgba(255, 255, 255, 0.1)
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .video-container {
