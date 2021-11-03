@@ -29,5 +29,8 @@ export default {
     },
     deleteSession: (id) => {
         return axios.delete(`/api/session?id=${id}`)
+    },
+    getSessionResults: (id) => {
+        return axios.get(`/api/session/results?id=${id}`)
     }
 }
