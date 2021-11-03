@@ -2,7 +2,6 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import store from '@/store/index'
 import SessionRecord from '@/views/SessionRecord.vue'
-import SessionUpload from '@/views/UploadSession.vue'
 import LandingPage from '@/views/LandingPage.vue'
 import Login from '@/views/Login'
 import Dashboard from '@/views/Dashboard'
@@ -23,11 +22,6 @@ const routes = [
     path: '/session-record',
     name: 'SessionRecord',
     component: SessionRecord,
-  },
-  {
-    path: '/session-upload',
-    name: 'SessionUpload',
-    component: SessionUpload,
   },
   {
     path: '/login',

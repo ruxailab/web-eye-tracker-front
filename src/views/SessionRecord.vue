@@ -36,6 +36,12 @@
         </v-row>
       </v-toolbar-items>
     </v-toolbar>
+    <v-overlay :value="saving">
+      <v-row justify="center" class="mt-8" align="center">
+        <v-progress-circular indeterminate size="64"></v-progress-circular>
+        <h2 class="ml-4">Saving Session...</h2>
+      </v-row>
+    </v-overlay>
     <iframe
       :src="currentSession.website_url"
       style="border: 0; width: 100%; height: 93%"
@@ -61,6 +67,7 @@ export default {
   name: "Session",
   data() {
     return {
+      saving: false,
       model: null,
       webcamfile: null,
       screenfile: null,
@@ -112,6 +119,7 @@ export default {
   methods: {
     async sendToAPI(consent) {
       if (consent) {
+        this.saving = true;
         // Format blobs into File
         this.webcamfile = new File(
           [this.webcamfile.blob],
@@ -124,11 +132,13 @@ export default {
           { lastModifiedDate: new Date(), type: this.screenfile.blob.type }
         );
 
-        this.currentSession.iris_points = this.irisPoints
+        this.currentSession.iris_points = this.irisPoints;
         await api.createSession(this.currentSession, this.webcamfile, this.screenfile);
-        this.$router.push('/session-upload')
+
+        this.$router.push('/dashboard')
       } else {
         alert("Session discarded!");
+        this.$router.push('/dashboard')
       }
     },
     async startRecord() {
@@ -230,12 +240,6 @@ export default {
             let blob = new Blob(recordingScreen, { type: "video/webm" });
             recordingScreen = [];
             const uploadMediaScreen = { blob: blob, name: captureStream.id };
-            // const mediaScreen = window.URL.createObjectURL(blob);
-
-            // TODO: Send to API
-            // // th.downloadVideo(mediaScreen, `ScreenCap.webm`);
-            // console.log('Uplaod media',uploadMediaScreen);
-            // console.log('MEdia Screen', mediaScreen);
             th.screenfile = uploadMediaScreen;
 
             // End screen capture
