@@ -13,9 +13,15 @@
         dense
       ></v-text-field>
     </v-card-title>
-    <v-data-table :headers="headers" :items="data" :search="search">
+    <v-data-table
+      :headers="headers"
+      :items="data"
+      :search="search"
+      :loading="loading"
+      loading-text="Loading... Please wait"
+    >
       <template v-slot:item.created_date="{ item }">
-        {{parseDate(item.created_date)}}
+        {{ parseDate(item.created_date) }}
       </template>
       <template v-slot:item.actions="{ item }">
         <v-btn icon :to="`/sessions/view/${item.id}`">
@@ -28,7 +34,7 @@
 
 <script>
 export default {
-  props: ["data"],
+  props: ["data", "loading"],
   data() {
     return {
       search: "",
@@ -46,8 +52,10 @@ export default {
   },
   methods: {
     parseDate(created_date) {
-      return (new Date(parseInt(created_date)*1000)).toString().substring(0,24)
-    }
-  }
+      return new Date(parseInt(created_date) * 1000)
+        .toString()
+        .substring(0, 24);
+    },
+  },
 };
 </script>

@@ -3,7 +3,7 @@
     <toolbar />
     <v-row justify="center" class="mt-12">
       <v-col cols="12" lg="8" md="8">
-        <sessions-table :data="sessions" />
+        <sessions-table :data="sessions" :loading="loading" />
       </v-col>
     </v-row>
 
@@ -38,15 +38,19 @@ export default {
     SessionsTable,
   },
   data() {
-    return {}
+    return {
+      loading: false
+    }
   },
   computed: {
     sessions() {
       return this.$store.state.session.sessions ?? []
     }
   },
-  created() {
-    this.$store.dispatch('getUserSessions', this.$store.state.auth.user.uid)
+  async created() {
+    this.loading = true
+    await this.$store.dispatch('getUserSessions', this.$store.state.auth.user.uid)
+    this.loading = false
   }
 };
 </script>
