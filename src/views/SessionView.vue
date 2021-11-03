@@ -23,7 +23,7 @@
                   Download JSON
                   <v-icon right>mdi-code-json</v-icon>
                 </v-btn>
-                <v-btn width="100%" outlined>
+                <v-btn width="100%" outlined @click="createHeatmap()">
                   Create heatmap
                   <v-icon right>mdi-fire</v-icon>
                 </v-btn>
@@ -71,16 +71,28 @@
         indeterminate
       ></v-progress-circular>
     </v-row>
+
+    <v-dialog fullscreen v-model="showHeatmap">
+      <Heatmap  @close="showHeatmap = false" :gaze_points="points"/>
+    </v-dialog>
   </div>
 </template>
 
 <script>
 import Toolbar from "@/components/Toolbar";
 import api from "@/services/session";
+import Heatmap from "@/components/HeatmapViewer.vue"
 
 export default {
   components: {
     Toolbar,
+    Heatmap,
+  },
+  data() {
+    return {
+      showHeatmap: false,
+      points: []
+    }
   },
   computed: {
     session() {
@@ -88,6 +100,11 @@ export default {
     },
   },
   methods: {
+    async createHeatmap() {
+      this.showHeatmap = true
+      const { data } = (await api.getSessionResults(this.session.id))
+      this.points = data
+    },
     async downloadJSON() {
       const { data } = (await api.getSessionResults(this.session.id))
       var dataStr =
