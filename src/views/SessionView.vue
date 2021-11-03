@@ -113,5 +113,8 @@ export default {
   async created() {
     await this.$store.dispatch("getSessionById", this.$route.params.id);
   },
+  beforeDestroy() {
+    this.$store.commit('setCurrentSession', null)
+  }
 };
 </script>
