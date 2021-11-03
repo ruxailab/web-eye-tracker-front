@@ -5,7 +5,6 @@ import SessionRecord from '@/views/SessionRecord.vue'
 import SessionUpload from '@/views/UploadSession.vue'
 import LandingPage from '@/views/LandingPage.vue'
 import Login from '@/views/Login'
-import About from '@/views/About'
 import Dashboard from '@/views/Dashboard'
 import SessionView from '@/views/SessionView'
 import SessionForm from '@/views/SessionForm'
@@ -34,11 +33,6 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: Login,
-  },
-  {
-    path: '/about',
-    name: 'About',
-    component: About,
   },
   {
     path: '/dashboard',
