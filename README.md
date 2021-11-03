@@ -63,7 +63,7 @@ firebase deploy --only hosting
 
 Anyone is free to contribute to this project. Just do a pull request with your code and if it is all good we will accept it. You can also help us look for bugs, if you find anything create and issue.
 
-## License
+## 📃 License
 
 This software is under the [MIT License](https://opensource.org/licenses/MIT). 
 
