@@ -4,8 +4,6 @@ Eye Lab is an open source tool to create eye tracking usability tests. It starte
 
 The current version of the software allows users to create their usability sessions of an website, recording the webcam, screen and mouse movements and use this information to find out where the user has been looking into the screen by using heatmaps.
 
-If you want to test it, check out our [demo deploy](https://web-eye-tracker-front.web.app/).
-
 ## 👩‍💻 Setting up project locally
 
 The project consists of two parts, this repository contains the frontend of the application and the backend can be found [here](https://github.com/uramakilab/web-eye-tracker). Install it as well.
