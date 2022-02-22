@@ -1,7 +1,5 @@
 <template>
   <div>
-    <!-- hola
-    <v-btn @click="generateCallibPoints()"></v-btn> -->
     <v-row v-if="callibFinished" justify="center" class="mt-12 pt-12">
       <v-col cols="12" lg="4" md="4" sm="6">
         <v-btn block outlined color="green" @click="saveCallib()">
@@ -277,29 +275,31 @@ export default {
 
       let currentPoint = {
         h: this.radius,
-        w: -this.offset,
+        w: this.radius,
       };
       let order = "left-to-right";
 
       while (currentPoint.h < this.h) {
-        if (order === "left-to-right") {
-          if (currentPoint.w >= this.w) {
-            currentPoint.h += this.offset;
-            currentPoint.w = this.w;
-            order = "right-to-left";
-          } else currentPoint.w += this.offset;
-        } else {
-          if (currentPoint.w < 0) {
-            currentPoint.h += this.offset;
-            currentPoint.w = 0;
-            order = "left-to-right";
-          } else currentPoint.w -= this.offset;
-        }
-
         this.callibPoints.push({
           x: currentPoint.w,
           y: currentPoint.h,
         });
+
+        if (order === "left-to-right") {
+          currentPoint.w += this.offset;
+          if (currentPoint.w > this.w) {
+            currentPoint.h += this.offset;
+            currentPoint.w = this.w - this.radius;
+            order = "right-to-left";
+          }
+        } else {
+          currentPoint.w -= this.offset;
+          if (currentPoint.w < 0) {
+            currentPoint.h += this.offset;
+            currentPoint.w = this.radius;
+            order = "left-to-right";
+          }
+        }
       }
 
       console.log("calib points =>", this.callibPoints);
