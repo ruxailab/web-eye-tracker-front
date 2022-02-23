@@ -11,17 +11,16 @@
             </v-card-title>
             <p class="mx-4">
               The calibration works by associating the position of your eyes' iris with the coordinates
-              of the mouse cursor.
+              of the circle on the screen.
               <br><br>
               Before starting the process, turn on the camera and make sure your face and eyes
               are being captured by the model. After clicking start please don't leave the current position.
               <br><br>
-              Your task during the calibration is to follow the red circles with your mouse. Please look at the
-              cursor while moving it to the next circle.
+              Your task during the calibration is to follow the circles with your eyes. Try your best to not look away and to keep following. Blinking is fine.
             </p>
             <v-card-actions class="px-4 mt-12 mb-4">
               <v-btn block outlined color="green" :disabled="!isCameraOn" @click="goToCallibRecord()"
-                >start Callibration</v-btn
+                >Start Callibration</v-btn
               >
             </v-card-actions>
           </v-card>
