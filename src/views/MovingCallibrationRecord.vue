@@ -28,7 +28,7 @@ export default {
       canvas: null,
       w: 0,
       h: 0,
-      interval: 500,
+      interval: 100,
       radius: 20,
       offset: 100,
       ctx: null,
@@ -273,33 +273,68 @@ export default {
       //   { x: this.offset, y: this.offset },
       // ];
 
-      let currentPoint = {
-        h: this.radius,
-        w: this.radius,
-      };
-      let order = "left-to-right";
+      // MOVING OBJECT WITH OFFSET TILL SCREEN HEIGHT
+      // let currentPoint = {
+      //   h: this.radius,
+      //   w: this.radius,
+      // };
+      // let order = "left-to-right";
 
-      while (currentPoint.h < this.h) {
-        this.callibPoints.push({
-          x: currentPoint.w,
-          y: currentPoint.h,
-        });
+      // while (currentPoint.h < this.h) {
+      //   this.callibPoints.push({
+      //     x: currentPoint.w,
+      //     y: currentPoint.h,
+      //   });
 
-        if (order === "left-to-right") {
-          currentPoint.w += this.offset;
-          if (currentPoint.w > this.w) {
-            currentPoint.h += this.offset;
-            currentPoint.w = this.w - this.radius;
-            order = "right-to-left";
+      //   if (order === "left-to-right") {
+      //     currentPoint.w += this.offset;
+      //     if (currentPoint.w > this.w) {
+      //       currentPoint.h += this.offset;
+      //       currentPoint.w = this.w - this.radius;
+      //       order = "right-to-left";
+      //     }
+      //   } else {
+      //     currentPoint.w -= this.offset;
+      //     if (currentPoint.w < 0) {
+      //       currentPoint.h += this.offset;
+      //       currentPoint.w = this.radius;
+      //       order = "left-to-right";
+      //     }
+      //   }
+      // }
+
+
+      // Calibration via ellipse
+      function drawEllipse(context, x, y, semiMajorAxis, semiMinorAxis) {
+        context.beginPath();
+        var callibPoints = [];
+        const step = Math.PI / 16; // Change this value for a smoother or more jagged ellipse
+        for (let theta = 0; theta < 2 * Math.PI; theta += step) {
+          const xPos = x + semiMajorAxis * Math.cos(theta);
+          const yPos = y + semiMinorAxis * Math.sin(theta);
+          if (theta === 0) {
+            context.moveTo(xPos, yPos);
+          } else {
+            context.lineTo(xPos, yPos);
           }
-        } else {
-          currentPoint.w -= this.offset;
-          if (currentPoint.w < 0) {
-            currentPoint.h += this.offset;
-            currentPoint.w = this.radius;
-            order = "left-to-right";
-          }
+
+          callibPoints.push({
+            x: xPos,
+            y: yPos,
+          });
         }
+        
+        return callibPoints;
+      }
+      var y = this.canvas.height / 2;
+      var x = this.canvas.width / 2;
+      var majorAxis = 300
+      var minorAxis = 50
+      for (var n = 0; n < 5; n++) {
+        this.callibPoints.push(...drawEllipse(this.ctx, x, y, majorAxis, minorAxis));
+        // y -= this.offset;
+        majorAxis += this.offset
+        minorAxis += this.offset
       }
 
       console.log("calib points =>", this.callibPoints);
