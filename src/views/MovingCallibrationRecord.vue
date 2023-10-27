@@ -3,7 +3,7 @@
     <v-row v-if="callibFinished" justify="center" class="mt-12 pt-12">
       <v-col cols="12" lg="4" md="4" sm="6">
         <v-btn block outlined color="green" @click="saveCallib()">
-          Save callibration
+          Save calibration
           <v-icon right>mdi-content-save</v-icon>
         </v-btn>
         <v-btn block class="mt-4" outlined color="red" to="/">
@@ -303,7 +303,6 @@ export default {
       //   }
       // }
 
-
       // Calibration via ellipse
       function drawEllipse(context, x, y, semiMajorAxis, semiMinorAxis) {
         context.beginPath();
@@ -323,18 +322,20 @@ export default {
             y: yPos,
           });
         }
-        
+
         return callibPoints;
       }
       var y = this.canvas.height / 2;
       var x = this.canvas.width / 2;
-      var majorAxis = 300
-      var minorAxis = 50
+      var majorAxis = 300;
+      var minorAxis = 50;
       for (var n = 0; n < 5; n++) {
-        this.callibPoints.push(...drawEllipse(this.ctx, x, y, majorAxis, minorAxis));
+        this.callibPoints.push(
+          ...drawEllipse(this.ctx, x, y, majorAxis, minorAxis)
+        );
         // y -= this.offset;
-        majorAxis += this.offset
-        minorAxis += this.offset
+        majorAxis += this.offset;
+        minorAxis += this.offset;
       }
 
       console.log("calib points =>", this.callibPoints);

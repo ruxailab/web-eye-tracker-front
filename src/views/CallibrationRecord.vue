@@ -3,7 +3,7 @@
     <v-row v-if="callibFinished" justify="center" class="mt-12 pt-12">
       <v-col cols="12" lg="4" md="4" sm="6">
         <v-btn block outlined color="green" @click="saveCallib()">
-          Save callibration
+          Save calibration
           <v-icon right>mdi-content-save</v-icon>
         </v-btn>
         <v-btn block class="mt-4" outlined color="red" to="/">

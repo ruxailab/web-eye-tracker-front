@@ -9,7 +9,8 @@ import SessionView from '@/views/SessionView'
 import SessionForm from '@/views/SessionForm'
 import Callibration from '@/views/Callibration'
 // import CallibrationRecord from '@/views/CallibrationRecord'
-import CallibrationRecord from '@/views/MovingCallibrationRecord'
+// import CallibrationRecord from '@/views/MovingCallibrationRecord'
+import DoubleCalibrationRecord from '@/views/DoubleCalibrationRecord'
 
 Vue.use(VueRouter)
 
@@ -53,7 +54,8 @@ const routes = [
     path: '/callibration/record',
     name: 'CallibrationRecord',
     // component: CallibrationRecord,
-    component: CallibrationRecord
+    // component: CallibrationRecord
+    component: DoubleCalibrationRecord
   },
 ]
 
