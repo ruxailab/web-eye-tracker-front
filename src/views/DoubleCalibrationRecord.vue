@@ -21,7 +21,11 @@
       </div>
     </v-row>
     <canvas id="canvas" />
-    <video autoplay id="video-tag" style="display: none"></video>
+    <video
+      autoplay
+      id="video-tag"
+      style="display: none; height: 100vh; width: 100%;"
+    ></video>
   </div>
 </template>
 
@@ -38,9 +42,10 @@ export default {
       canvas: null,
       w: 0,
       h: 0,
-      interval: 2000,
-      radius: 30,
+      // interval: 5000,
+      radius: 25,
       offset: 200,
+      predByPointCount: 20,
       ctx: null,
       callibPoints: [],
       index: 0,
@@ -48,7 +53,7 @@ export default {
       recordWebCam: null,
       configWebCam: {
         audio: false,
-        video: { width: 600, height: 500 },
+        video: {},
       },
       circleIrisPoints: [],
       callibFinished: false,
@@ -80,17 +85,17 @@ export default {
 
       document.addEventListener("keydown", function(event) {
         if ((event.key === "s" || event.key === "S") && !intervalId) {
+          let predCount = 0;
           intervalId = setInterval(function() {
             th.saveCircleIrisPoint();
+            predCount++;
+            if (predCount === th.predByPointCount) {
+              clearInterval(intervalId);
+              intervalId = null;
+              predCount = 0;
+              th.move();
+            }
           }, 100);
-        }
-      });
-
-      document.addEventListener("keyup", function(event) {
-        if (event.key === "s" || event.key === "S") {
-          clearInterval(intervalId);
-          intervalId = null;
-          th.move();
         }
       });
 
@@ -134,7 +139,8 @@ export default {
           await tf.getBackend();
           // Load the faceLandmarksDetection model assets.
           this.model = await faceLandmarksDetection.load(
-            faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
+            faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
+            { maxFaces: 1 }
           );
 
           // Init record webcam
@@ -214,10 +220,23 @@ export default {
       this.ctx.fill();
 
       this.index++;
-      setTimeout(() => {
-        id = requestAnimationFrame(this.movingCircleCalib);
-        this.saveCalibPredictPoint();
-      }, this.interval);
+      // setTimeout(() => {
+        const th = this;
+        let intervalId = null;
+        let predCount = 0;
+        intervalId = setInterval(function() {
+          th.saveCalibPredictPoint();
+          predCount++;
+          if (predCount === th.predByPointCount) {
+            clearInterval(intervalId);
+            intervalId = null;
+            predCount = 0;
+            th.movingCircleCalib()
+          }
+        }, 100);
+
+      //   id = requestAnimationFrame(this.movingCircleCalib);
+      // }, this.interval);
     },
     async endCalib() {
       let formData = new FormData();
