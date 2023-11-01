@@ -8,14 +8,14 @@
         md="4"
         sm="6"
       >
-        {{ circleIrisPoints }}
+        {{ circleIrisPoints.length }}
         <v-btn block outlined color="primary" @click="nextStep()">
           Next Step
         </v-btn>
       </v-col>
       <div v-else-if="calibPredictionEnded && currentStep === 2">
         <v-row justify="center" class="mt-12 pt-12">
-          {{ calibPredictionPoints }}
+          {{ calibPredictionPoints.length }}
           <v-btn @click="endCalib()">End calib</v-btn>
         </v-row>
       </div>
@@ -24,7 +24,7 @@
     <video
       autoplay
       id="video-tag"
-      style="display: none; height: 100vh; width: 100%;"
+      style="display: none;"
     ></video>
   </div>
 </template>
@@ -45,7 +45,7 @@ export default {
       // interval: 5000,
       radius: 25,
       offset: 200,
-      predByPointCount: 20,
+      predByPointCount: 50,
       ctx: null,
       callibPoints: [],
       index: 0,
@@ -53,7 +53,10 @@ export default {
       recordWebCam: null,
       configWebCam: {
         audio: false,
-        video: {},
+        video: {
+          width: 1536,
+          height: 864,
+        },
       },
       circleIrisPoints: [],
       callibFinished: false,
