@@ -1,13 +1,7 @@
 <template>
   <div style="height: 100%;">
     <v-row justify="center" class="ma-0">
-      <v-col
-        v-if="callibFinished && currentStep === 1"
-        cols="12"
-        lg="4"
-        md="4"
-        sm="6"
-      >
+      <v-col v-if="callibFinished && currentStep === 1" cols="12" lg="4" md="4" sm="6">
         {{ circleIrisPoints.length }}
         <v-btn block outlined color="primary" @click="nextStep()">
           Next Step
@@ -20,12 +14,15 @@
         </v-row>
       </div>
     </v-row>
-    <canvas id="canvas" />
-    <video
-      autoplay
-      id="video-tag"
-      style="display: none;"
-    ></video>
+    <div v-if="!callibFinished && currentStep === 1" style="position: absolute; top: 0; width: 100vw; height: 100vh;">
+      <video autoplay id="video-tag" style="display: block; width: 100%; height: 100%;"></video>
+      <v-img style="height: 100%; width: 100%; position: absolute; top: 0;" src="../assets/mask_desktop.svg"></v-img>
+    </div>
+    <div v-if="!calibPredictionEnded && currentStep === 2" style="position: absolute; top: 0; width: 100vw; height: 100vh;">
+      <video autoplay id="video-tag" style="display: block; width: 100%; height: 100%;"></video>
+      <v-img style="height: 100%; width: 100%; position: absolute; top: 0;" src="../assets/mask_desktop.svg"></v-img>
+    </div>
+    <canvas id="canvas" style="position: absolute; width: 100%; height: 100%;"></canvas>
   </div>
 </template>
 
@@ -45,7 +42,7 @@ export default {
       // interval: 5000,
       radius: 25,
       offset: 200,
-      predByPointCount: 50,
+      predByPointCount: 1,
       ctx: null,
       callibPoints: [],
       index: 0,
@@ -86,10 +83,10 @@ export default {
       const th = this;
       let intervalId = null;
 
-      document.addEventListener("keydown", function(event) {
+      document.addEventListener("keydown", function (event) {
         if ((event.key === "s" || event.key === "S") && !intervalId) {
           let predCount = 0;
-          intervalId = setInterval(function() {
+          intervalId = setInterval(function () {
             th.saveCircleIrisPoint();
             predCount++;
             if (predCount === th.predByPointCount) {
@@ -224,19 +221,19 @@ export default {
 
       this.index++;
       // setTimeout(() => {
-        const th = this;
-        let intervalId = null;
-        let predCount = 0;
-        intervalId = setInterval(function() {
-          th.saveCalibPredictPoint();
-          predCount++;
-          if (predCount === th.predByPointCount) {
-            clearInterval(intervalId);
-            intervalId = null;
-            predCount = 0;
-            th.movingCircleCalib()
-          }
-        }, 100);
+      const th = this;
+      let intervalId = null;
+      let predCount = 0;
+      intervalId = setInterval(function () {
+        th.saveCalibPredictPoint();
+        predCount++;
+        if (predCount === th.predByPointCount) {
+          clearInterval(intervalId);
+          intervalId = null;
+          predCount = 0;
+          th.movingCircleCalib()
+        }
+      }, 100);
 
       //   id = requestAnimationFrame(this.movingCircleCalib);
       // }, this.interval);
