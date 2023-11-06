@@ -1,27 +1,27 @@
 <template>
-    <div id="box">
+    <div id="box" style="text-align: center;">
         <Toolbar />
         <v-container class="mt-12">
-            <v-row justify="center" align="start">
+            <v-row justify="center">
                 <v-col cols="12" lg="7" md="7">
-                    <div v-if="!isModelLoaded && isCameraOn">
-                        <v-row justify="center" class="mt-8" align="center">
-                            <v-progress-circular :size="50" :width="7" color="black" indeterminate></v-progress-circular>
-                            <h2 class="ml-4">Loading model...</h2>
-                        </v-row>
+                    <div v-if="!isModelLoaded && isCameraOn" class="loading-container">
+                        <v-progress-circular :size="50" :width="7" color="black" indeterminate></v-progress-circular>
+                        <h2 class="ml-4">Loading model...</h2>
                     </div>
-                    <div style="position:relative;">
+
+                    <div style="position:relative">
                         <video autoplay id="video-tag" style="display: none"></video>
                         <canvas id="canvas" width="600px" height="500px" style="position:absolute" />
                         <v-img v-if="isModelLoaded" style="height: 500px; width: 600px; position:absolute"
-                            src="@/assets/mask_desktop.svg"></v-img>
+                            src="@/assets/mask_desktop.svg">
+                        </v-img>
                     </div>
+
+                    <v-btn class="calibration-btn" outlined color="green" :disabled="!isCameraOn"
+                        @click="goToCallibRecord()">
+                        Start Calibration
+                    </v-btn>
                 </v-col>
-                <v-btn
-                    style="max-width: 200px; height: 30px; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);"
-                    block outlined color="green" :disabled="!isCameraOn" @click="goToCallibRecord()">
-                    Start Calibration
-                </v-btn>
             </v-row>
         </v-container>
     </div>
@@ -179,3 +179,24 @@ export default {
 };
 </script>
   
+<style scoped>
+.loading-container {
+    text-align: center;
+    margin-top: 8rem;
+}
+
+.centered-canvas {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.calibration-btn {
+    max-width: 200px;
+    height: 30px;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+</style>
