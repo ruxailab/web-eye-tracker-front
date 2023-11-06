@@ -9,10 +9,11 @@
                         <h2 class="ml-4">Loading model...</h2>
                     </div>
 
-                    <div style="position:relative">
-                        <video autoplay id="video-tag" style="display: none"></video>
-                        <canvas id="canvas" width="600px" height="500px" style="position:absolute" />
-                        <v-img v-if="isModelLoaded" style="height: 500px; width: 600px; position:absolute"
+                    <div style="position: relative; display: flex; justify-content: center; align-items: center;">
+                        <video autoplay id="video-tag"
+                            style="max-width: 100%; max-height: 100%;"></video>
+                        <canvas id="canvas" width="600" height="500" style="position: absolute; top: 0; left: 0;"></canvas>
+                        <v-img v-if="isModelLoaded" style="height: 500px; width: 800px; position: absolute;"
                             src="@/assets/mask_desktop.svg">
                         </v-img>
                     </div>
