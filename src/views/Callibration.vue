@@ -39,15 +39,6 @@ export default {
   components: {
     Toolbar,
   },
-  data() {
-    return {
-      isCameraOn: false,
-      model: null,
-      predictions: [],
-      isModelLoaded: false,
-      webcamStream: null,
-    };
-  },
   methods: {
     goToCameraConfig() {
       this.$router.push("/callibration/camera");
