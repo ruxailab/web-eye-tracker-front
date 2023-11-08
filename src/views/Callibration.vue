@@ -24,31 +24,9 @@
             <v-card-actions class="px-4 mt-12 mb-4">
               <v-btn block outlined color="green" @click="goToCameraConfig()">Start
                 Calibration</v-btn>
-              <!-- <v-btn block outlined color="green" :disabled="!isCameraOn" @click="goToCallibRecord()">Start
-                Calibration</v-btn> -->
             </v-card-actions>
           </v-card>
         </v-col>
-        <!-- <v-col cols="12" lg="7" md="7">
-          <v-row justify="center" class="ma-0">
-            <v-btn @click="setupCamera()" v-if="!isCameraOn" outlined color="blue">
-              Turn camera on
-              <v-icon right size="20">mdi-camera-outline</v-icon>
-            </v-btn>
-          </v-row>
-          <div v-if="!isModelLoaded && isCameraOn">
-            <v-row justify="center" class="mt-8" align="center">
-              <v-progress-circular :size="50" :width="7" color="black" indeterminate></v-progress-circular>
-              <h2 class="ml-4">Loading model...</h2>
-            </v-row>
-          </div>
-          <div style="position:relative">
-            <video autoplay id="video-tag" style="display: none"></video>
-            <canvas id="canvas" width="600px" height="500px" style="position:absolute" />
-            <v-img v-if="isModelLoaded" style="height: 500px; width: 600px; position:absolute" src="@/assets/mask_desktop.svg">
-            </v-img>
-          </div>
-        </v-col> -->
       </v-row>
     </v-container>
   </div>
