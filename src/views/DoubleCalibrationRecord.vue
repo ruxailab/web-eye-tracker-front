@@ -35,7 +35,7 @@ export default {
       // interval: 5000,
       radius: 20,
       offset: 50,
-      predByPointCount: 20,
+      predByPointCount: 10,
       ctx: null,
       callibPoints: [],
       index: 0,
@@ -330,14 +330,17 @@ export default {
 
       this.callibPoints = [
         { x: this.offset, y: this.offset },
-        { x: this.w - this.offset, y: this.offset },
-        { x: this.w / 2, y: this.h / 2 },
+        { x: this.offset, y: this.h / 2 },
         { x: this.offset, y: this.h - this.offset },
+
+        { x: this.w / 2, y: this.offset },
+        { x: this.w / 2, y: this.h / 2 },
+        { x: this.w / 2, y: this.h - this.offset },
+
+        { x: this.w - this.offset, y: this.offset },
+        { x: this.w - this.offset, y: this.h / 2 },
         { x: this.w - this.offset, y: this.h - this.offset },
-        { x: this.w / 4, y: this.h / 4 },
-        { x: 3 * this.w / 4, y: this.h / 4 },
-        { x: this.w / 4, y: 3 * this.h / 4 },
-        { x: 3 * this.w / 4, y: 3 * this.h / 4 },
+
       ];
 
       console.log("points =>", this.callibPoints);

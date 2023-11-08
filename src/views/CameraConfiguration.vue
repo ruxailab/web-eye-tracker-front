@@ -4,9 +4,9 @@
         <v-container class="mt-12">
             <v-row justify="center">
                 <v-col cols="12" lg="7" md="7">
-                <CameraComponent />
+                    <CameraComponent />
 
-                    <v-btn class="calibration-btn" outlined color="green"
+                    <v-btn class="calibration-btn" outlined color="green" :disabled="!isCameraOn"
                         @click="goToCallibRecord()">
                         Start Calibration
                     </v-btn>
