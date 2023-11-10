@@ -20,7 +20,7 @@
 </template>
 
 <script>
-// import axios from "axios";
+import axios from "axios";
 
 const tf = require("@tensorflow/tfjs");
 const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
@@ -229,25 +229,22 @@ export default {
       //   id = requestAnimationFrame(this.movingCircleCalib);
       // }, this.interval);
     },
-    endCalib() {
-      this.saveFixed(this.circleIrisPoints)
-      this.savePredict(this.calibPredictionPoints)
-      this.$router.push('/postCalibration');
-      // let formData = new FormData();
-      // formData.append(
-      //   "fixed_circle_iris_points",
-      //   JSON.stringify(this.circleIrisPoints)
-      // );
-      // formData.append(
-      //   "calib_circle_iris_points",
-      //   JSON.stringify(this.calibPredictionPoints)
-      // );
-      // const res = await axios.post(`/api/session/calib_validation`, formData, {
-      //   headers: {
-      //     "Content-Type": "multipart/form-data",
-      //   },
-      // });
-      // console.log(res);
+    async endCalib() {
+      let formData = new FormData();
+      formData.append(
+        "fixed_circle_iris_points",
+        JSON.stringify(this.circleIrisPoints)
+      );
+      formData.append(
+        "calib_circle_iris_points",
+        JSON.stringify(this.calibPredictionPoints)
+      );
+      const res = await axios.post(`/api/session/calib_validation`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log(res);
     },
     saveFixed(data) {
       this.$store.commit('saveFixed', data)
