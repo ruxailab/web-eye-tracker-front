@@ -14,27 +14,32 @@ export default {
     },
     mounted() {
         this.draw();
-        setInterval(this.fillArrays, 1000);
     },
     computed: {
         fixedTrainData() {
-            return this.$store.state.predict.fixedTrainData
+            return this.$store.state.predict.fixedTrainData;
         },
         predictTrainData() {
-            return this.$store.state.predict.predictTrainData
+            return this.$store.state.predict.predictTrainData;
         },
         prediction() {
-            return this.$store.state.predict.prediction
+            return this.$store.state.predict.prediction;
         },
     },
     created() {
-        console.log(this.$store.state.predict)
+        this.extractXYValues();
     },
     methods: {
-        fillArrays() {
-            this.xValues.push(Math.floor(Math.random() * 900));
-            this.yValues.push(Math.floor(Math.random() * 900));
-            this.draw();
+        extractXYValues() {
+            for (let i = 0; i < this.predictTrainData.length; i++) {
+                const predictDataPoint = this.predictTrainData[i];
+                const fixedTrainPoint = this.fixedTrainData[i];
+
+                this.xValues.push(predictDataPoint.left_iris_x, predictDataPoint.right_iris_x);
+                this.xValues.push(fixedTrainPoint.left_iris_x, fixedTrainPoint.right_iris_x)
+                this.yValues.push(predictDataPoint.left_iris_y, predictDataPoint.right_iris_y);
+                this.yValues.push(fixedTrainPoint.left_iris_y, fixedTrainPoint.right_iris_y)
+            }
         },
         draw() {
             const canvas = this.$refs.canvas;
@@ -57,7 +62,7 @@ export default {
                 ctx.fillStyle = 'blue';
                 ctx.fill();
             }
-        }
+        },
     },
-}
+};
 </script>
