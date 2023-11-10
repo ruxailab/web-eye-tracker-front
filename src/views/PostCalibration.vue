@@ -5,6 +5,7 @@
 </template>
 
 <script>
+import * as tf from '@tensorflow/tfjs';
 export default {
     data() {
         return {
@@ -21,19 +22,19 @@ export default {
                 rightY: [],
                 leftX: [],
                 leftY: [],
-            }
+            },
+            model: null,
         };
     },
-    mounted() {
+    async mounted() {
         this.resizeCanvas()
         this.draw(this.fixedTrainPoints.calibX, this.fixedTrainPoints.calibY, 'black')
-        this.draw(this.fixedTrainPoints.rightX, this.fixedTrainPoints.rightY, 'blue')
-        this.draw(this.fixedTrainPoints.leftX, this.fixedTrainPoints.leftY, 'red')
-        this.draw(this.predictTrainPoints.rightX, this.predictTrainPoints.rightY, 'green')
-        this.draw(this.predictTrainPoints.leftX, this.predictTrainPoints.leftY, 'orange')
-
-
-
+        await this.trainModel()
+        await this.predictCalibrationValues()
+        // this.draw(this.fixedTrainPoints.rightX, this.fixedTrainPoints.rightY, 'blue')
+        // this.draw(this.fixedTrainPoints.leftX, this.fixedTrainPoints.leftY, 'red')
+        // this.draw(this.predictTrainPoints.rightX, this.predictTrainPoints.rightY, 'green')
+        // this.draw(this.predictTrainPoints.leftX, this.predictTrainPoints.leftY, 'orange')
     },
     computed: {
         fixedTrainData() {
@@ -42,8 +43,8 @@ export default {
         predictTrainData() {
             return this.$store.state.predict.predictTrainData;
         },
-        prediction() {
-            return this.$store.state.predict.prediction;
+        predictionResults() {
+            return this.makePredictions();
         },
     },
     created() {
@@ -51,6 +52,81 @@ export default {
         this.extractXYValues(this.predictTrainData, this.predictTrainPoints, false);
     },
     methods: {
+        async trainModel() {
+            const rightX = tf.tensor2d(this.fixedTrainPoints.rightX, [this.fixedTrainPoints.rightX.length, 1]);
+            const rightY = tf.tensor2d(this.fixedTrainPoints.rightY, [this.fixedTrainPoints.rightY.length, 1]);
+            const leftX = tf.tensor2d(this.fixedTrainPoints.leftX, [this.fixedTrainPoints.leftX.length, 1]);
+            const leftY = tf.tensor2d(this.fixedTrainPoints.leftY, [this.fixedTrainPoints.leftY.length, 1]);
+
+            const xs = tf.concat([rightX, rightY, leftX, leftY], 1);
+
+            const calibX = tf.tensor2d(this.fixedTrainPoints.calibX, [this.fixedTrainPoints.calibX.length, 1]);
+            const calibY = tf.tensor2d(this.fixedTrainPoints.calibY, [this.fixedTrainPoints.calibY.length, 1]);
+
+            const ys = tf.concat([calibX, calibY], 1);
+
+            console.log('Input shapes:');
+            console.log('rightX:', rightX.shape);
+            console.log('rightY:', rightY.shape);
+            console.log('leftX:', leftX.shape);
+            console.log('leftY:', leftY.shape);
+            console.log('Input tensor shape:', xs.shape);
+
+            console.log('Target shapes:');
+            console.log('calibX:', calibX.shape);
+            console.log('calibY:', calibY.shape);
+            console.log('Target tensor shape:', ys.shape);
+
+            this.model = tf.sequential();
+            this.model.add(tf.layers.dense({ units: 2, inputShape: [4] }));
+
+            this.model.compile({ optimizer: 'sgd', loss: 'meanSquaredError' });
+
+            await this.model.fit(xs, ys);
+
+            xs.dispose();
+            ys.dispose();
+        },
+        predictCalibrationValues() {
+            if (!this.model) {
+                console.error('Model not trained. Please train the model first.');
+                return;
+            }
+
+            const rightX = tf.tensor2d(this.predictTrainPoints.rightX, [this.predictTrainPoints.rightX.length, 1]);
+            const rightY = tf.tensor2d(this.predictTrainPoints.rightY, [this.predictTrainPoints.rightY.length, 1]);
+            const leftX = tf.tensor2d(this.predictTrainPoints.leftX, [this.predictTrainPoints.leftX.length, 1]);
+            const leftY = tf.tensor2d(this.predictTrainPoints.leftY, [this.predictTrainPoints.leftY.length, 1]);
+
+            const inputTensors = tf.concat([rightX, rightY, leftX, leftY], 1);
+
+            const predictions = this.model.predict(inputTensors).dataSync();
+
+            const calibXPredictions = predictions.slice(0, this.predictTrainPoints.rightX.length);
+            const calibYPredictions = predictions.slice(this.predictTrainPoints.rightX.length);
+
+            rightX.dispose();
+            rightY.dispose();
+            leftX.dispose();
+            leftY.dispose();
+            inputTensors.dispose();
+            console.log(calibXPredictions)
+            console.log(calibYPredictions);
+
+            return { calibXPredictions, calibYPredictions };
+        },
+
+        async makePredictions() {
+            if (!this.model) {
+                console.error('Model not trained. Please train the model first.');
+                return;
+            }
+
+            const { calibXPredictions, calibYPredictions } = this.predictCalibrationValues();
+
+            console.log('Calibration X Predictions:', calibXPredictions);
+            console.log('Calibration Y Predictions:', calibYPredictions);
+        },
         extractXYValues(extract, receiver, hasCalib) {
             for (let i = 0; i < extract.length; i++) {
                 const dataPoint = extract[i];
