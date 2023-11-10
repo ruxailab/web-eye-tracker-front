@@ -9,19 +9,31 @@ export default {
     data() {
         return {
             fixedTrainPoints: {
-                x: [],
-                y: [],
+                rightX: [],
+                rightY: [],
+                leftX: [],
+                leftY: [],
+                calibX: [],
+                calibY: [],
             },
             predictTrainPoints: {
-                x: [],
-                y: [],
+                rightX: [],
+                rightY: [],
+                leftX: [],
+                leftY: [],
             }
         };
     },
     mounted() {
         this.resizeCanvas()
-        this.draw(this.fixedTrainPoints.x, this.fixedTrainPoints.y, 'blue');
-        this.draw(this.predictTrainPoints.x, this.predictTrainPoints.y, 'red');
+        this.draw(this.fixedTrainPoints.calibX, this.fixedTrainPoints.calibY, 'black')
+        this.draw(this.fixedTrainPoints.rightX, this.fixedTrainPoints.rightY, 'blue')
+        this.draw(this.fixedTrainPoints.leftX, this.fixedTrainPoints.leftY, 'red')
+        this.draw(this.predictTrainPoints.rightX, this.predictTrainPoints.rightY, 'green')
+        this.draw(this.predictTrainPoints.leftX, this.predictTrainPoints.leftY, 'orange')
+
+
+
     },
     computed: {
         fixedTrainData() {
@@ -35,16 +47,21 @@ export default {
         },
     },
     created() {
-        this.extractXYValues(this.fixedTrainData, this.fixedTrainPoints);
-        this.extractXYValues(this.predictTrainData, this.predictTrainPoints);
+        this.extractXYValues(this.fixedTrainData, this.fixedTrainPoints, true);
+        this.extractXYValues(this.predictTrainData, this.predictTrainPoints, false);
     },
     methods: {
-        extractXYValues(extract, receiver) {
+        extractXYValues(extract, receiver, hasCalib) {
             for (let i = 0; i < extract.length; i++) {
                 const dataPoint = extract[i];
-
-                receiver.x.push(dataPoint.left_iris_x, dataPoint.right_iris_x)
-                receiver.y.push(dataPoint.left_iris_y, dataPoint.right_iris_y)
+                receiver.rightX.push(dataPoint.right_iris_x)
+                receiver.rightY.push(dataPoint.right_iris_y)
+                receiver.leftX.push(dataPoint.left_iris_x)
+                receiver.leftY.push(dataPoint.left_iris_y)
+                if (hasCalib) {
+                    receiver.calibX.push(dataPoint.point_x)
+                    receiver.calibY.push(dataPoint.point_y)
+                }
             }
         },
         resizeCanvas() {
