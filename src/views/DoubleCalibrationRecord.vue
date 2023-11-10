@@ -316,17 +316,17 @@ export default {
       this.ctx = this.canvas.getContext("2d");
 
       this.callibPoints = [
-        // { x: this.offset, y: this.offset },
-        // { x: this.offset, y: this.h / 2 },
-        // { x: this.offset, y: this.h - this.offset },
+        { x: this.offset, y: this.offset },
+        { x: this.offset, y: this.h / 2 },
+        { x: this.offset, y: this.h - this.offset },
 
-        // { x: this.w / 2, y: this.offset },
+        { x: this.w / 2, y: this.offset },
         { x: this.w / 2, y: this.h / 2 },
-        // { x: this.w / 2, y: this.h - this.offset },
+        { x: this.w / 2, y: this.h - this.offset },
 
-        // { x: this.w - this.offset, y: this.offset },
-        // { x: this.w - this.offset, y: this.h / 2 },
-        // { x: this.w - this.offset, y: this.h - this.offset },
+        { x: this.w - this.offset, y: this.offset },
+        { x: this.w - this.offset, y: this.h / 2 },
+        { x: this.w - this.offset, y: this.h - this.offset },
 
       ];
 

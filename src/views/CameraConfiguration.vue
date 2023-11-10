@@ -96,7 +96,7 @@ export default {
                 track.stop();
             });
 
-            this.fullScreen();
+            // this.fullScreen();
             this.$router.push("/callibration/record");
         },
         setupCamera() {

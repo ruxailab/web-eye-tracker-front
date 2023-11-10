@@ -8,12 +8,20 @@
 export default {
     data() {
         return {
-            xValues: [],
-            yValues: [],
+            fixedTrainPoints: {
+                x: [],
+                y: [],
+            },
+            predictTrainPoints: {
+                x: [],
+                y: [],
+            }
         };
     },
     mounted() {
-        this.draw();
+        this.resizeCanvas()
+        this.draw(this.fixedTrainPoints.x, this.fixedTrainPoints.y, 'blue');
+        this.draw(this.predictTrainPoints.x, this.predictTrainPoints.y, 'red');
     },
     computed: {
         fixedTrainData() {
@@ -27,39 +35,38 @@ export default {
         },
     },
     created() {
-        this.extractXYValues();
+        this.extractXYValues(this.fixedTrainData, this.fixedTrainPoints);
+        this.extractXYValues(this.predictTrainData, this.predictTrainPoints);
     },
     methods: {
-        extractXYValues() {
-            for (let i = 0; i < this.predictTrainData.length; i++) {
-                const predictDataPoint = this.predictTrainData[i];
-                const fixedTrainPoint = this.fixedTrainData[i];
+        extractXYValues(extract, receiver) {
+            for (let i = 0; i < extract.length; i++) {
+                const dataPoint = extract[i];
 
-                this.xValues.push(predictDataPoint.left_iris_x, predictDataPoint.right_iris_x);
-                this.xValues.push(fixedTrainPoint.left_iris_x, fixedTrainPoint.right_iris_x)
-                this.yValues.push(predictDataPoint.left_iris_y, predictDataPoint.right_iris_y);
-                this.yValues.push(fixedTrainPoint.left_iris_y, fixedTrainPoint.right_iris_y)
+                receiver.x.push(dataPoint.left_iris_x, dataPoint.right_iris_x)
+                receiver.y.push(dataPoint.left_iris_y, dataPoint.right_iris_y)
             }
         },
-        draw() {
+        resizeCanvas() {
             const canvas = this.$refs.canvas;
-            const ctx = canvas.getContext('2d');
-
             const screenWidth = window.innerWidth;
             const screenHeight = window.innerHeight;
 
             canvas.width = screenWidth;
             canvas.height = screenHeight;
+        },
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        draw(arrX, arrY, color) {
+            const canvas = this.$refs.canvas;
+            const ctx = canvas.getContext('2d');
 
-            for (let i = 0; i < this.xValues.length; i++) {
-                const x = this.xValues[i];
-                const y = screenHeight - this.yValues[i];
+            for (let i = 0; i < arrX.length; i++) {
+                const x = arrX[i];
+                const y = arrY[i];
 
                 ctx.beginPath();
                 ctx.arc(x, y, 5, 0, 2 * Math.PI);
-                ctx.fillStyle = 'blue';
+                ctx.fillStyle = `${color}`;
                 ctx.fill();
             }
         },
