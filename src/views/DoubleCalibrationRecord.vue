@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import axios from "axios";
+// import axios from "axios";
 
 const tf = require("@tensorflow/tfjs");
 const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
@@ -35,7 +35,7 @@ export default {
       // interval: 5000,
       radius: 20,
       offset: 50,
-      predByPointCount: 10,
+      predByPointCount: 1,
       ctx: null,
       callibPoints: [],
       index: 0,
@@ -157,8 +157,6 @@ export default {
       await this.recordWebCam.stop();
       this.callibFinished = true;
       this.canvas.style.display = "none";
-      console.log("Point X Iris Definition =>", this.circleIrisPoints);
-      console.log("Iris values for prediction =>", this.calibPredictionPoints);
     },
     nextStep() {
       this.currentStep = 2;
@@ -232,21 +230,29 @@ export default {
       // }, this.interval);
     },
     async endCalib() {
-      let formData = new FormData();
-      formData.append(
-        "fixed_circle_iris_points",
-        JSON.stringify(this.circleIrisPoints)
-      );
-      formData.append(
-        "calib_circle_iris_points",
-        JSON.stringify(this.calibPredictionPoints)
-      );
-      const res = await axios.post(`/api/session/calib_validation`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      console.log(res);
+      this.saveFixed(this.circleIrisPoints)
+      this.savePredict(this.calibPredictionPoints)
+      // let formData = new FormData();
+      // formData.append(
+      //   "fixed_circle_iris_points",
+      //   JSON.stringify(this.circleIrisPoints)
+      // );
+      // formData.append(
+      //   "calib_circle_iris_points",
+      //   JSON.stringify(this.calibPredictionPoints)
+      // );
+      // const res = await axios.post(`/api/session/calib_validation`, formData, {
+      //   headers: {
+      //     "Content-Type": "multipart/form-data",
+      //   },
+      // });
+      // console.log(res);
+    },
+    saveFixed(data) {
+      this.$store.commit('saveFixed', data)
+    },
+    savePredict(data) {
+      this.$store.commit('savePredict', data)
     },
     saveCalibPredictPoint() {
       // set relation between eyes and circle x y
@@ -275,8 +281,6 @@ export default {
           });
         }
       }
-
-      console.log(this.circleIrisPoints);
     },
     move() {
       if (this.index == this.callibPoints.length) {
@@ -325,9 +329,6 @@ export default {
       this.h = this.canvas.height = window.innerHeight;
       this.ctx = this.canvas.getContext("2d");
 
-      console.log("width screen =>", this.w);
-      console.log("height screen =>", this.h);
-
       this.callibPoints = [
         { x: this.offset, y: this.offset },
         { x: this.offset, y: this.h / 2 },
@@ -343,7 +344,6 @@ export default {
 
       ];
 
-      console.log("points =>", this.callibPoints);
     },
   },
 };
