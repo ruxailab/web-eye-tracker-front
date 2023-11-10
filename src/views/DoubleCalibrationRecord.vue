@@ -229,9 +229,10 @@ export default {
       //   id = requestAnimationFrame(this.movingCircleCalib);
       // }, this.interval);
     },
-    async endCalib() {
+    endCalib() {
       this.saveFixed(this.circleIrisPoints)
       this.savePredict(this.calibPredictionPoints)
+      this.$router.push('/postCalibration');
       // let formData = new FormData();
       // formData.append(
       //   "fixed_circle_iris_points",

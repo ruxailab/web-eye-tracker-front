@@ -12,6 +12,7 @@ import Callibration from '@/views/Callibration'
 // import CallibrationRecord from '@/views/MovingCallibrationRecord'
 import CameraConfig from '@/views/CameraConfiguration'
 import DoubleCalibrationRecord from '@/views/DoubleCalibrationRecord'
+import PostCalibration from '@/views/PostCalibration'
 
 Vue.use(VueRouter)
 
@@ -63,6 +64,11 @@ const routes = [
     // component: CallibrationRecord
     component: DoubleCalibrationRecord
   },
+  {
+    path: '/postCalibration',
+    name: 'postCalibration',
+    component: PostCalibration,
+  },
 ]
 
 const router = new VueRouter({
@@ -74,8 +80,8 @@ const router = new VueRouter({
 router.beforeResolve(async (to, from, next) => {
   var user = store.state.auth.user
   user = user ?? await store.dispatch('autoSignIn')
-  if((to.path == '/login' || to.path == '/') && user) next('/dashboard')
-  else if((to.path == '/dashboard') && !user) next('/login')
+  if ((to.path == '/login' || to.path == '/') && user) next('/dashboard')
+  else if ((to.path == '/dashboard') && !user) next('/login')
 
   next()
 })
