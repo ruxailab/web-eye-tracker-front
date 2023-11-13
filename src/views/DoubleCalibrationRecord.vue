@@ -35,7 +35,7 @@ export default {
       // interval: 5000,
       radius: 20,
       offset: 50,
-      predByPointCount: 20,
+      predByPointCount: 2,
       ctx: null,
       callibPoints: [],
       index: 0,
@@ -69,31 +69,6 @@ export default {
     this.startCallib();
   },
   methods: {
-    startCallib() {
-      this.generateCallibPoints();
-      this.startWebCamCapture();
-
-      const th = this;
-      let intervalId = null;
-
-      document.addEventListener("keydown", function (event) {
-        if ((event.key === "s" || event.key === "S") && !intervalId) {
-          let predCount = 0;
-          intervalId = setInterval(function () {
-            th.saveCircleIrisPoint();
-            predCount++;
-            if (predCount === th.predByPointCount) {
-              clearInterval(intervalId);
-              intervalId = null;
-              predCount = 0;
-              th.move();
-            }
-          }, 100);
-        }
-      });
-
-      this.move();
-    },
     async startWebCamCapture() {
       // Request permission for screen capture
       return navigator.mediaDevices
@@ -167,67 +142,52 @@ export default {
       this.startWebCamCapture();
       this.movingCircleCalib();
     },
+    startCallib() {
+      this.generateCallibPoints();
+      this.startWebCamCapture();
+
+      const th = this;
+      let intervalId = null;
+
+      document.addEventListener("keydown", function (event) {
+        if ((event.key === "s" || event.key === "S") && !intervalId) {
+          let predCount = 0;
+          intervalId = setInterval(function () {
+            th.saveCircleIrisPoint();
+            predCount++;
+            if (predCount === th.predByPointCount) {
+              clearInterval(intervalId);
+              intervalId = null;
+              predCount = 0;
+              th.move();
+            }
+          }, 100);
+        }
+      });
+
+      this.move();
+    },
     movingCircleCalib() {
-      let id;
-
-      if (this.index == this.callibPoints.length) {
-        this.stopRecord();
-        cancelAnimationFrame(id);
-        this.isStop = true;
-        this.calibPredictionEnded = true;
-        return;
-      }
-
-      this.ctx.clearRect(0, 0, this.w, this.h);
-
-      // outer circle
-      this.ctx.beginPath();
-      this.ctx.strokeStyle = "black";
-      this.ctx.fillStyle = "black";
-      this.ctx.arc(
-        this.callibPoints[this.index].x,
-        this.callibPoints[this.index].y,
-        this.radius,
-        0,
-        Math.PI * 2,
-        false
-      );
-      this.ctx.stroke();
-      this.ctx.fill();
-
-      // inner circle
-      this.ctx.beginPath();
-      this.ctx.strokeStyle = "red";
-      this.ctx.fillStyle = "red";
-      this.ctx.arc(
-        this.callibPoints[this.index].x,
-        this.callibPoints[this.index].y,
-        5,
-        0,
-        Math.PI * 2,
-        false
-      );
-      this.ctx.stroke();
-      this.ctx.fill();
-
-      this.index++;
-      // setTimeout(() => {
+      console.log('start')
       const th = this;
       let intervalId = null;
       let predCount = 0;
       intervalId = setInterval(function () {
+        console.log('middle 1')
         th.saveCalibPredictPoint();
         predCount++;
         if (predCount === th.predByPointCount) {
+          console.log('middle 2')
           clearInterval(intervalId);
           intervalId = null;
           predCount = 0;
-          th.movingCircleCalib()
+          console.log('middle 3')
+          th.move()
+          console.log('middle 4')
         }
       }, 100);
-
-      //   id = requestAnimationFrame(this.movingCircleCalib);
-      // }, this.interval);
+      console.log('end')
+      th.move()
     },
     async endCalib() {
       let formData = new FormData();
