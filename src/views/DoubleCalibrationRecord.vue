@@ -204,7 +204,7 @@ export default {
             data.point_y = this.callibPoints[this.index - 1].y;
           }
           whereToSave.push({
-            data
+            ...data
           });
         }
       }
