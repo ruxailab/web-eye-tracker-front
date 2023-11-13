@@ -153,7 +153,8 @@ export default {
         if ((event.key === "s" || event.key === "S") && !intervalId) {
           let calibCount = 0;
           intervalId = setInterval(function () {
-            th.saveCircleIrisPoint();
+            th.savePoint(th.circleIrisPoints, true);
+            console.log(th.circleIrisPoints)
             calibCount++;
             if (calibCount === th.predByPointCount) {
               clearInterval(intervalId);
@@ -173,7 +174,7 @@ export default {
         let intervalId = null;
         let predCount = 0;
         intervalId = setInterval(function () {
-          th.saveCalibPredictPoint();
+          th.savePoint(th.calibPredictionPoints, false);
           predCount++;
           if (predCount === th.predByPointCount) {
             clearInterval(intervalId);
@@ -184,7 +185,7 @@ export default {
         }, 100);
         console.log(this.index)
         this.move()
-      } else{
+      } else {
         this.calibPredictionEnded = true
       }
     },
@@ -211,30 +212,21 @@ export default {
     savePredict(data) {
       this.$store.commit('savePredict', data)
     },
-    saveCalibPredictPoint() {
-      // set relation between eyes and circle x y
+    savePoint(whereToSave, isCalib) {
       if (!this.isStop) {
         if (this.predictions[0]) {
-          this.calibPredictionPoints.push({
+          const data = {
             left_iris_x: this.predictions[0].scaledMesh[468]["0"],
             left_iris_y: this.predictions[0].scaledMesh[468]["1"],
             right_iris_x: this.predictions[0].scaledMesh[473]["0"],
             right_iris_y: this.predictions[0].scaledMesh[473]["1"],
-          });
-        }
-      }
-    },
-    saveCircleIrisPoint() {
-      // set relation between eyes and circle x y
-      if (!this.isStop) {
-        if (this.predictions[0]) {
-          this.circleIrisPoints.push({
-            point_x: this.callibPoints[this.index - 1].x,
-            point_y: this.callibPoints[this.index - 1].y,
-            left_iris_x: this.predictions[0].scaledMesh[468]["0"],
-            left_iris_y: this.predictions[0].scaledMesh[468]["1"],
-            right_iris_x: this.predictions[0].scaledMesh[473]["0"],
-            right_iris_y: this.predictions[0].scaledMesh[473]["1"],
+          }
+          if (isCalib) {
+            data.point_x = this.callibPoints[this.index - 1].x;
+            data.point_y = this.callibPoints[this.index - 1].y;
+          }
+          whereToSave.push({
+            data
           });
         }
       }
