@@ -137,24 +137,30 @@ export default {
       this.movingCircleCalib();
     },
     startCallib() {
+      if (this.index == 0) {
+        this.generateCallibPoints();
+        this.startWebCamCapture();
+      }
       const th = this;
       let intervalId = null;
-      document.addEventListener("keydown", function (event) {
+      function keydownHandler(event) {
         if ((event.key === "s" || event.key === "S") && !intervalId) {
           let calibCount = 0;
           intervalId = setInterval(function () {
             th.savePoint(th.circleIrisPoints, true);
-            console.log(th.circleIrisPoints)
+            console.log(th.circleIrisPoints);
             calibCount++;
             if (calibCount === th.predByPointCount) {
               clearInterval(intervalId);
               intervalId = null;
               calibCount = 0;
-              th.move();
+              document.removeEventListener("keydown", keydownHandler);
+              th.startCallib();
             }
           }, 100);
         }
-      });
+      }
+      document.addEventListener("keydown", keydownHandler);
       this.move();
     },
     movingCircleCalib() {
