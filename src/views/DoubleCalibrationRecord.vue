@@ -66,7 +66,7 @@ export default {
     },
   },
   mounted() {
-    this.startCallib();
+    this.startCallib(true);
   },
   methods: {
     async startWebCamCapture() {
@@ -132,11 +132,10 @@ export default {
       this.isStop = false;
       this.index = 0;
       this.canvas.style.display = "block";
-      this.generateCallibPoints();
-      this.startWebCamCapture();
-      this.movingCircleCalib();
+      // this.movingCircleCalib();
+      this.startCallib(false)
     },
-    startCallib() {
+    startCallib(isCalib) {
       if (this.index == 0) {
         this.generateCallibPoints();
         this.startWebCamCapture();
@@ -147,42 +146,26 @@ export default {
         if ((event.key === "s" || event.key === "S") && !intervalId) {
           let calibCount = 0;
           intervalId = setInterval(function () {
-            th.savePoint(th.circleIrisPoints, true);
-            console.log(th.circleIrisPoints);
+            isCalib ? th.savePoint(th.circleIrisPoints, true) : th.savePoint(th.calibPredictionPoints, false);
+            isCalib ? console.log(th.circleIrisPoints) : console.log(th.calibPredictionPoints)
             calibCount++;
             if (calibCount === th.predByPointCount) {
               clearInterval(intervalId);
               intervalId = null;
               calibCount = 0;
               document.removeEventListener("keydown", keydownHandler);
-              th.startCallib();
+              console.log('disposed')
+              if(!th.isStop){
+                th.startCallib(isCalib);
+              } else {
+                console.log('nope')
+              }
             }
           }, 100);
         }
       }
       document.addEventListener("keydown", keydownHandler);
       this.move();
-    },
-    movingCircleCalib() {
-      if (!this.isStop) {
-        const th = this;
-        let intervalId = null;
-        let predCount = 0;
-        intervalId = setInterval(function () {
-          th.savePoint(th.calibPredictionPoints, false);
-          predCount++;
-          if (predCount === th.predByPointCount) {
-            clearInterval(intervalId);
-            intervalId = null;
-            predCount = 0;
-            th.movingCircleCalib()
-          }
-        }, 100);
-        console.log(this.index)
-        this.move()
-      } else {
-        this.calibPredictionEnded = true
-      }
     },
     async endCalib() {
       let formData = new FormData();
@@ -230,6 +213,10 @@ export default {
       if (this.index == this.callibPoints.length) {
         this.stopRecord();
         this.isStop = true;
+        // console.log(`${this.calibPredictionPoints.length} == ${(this.predByPointCount * this.callibPoints.length)}`)
+        if (this.calibPredictionPoints.length == (this.predByPointCount * this.callibPoints.length)) {
+          this.calibPredictionEnded = true
+        }
         return;
       }
       this.ctx.clearRect(0, 0, this.w, this.h);
