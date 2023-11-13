@@ -81,14 +81,11 @@ export default {
           let recordingWebCam = [];
           let video = document.getElementById("video-tag");
           video.srcObject = mediaStreamObj;
-
           // Define screen capture events
-
           // Save frames to recordingWebCam array
           this.recordWebCam.ondataavailable = (ev) => {
             recordingWebCam.push(ev.data);
           };
-
           // OnStop WebCam Record
           const th = this;
           this.recordWebCam.onstop = () => {
@@ -97,12 +94,10 @@ export default {
             recordingWebCam = [];
             const uploadMediaWebCam = { blob: blob, name: mediaStreamObj.id };
             th.webcamfile = uploadMediaWebCam;
-
             // End webcam capture
             mediaStreamObj.getTracks().forEach((track) => track.stop());
             th.stopRecord();
           };
-
           // Start Tensorflow Model
           await tf.getBackend();
           // Load the faceLandmarksDetection model assets.
@@ -110,7 +105,6 @@ export default {
             faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
             { maxFaces: 1 }
           );
-
           // Init record webcam
           this.recordWebCam.start();
           this.detectFace();
@@ -143,12 +137,8 @@ export default {
       this.movingCircleCalib();
     },
     startCallib() {
-      this.generateCallibPoints();
-      this.startWebCamCapture();
-
       const th = this;
       let intervalId = null;
-
       document.addEventListener("keydown", function (event) {
         if ((event.key === "s" || event.key === "S") && !intervalId) {
           let calibCount = 0;
@@ -165,7 +155,6 @@ export default {
           }, 100);
         }
       });
-
       this.move();
     },
     movingCircleCalib() {
@@ -237,9 +226,7 @@ export default {
         this.isStop = true;
         return;
       }
-
       this.ctx.clearRect(0, 0, this.w, this.h);
-
       // outer circle
       this.ctx.beginPath();
       this.ctx.strokeStyle = "black";
@@ -254,7 +241,6 @@ export default {
       );
       this.ctx.stroke();
       this.ctx.fill();
-
       // inner circle
       this.ctx.beginPath();
       this.ctx.strokeStyle = "red";
@@ -269,7 +255,6 @@ export default {
       );
       this.ctx.stroke();
       this.ctx.fill();
-
       this.index++;
     },
     generateCallibPoints() {
@@ -282,15 +267,12 @@ export default {
         { x: this.offset, y: this.offset },
         { x: this.offset, y: this.h / 2 },
         { x: this.offset, y: this.h - this.offset },
-
         { x: this.w / 2, y: this.offset },
         { x: this.w / 2, y: this.h / 2 },
         { x: this.w / 2, y: this.h - this.offset },
-
         { x: this.w - this.offset, y: this.offset },
         { x: this.w - this.offset, y: this.h / 2 },
         { x: this.w - this.offset, y: this.h - this.offset },
-
       ];
 
     },
