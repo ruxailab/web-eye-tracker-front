@@ -3,7 +3,7 @@
     <v-row justify="center" class="ma-0">
       <v-col v-if="callibFinished && currentStep === 1" cols="12" lg="4" md="4" sm="6">
         {{ circleIrisPoints.length }}
-        <v-btn block outlined color="primary" @click="nextStep()">
+        <v-btn block outlined color="primary" @click="startValidation()">
           Next Step
         </v-btn>
       </v-col>
@@ -158,7 +158,7 @@ export default {
       this.callibFinished = true;
       this.canvas.style.display = "none";
     },
-    nextStep() {
+    startValidation() {
       this.currentStep = 2;
       this.isStop = false;
       this.index = 0;
