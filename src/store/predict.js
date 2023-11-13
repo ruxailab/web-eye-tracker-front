@@ -1,7 +1,7 @@
 export default {
     state: {
-        fixedTrainData: [],
-        predictTrainData: [],
+        fixedTrainData: null,
+        predictTrainData: null,
         prediction: null,
     },
     mutations: {

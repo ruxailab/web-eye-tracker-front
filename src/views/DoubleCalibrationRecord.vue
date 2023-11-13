@@ -229,9 +229,44 @@ export default {
       //   id = requestAnimationFrame(this.movingCircleCalib);
       // }, this.interval);
     },
+    extractXYValues(extract, hasCalib) {
+      let receiver = {}
+      if (hasCalib) {
+        receiver = {
+          rightX: [],
+          rightY: [],
+          leftX: [],
+          leftY: [],
+          calibX: [],
+          calibY: [],
+        }
+      } else {
+        receiver = {
+          rightX: [],
+          rightY: [],
+          leftX: [],
+          leftY: [],
+        }
+      }
+
+      for (let i = 0; i < extract.length; i++) {
+        const dataPoint = extract[i];
+        receiver.rightX.push(dataPoint.right_iris_x)
+        receiver.rightY.push(dataPoint.right_iris_y)
+        receiver.leftX.push(dataPoint.left_iris_x)
+        receiver.leftY.push(dataPoint.left_iris_y)
+        if (hasCalib) {
+          receiver.calibX.push(dataPoint.point_x)
+          receiver.calibY.push(dataPoint.point_y)
+        }
+      }
+      return receiver
+    },
     endCalib() {
-      this.saveFixed(this.circleIrisPoints)
-      this.savePredict(this.calibPredictionPoints)
+      const fixedTrainPoints = this.extractXYValues(this.circleIrisPoints, true)
+      const fixedPredictionPoints = this.extractXYValues(this.calibPredictionPoints)
+      this.saveFixed(fixedTrainPoints)
+      this.savePredict(fixedPredictionPoints)
       this.$router.push('/postCalibration');
     },
     saveFixed(data) {
