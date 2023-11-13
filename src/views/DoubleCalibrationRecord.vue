@@ -151,14 +151,14 @@ export default {
 
       document.addEventListener("keydown", function (event) {
         if ((event.key === "s" || event.key === "S") && !intervalId) {
-          let predCount = 0;
+          let calibCount = 0;
           intervalId = setInterval(function () {
             th.saveCircleIrisPoint();
-            predCount++;
-            if (predCount === th.predByPointCount) {
+            calibCount++;
+            if (calibCount === th.predByPointCount) {
               clearInterval(intervalId);
               intervalId = null;
-              predCount = 0;
+              calibCount = 0;
               th.move();
             }
           }, 100);
@@ -168,26 +168,25 @@ export default {
       this.move();
     },
     movingCircleCalib() {
-      console.log('start')
-      const th = this;
-      let intervalId = null;
-      let predCount = 0;
-      intervalId = setInterval(function () {
-        console.log('middle 1')
-        th.saveCalibPredictPoint();
-        predCount++;
-        if (predCount === th.predByPointCount) {
-          console.log('middle 2')
-          clearInterval(intervalId);
-          intervalId = null;
-          predCount = 0;
-          console.log('middle 3')
-          th.move()
-          console.log('middle 4')
-        }
-      }, 100);
-      console.log('end')
-      th.move()
+      if (!this.isStop) {
+        const th = this;
+        let intervalId = null;
+        let predCount = 0;
+        intervalId = setInterval(function () {
+          th.saveCalibPredictPoint();
+          predCount++;
+          if (predCount === th.predByPointCount) {
+            clearInterval(intervalId);
+            intervalId = null;
+            predCount = 0;
+            th.movingCircleCalib()
+          }
+        }, 100);
+        console.log(this.index)
+        this.move()
+      } else{
+        this.calibPredictionEnded = true
+      }
     },
     async endCalib() {
       let formData = new FormData();
