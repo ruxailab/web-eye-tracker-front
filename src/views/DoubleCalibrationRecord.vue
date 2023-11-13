@@ -35,7 +35,7 @@ export default {
       // interval: 5000,
       radius: 20,
       offset: 50,
-      predByPointCount: 1,
+      predByPointCount: 20,
       ctx: null,
       callibPoints: [],
       index: 0,
