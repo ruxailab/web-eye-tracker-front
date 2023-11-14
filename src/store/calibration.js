@@ -16,6 +16,9 @@ export default {
         setOffset(state, value) {
             state.offset = value;
         },
+        setPointNumber(state, value) {
+            state.pointNumber = value
+        }
     },
     actions: {
         async sendData(context, data) {

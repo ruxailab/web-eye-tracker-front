@@ -14,7 +14,10 @@
                         <Radius />
                     </div>
                     <div class="custom-outline">
-                        <Slider :value="offset" :min="Number(50)" :max="Number(100)" label="offset" @input="updateOffset" />
+                        <Offset />
+                    </div>
+                    <div class="custom-outline">
+                        <Slider :value="pointNumber" :min="Number(1)" :max="Number(10)" label="Point Number" @input="updatePointNumber" />
                     </div>
                 </v-card>
             </v-col>
@@ -26,33 +29,29 @@
 import Toolbar from "@/components/Toolbar.vue";
 import Slider from "@/components/Slider.vue";
 import Radius from "@/components/calibConfig/Radius"
+import Offset from "@/components/calibConfig/Offset.vue";
 
 export default {
     components: {
         Toolbar,
         Radius,
+        Offset,
         Slider,
     },
     computed: {
         samplePerPoint() {
             return Number(this.$store.state.calibration.samplePerPoint ?? 0);
         },
-        radius() {
-            return Number(this.$store.state.calibration.radius ?? 0);
-        },
-        offset() {
-            return Number(this.$store.state.calibration.offset ?? 0);
-        },
+        pointNumber() {
+            return Number(this.$store.state.calibration.pointNumber ?? 0);
+        }
     },
     methods: {
         updateSamplePerPoint(value) {
             this.$store.commit('setSamplePerPoint', value);
         },
-        updateRadius(value) {
-            this.$store.commit('setRadius', value);
-        },
-        updateOffset(value) {
-            this.$store.commit('setOffset', value);
+        updatePointNumber(value) {
+            this.$store.commit('setPointNumber', value);
         },
     },
 };
