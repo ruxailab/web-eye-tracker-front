@@ -33,7 +33,7 @@ export default {
       // interval: 5000,
       radius: 20,
       offset: 50,
-      predByPointCount: 20,
+      predByPointCount: 5,
       ctx: null,
       callibPoints: [],
       index: 0,
@@ -155,57 +155,18 @@ export default {
           }, 100);
         }
       }
-      isCalib ? console.log(th.circleIrisPoints) : console.log(th.calibPredictionPoints)
       if (isCalib && (this.callibFinished && this.currentStep === 2)) {
         for (let i = 0; i < this.predByPointCount; i++) {
           this.circleIrisPoints.pop();
         }
-        console.log('acabou')
-        console.log(th.circleIrisPoints)
-
       } else {
         document.addEventListener("keydown", keydownHandler);
         this.move();
       }
     },
-    extractXYValues(extract, hasCalib) {
-      let receiver = {}
-      if (hasCalib) {
-        receiver = {
-          rightX: [],
-          rightY: [],
-          leftX: [],
-          leftY: [],
-          calibX: [],
-          calibY: [],
-        }
-      } else {
-        receiver = {
-          rightX: [],
-          rightY: [],
-          leftX: [],
-          leftY: [],
-        }
-      }
-
-      for (let i = 0; i < extract.length; i++) {
-        const dataPoint = extract[i];
-        receiver.rightX.push(dataPoint.right_iris_x)
-        receiver.rightY.push(dataPoint.right_iris_y)
-        receiver.leftX.push(dataPoint.left_iris_x)
-        receiver.leftY.push(dataPoint.left_iris_y)
-        if (hasCalib) {
-          receiver.calibX.push(dataPoint.point_x)
-          receiver.calibY.push(dataPoint.point_y)
-        }
-      }
-      return receiver
-    },
     endCalib() {
-      const fixedTrainPoints = this.extractXYValues(this.circleIrisPoints, true)
-      const fixedPredictionPoints = this.extractXYValues(this.calibPredictionPoints)
-      this.saveFixed(fixedTrainPoints)
-      this.savePredict(fixedPredictionPoints)
+      this.$store.dispatch('extractXYValues', { extract: this.circleIrisPoints, hasCalib: true })
+      this.$store.dispatch('extractXYValues', { extract: this.calibPredictionPoints, hasCalib: false })
       this.$router.push('/postCalibration');
     },
     saveFixed(data) {

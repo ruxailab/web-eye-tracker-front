@@ -44,6 +44,40 @@ export default {
             xs.dispose();
             ys.dispose();
             context.commit('saveModel', model)
-        }
+        },
+        extractXYValues(context, data) {
+            const hasCalib = data.hasCalib
+            const extract = data.extract
+            let receiver = {}
+            if (hasCalib) {
+                receiver = {
+                    rightX: [],
+                    rightY: [],
+                    leftX: [],
+                    leftY: [],
+                    calibX: [],
+                    calibY: [],
+                }
+            } else {
+                receiver = {
+                    rightX: [],
+                    rightY: [],
+                    leftX: [],
+                    leftY: [],
+                }
+            }
+            for (let i = 0; i < extract.length; i++) {
+                const dataPoint = extract[i];
+                receiver.rightX.push(dataPoint.right_iris_x)
+                receiver.rightY.push(dataPoint.right_iris_y)
+                receiver.leftX.push(dataPoint.left_iris_x)
+                receiver.leftY.push(dataPoint.left_iris_y)
+                if (hasCalib) {
+                    receiver.calibX.push(dataPoint.point_x)
+                    receiver.calibY.push(dataPoint.point_y)
+                }
+            }
+            hasCalib ? context.commit('saveFixed', receiver) : context.commit('savePredict', receiver)
+        },
     }
 }
