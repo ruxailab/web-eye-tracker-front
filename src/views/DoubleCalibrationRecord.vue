@@ -98,7 +98,8 @@ export default {
         this.move();
       }
     },
-    endCalib() {
+    async endCalib() {
+      await this.$store.dispatch('sendData', { circleIrisPoints: this.circleIrisPoints, calibPredictionPoints: this.calibPredictionPoints })
       this.$store.dispatch('extractXYValues', { extract: this.circleIrisPoints, hasCalib: true })
       this.$store.dispatch('extractXYValues', { extract: this.calibPredictionPoints, hasCalib: false })
       this.$router.push('/postCalibration');
