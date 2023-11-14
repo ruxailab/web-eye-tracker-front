@@ -1,5 +1,22 @@
 import axios from 'axios';
 export default {
+    state: {
+        pointNumber: 5,
+        samplePerPoint: 10,
+        radius: 20,
+        offset: 50,
+    },
+    mutations: {
+        setSamplePerPoint(state, value) {
+            state.samplePerPoint = value;
+        },
+        setRadius(state, value) {
+            state.radius = value;
+        },
+        setOffset(state, value) {
+            state.offset = value;
+        },
+    },
     actions: {
         async sendData(context, data) {
             let formData = new FormData();
