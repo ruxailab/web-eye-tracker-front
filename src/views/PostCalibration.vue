@@ -7,11 +7,6 @@
 <script>
 import * as tf from '@tensorflow/tfjs';
 export default {
-    data() {
-        return {
-            model: null,
-        };
-    },
     async mounted() {
         this.resizeCanvas()
         this.draw(this.fixedTrainData.calibX, this.fixedTrainData.calibY, 'black')
