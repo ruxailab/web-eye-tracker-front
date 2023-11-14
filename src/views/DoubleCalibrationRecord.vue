@@ -35,7 +35,7 @@ export default {
       // interval: 5000,
       radius: 20,
       offset: 50,
-      predByPointCount: 2,
+      predByPointCount: 20,
       ctx: null,
       callibPoints: [],
       index: 0,
@@ -157,11 +157,17 @@ export default {
           }, 100);
         }
       }
-      if (!(this.callibFinished && this.currentStep === 1)) {
+      isCalib ? console.log(th.circleIrisPoints) : console.log(th.calibPredictionPoints)
+      if (isCalib && (this.callibFinished && this.currentStep === 2)) {
+        for (let i = 0; i < this.predByPointCount; i++) {
+          this.circleIrisPoints.pop();
+        }
+        console.log('acabou')
+        console.log(th.circleIrisPoints)
+
+      } else {
         document.addEventListener("keydown", keydownHandler);
         this.move();
-      } else {
-        console.log('cabou')
       }
     },
     async endCalib() {
