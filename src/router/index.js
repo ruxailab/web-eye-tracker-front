@@ -13,6 +13,7 @@ import Callibration from '@/views/Callibration'
 import CameraConfig from '@/views/CameraConfiguration'
 import DoubleCalibrationRecord from '@/views/DoubleCalibrationRecord'
 import PostCalibration from '@/views/PostCalibration'
+import CalibrationConfig from '@/views/CalibrationConfig'
 
 Vue.use(VueRouter)
 
@@ -68,6 +69,11 @@ const routes = [
     path: '/postCalibration',
     name: 'postCalibration',
     component: PostCalibration,
+  },
+  {
+    path: '/callibration/configuration',
+    name: 'calibrationConfig',
+    component: CalibrationConfig
   },
 ]
 
