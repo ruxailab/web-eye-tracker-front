@@ -30,7 +30,6 @@ export default {
       canvas: null,
       w: 0,
       h: 0,
-      // interval: 5000,
       radius: 20,
       offset: 50,
       predByPointCount: 5,
@@ -67,6 +66,63 @@ export default {
     this.startCallib(true);
   },
   methods: {
+    startCallib(isCalib) {
+      if (this.index == 0) {
+        this.generateCallibPoints();
+        this.startWebCamCapture();
+      }
+      const th = this;
+      let intervalId = null;
+      function keydownHandler(event) {
+        if ((event.key === "s" || event.key === "S") && !intervalId) {
+          let calibCount = 0;
+          intervalId = setInterval(function () {
+            isCalib ? th.savePoint(th.circleIrisPoints, true) : th.savePoint(th.calibPredictionPoints, false);
+            calibCount++;
+            if (calibCount === th.predByPointCount) {
+              clearInterval(intervalId);
+              intervalId = null;
+              calibCount = 0;
+              document.removeEventListener("keydown", keydownHandler);
+              th.startCallib(isCalib);
+            }
+          }, 100);
+        }
+      }
+      if (isCalib && (this.callibFinished && this.currentStep === 2)) {
+        for (let i = 0; i < this.predByPointCount; i++) {
+          this.circleIrisPoints.pop();
+        }
+      } else {
+        document.addEventListener("keydown", keydownHandler);
+        this.move();
+      }
+    },
+    endCalib() {
+      this.$store.dispatch('extractXYValues', { extract: this.circleIrisPoints, hasCalib: true })
+      this.$store.dispatch('extractXYValues', { extract: this.calibPredictionPoints, hasCalib: false })
+      this.$router.push('/postCalibration');
+    },
+    savePoint(whereToSave, isCalib) {
+      if (!this.isStop) {
+        if (this.predictions[0]) {
+          const data = {
+            left_iris_x: this.predictions[0].scaledMesh[468]["0"],
+            left_iris_y: this.predictions[0].scaledMesh[468]["1"],
+            right_iris_x: this.predictions[0].scaledMesh[473]["0"],
+            right_iris_y: this.predictions[0].scaledMesh[473]["1"],
+          }
+          if (isCalib) {
+            data.point_x = this.callibPoints[this.index - 1].x;
+            data.point_y = this.callibPoints[this.index - 1].y;
+          }
+          whereToSave.push({
+            ...data
+          });
+        }
+      }
+    },
+    // canvas related
     async startWebCamCapture() {
       // Request permission for screen capture
       return navigator.mediaDevices
@@ -131,68 +187,6 @@ export default {
       this.index = 0;
       this.canvas.style.display = "block";
       this.startCallib(false)
-    },
-    startCallib(isCalib) {
-      if (this.index == 0) {
-        this.generateCallibPoints();
-        this.startWebCamCapture();
-      }
-      const th = this;
-      let intervalId = null;
-      function keydownHandler(event) {
-        if ((event.key === "s" || event.key === "S") && !intervalId) {
-          let calibCount = 0;
-          intervalId = setInterval(function () {
-            isCalib ? th.savePoint(th.circleIrisPoints, true) : th.savePoint(th.calibPredictionPoints, false);
-            calibCount++;
-            if (calibCount === th.predByPointCount) {
-              clearInterval(intervalId);
-              intervalId = null;
-              calibCount = 0;
-              document.removeEventListener("keydown", keydownHandler);
-              th.startCallib(isCalib);
-            }
-          }, 100);
-        }
-      }
-      if (isCalib && (this.callibFinished && this.currentStep === 2)) {
-        for (let i = 0; i < this.predByPointCount; i++) {
-          this.circleIrisPoints.pop();
-        }
-      } else {
-        document.addEventListener("keydown", keydownHandler);
-        this.move();
-      }
-    },
-    endCalib() {
-      this.$store.dispatch('extractXYValues', { extract: this.circleIrisPoints, hasCalib: true })
-      this.$store.dispatch('extractXYValues', { extract: this.calibPredictionPoints, hasCalib: false })
-      this.$router.push('/postCalibration');
-    },
-    saveFixed(data) {
-      this.$store.commit('saveFixed', data)
-    },
-    savePredict(data) {
-      this.$store.commit('savePredict', data)
-    },
-    savePoint(whereToSave, isCalib) {
-      if (!this.isStop) {
-        if (this.predictions[0]) {
-          const data = {
-            left_iris_x: this.predictions[0].scaledMesh[468]["0"],
-            left_iris_y: this.predictions[0].scaledMesh[468]["1"],
-            right_iris_x: this.predictions[0].scaledMesh[473]["0"],
-            right_iris_y: this.predictions[0].scaledMesh[473]["1"],
-          }
-          if (isCalib) {
-            data.point_x = this.callibPoints[this.index - 1].x;
-            data.point_y = this.callibPoints[this.index - 1].y;
-          }
-          whereToSave.push({
-            ...data
-          });
-        }
-      }
     },
     move() {
       if (this.index == this.callibPoints.length) {
