@@ -1,9 +1,12 @@
 <template>
-    <div>
-        <label>{{ label }}</label>
-        <input type="range" min="5" max="100" step="1" v-model="sliderValue" @input="updateValue" />
-        <span>{{ sliderValue }}</span>
-    </div>
+    <v-container>
+        <v-row>
+            <v-col>
+                {{ label }} : {{ sliderValue }}
+                <v-slider v-model="sliderValue" :min="min" :max="max" :step="1" class="my-slider"></v-slider>
+            </v-col>
+        </v-row>
+    </v-container>
 </template>
   
 <script>
@@ -12,6 +15,14 @@ export default {
         value: {
             type: Number,
             default: 0,
+        },
+        min: {
+            type: Number,
+            default: 5,
+        },
+        max: {
+            type: Number,
+            default: 100,
         },
         label: String,
     },
