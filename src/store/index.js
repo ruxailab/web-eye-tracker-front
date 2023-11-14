@@ -4,6 +4,7 @@ import Vuex from 'vuex'
 import session from '@/store/session.js'
 import auth from '@/store/auth.js'
 import predict from '@/store/predict.js'
+import calibration from '@/store/calibration.js'
 
 Vue.use(Vuex)
 
@@ -18,5 +19,6 @@ export default new Vuex.Store({
     session,
     auth,
     predict,
+    calibration
   }
 })
