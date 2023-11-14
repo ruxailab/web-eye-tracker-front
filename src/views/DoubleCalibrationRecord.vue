@@ -132,7 +132,6 @@ export default {
       this.isStop = false;
       this.index = 0;
       this.canvas.style.display = "block";
-      // this.movingCircleCalib();
       this.startCallib(false)
     },
     startCallib(isCalib) {
@@ -147,25 +146,23 @@ export default {
           let calibCount = 0;
           intervalId = setInterval(function () {
             isCalib ? th.savePoint(th.circleIrisPoints, true) : th.savePoint(th.calibPredictionPoints, false);
-            isCalib ? console.log(th.circleIrisPoints) : console.log(th.calibPredictionPoints)
             calibCount++;
             if (calibCount === th.predByPointCount) {
               clearInterval(intervalId);
               intervalId = null;
               calibCount = 0;
               document.removeEventListener("keydown", keydownHandler);
-              console.log('disposed')
-              if(!th.isStop){
-                th.startCallib(isCalib);
-              } else {
-                console.log('nope')
-              }
+              th.startCallib(isCalib);
             }
           }, 100);
         }
       }
-      document.addEventListener("keydown", keydownHandler);
-      this.move();
+      if (!(this.callibFinished && this.currentStep === 1)) {
+        document.addEventListener("keydown", keydownHandler);
+        this.move();
+      } else {
+        console.log('cabou')
+      }
     },
     async endCalib() {
       let formData = new FormData();
@@ -213,7 +210,6 @@ export default {
       if (this.index == this.callibPoints.length) {
         this.stopRecord();
         this.isStop = true;
-        // console.log(`${this.calibPredictionPoints.length} == ${(this.predByPointCount * this.callibPoints.length)}`)
         if (this.calibPredictionPoints.length == (this.predByPointCount * this.callibPoints.length)) {
           this.calibPredictionEnded = true
         }
@@ -255,7 +251,6 @@ export default {
       this.w = this.canvas.width = window.innerWidth;
       this.h = this.canvas.height = window.innerHeight;
       this.ctx = this.canvas.getContext("2d");
-
       this.callibPoints = [
         { x: this.offset, y: this.offset },
         { x: this.offset, y: this.h / 2 },
@@ -267,7 +262,6 @@ export default {
         { x: this.w - this.offset, y: this.h / 2 },
         { x: this.w - this.offset, y: this.h - this.offset },
       ];
-
     },
   },
 };
