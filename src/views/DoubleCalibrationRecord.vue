@@ -55,11 +55,14 @@ export default {
     radius() {
       return this.$store.state.calibration.radius
     },
-    offset(){
+    offset() {
       return this.$store.state.calibration.offset
     },
-    predByPointCount(){
+    predByPointCount() {
       return this.$store.state.calibration.samplePerPoint
+    },
+    pattern() {
+      return this.$store.state.calibration.pattern
     }
   },
   watch: {
@@ -86,7 +89,6 @@ export default {
           let calibCount = 0;
           intervalId = setInterval(function () {
             isCalib ? th.savePoint(th.circleIrisPoints, true) : th.savePoint(th.calibPredictionPoints, false);
-            isCalib ? console.log(th.circleIrisPoints) : console.log(th.calibPredictionPoints);
             calibCount++;
             if (calibCount === th.predByPointCount) {
               clearInterval(intervalId);
@@ -247,17 +249,7 @@ export default {
       this.w = this.canvas.width = window.innerWidth;
       this.h = this.canvas.height = window.innerHeight;
       this.ctx = this.canvas.getContext("2d");
-      this.callibPoints = [
-        { x: this.offset, y: this.offset },
-        { x: this.offset, y: this.h / 2 },
-        { x: this.offset, y: this.h - this.offset },
-        { x: this.w / 2, y: this.offset },
-        { x: this.w / 2, y: this.h / 2 },
-        { x: this.w / 2, y: this.h - this.offset },
-        { x: this.w - this.offset, y: this.offset },
-        { x: this.w - this.offset, y: this.h / 2 },
-        { x: this.w - this.offset, y: this.h - this.offset },
-      ];
+      this.callibPoints = this.pattern
     },
   },
 };

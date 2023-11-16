@@ -6,9 +6,10 @@ export default {
         samplePerPoint: 10,
         radius: 20,
         offset: 50,
+        pattern: [],
     },
     mutations: {
-        setCalibName(state, value){
+        setCalibName(state, value) {
             state.calibName = value
         },
         setSamplePerPoint(state, value) {
@@ -22,6 +23,9 @@ export default {
         },
         setPointNumber(state, value) {
             state.pointNumber = value
+        },
+        setPattern(state, value) {
+            state.pattern = value
         }
     },
     actions: {

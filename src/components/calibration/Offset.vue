@@ -28,6 +28,9 @@ export default {
         updateOffset(value) {
             this.$store.commit('setOffset', value);
         },
+        updatePattern(value) {
+            this.$store.commit('setPattern', value);
+        },
         drawOffset(offset, pointNum) {
             const canvas = document.getElementById("offCanvas");
             const ctx = canvas.getContext("2d");
@@ -36,12 +39,14 @@ export default {
             const h = canvas.height;
             const w = canvas.width;
 
-            const callibPoints = this.generatePoints(trueOffset, w, h, pointNum);
+            const canvasCalib = this.generatePoints(trueOffset, w, h, pointNum);
+            const trueCalib = this.generatePoints(offset,window.innerWidth, window.innerHeight, pointNum )
+            this.updatePattern(trueCalib)  
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             ctx.fillStyle = "red";
-            callibPoints.forEach((point) => {
+            canvasCalib.forEach((point) => {
                 ctx.beginPath();
                 ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
                 ctx.fill();
