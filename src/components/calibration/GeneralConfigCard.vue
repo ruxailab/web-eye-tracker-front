@@ -24,9 +24,9 @@
 </template>
   
 <script>
-import Slider from "@/components/Slider.vue";
-import Radius from "@/components/calibConfig/Radius"
-import Offset from "@/components/calibConfig/Offset.vue";
+import Slider from "@/components/general/Slider.vue";
+import Radius from "@/components/calibration/Radius"
+import Offset from "@/components/calibration/Offset.vue";
 
 export default {
     components: {

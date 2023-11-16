@@ -14,12 +14,7 @@
                 <p class="mx-4">{{ session.description }}</p>
               </v-col>
               <v-col cols="12" lg="4" md="4">
-                <v-btn
-                  width="100%"
-                  class="my-6"
-                  outlined
-                  @click="downloadJSON()"
-                >
+                <v-btn width="100%" class="my-6" outlined @click="downloadJSON()">
                   Download JSON
                   <v-icon right>mdi-code-json</v-icon>
                 </v-btn>
@@ -27,13 +22,7 @@
                   View heatmap
                   <v-icon right>mdi-fire</v-icon>
                 </v-btn>
-                <v-btn
-                  width="100%"
-                  class="mt-6"
-                  outlined
-                  color="red"
-                  @click="deleteSession()"
-                >
+                <v-btn width="100%" class="mt-6" outlined color="red" @click="deleteSession()">
                   Delete session
                   <v-icon right>mdi-delete-outline</v-icon>
                 </v-btn>
@@ -46,17 +35,7 @@
       <!---Return Btn---->
       <v-tooltip right>
         <template v-slot:activator="{ on, attrs }">
-          <v-btn
-            dark
-            bottom
-            left
-            fab
-            fixed
-            small
-            v-bind="attrs"
-            v-on="on"
-            :to="`/dashboard`"
-          >
+          <v-btn dark bottom left fab fixed small v-bind="attrs" v-on="on" :to="`/dashboard`">
             <v-icon>mdi-undo</v-icon>
           </v-btn>
         </template>
@@ -64,28 +43,19 @@
       </v-tooltip>
     </div>
     <v-row justify="center" class="mt-12 pt-12" v-else>
-      <v-progress-circular
-        :size="50"
-        :width="7"
-        color="black"
-        indeterminate
-      ></v-progress-circular>
+      <v-progress-circular :size="50" :width="7" color="black" indeterminate></v-progress-circular>
     </v-row>
 
     <v-dialog fullscreen v-model="showHeatmap">
-      <Heatmap
-        @close="showHeatmap = false"
-        :gaze_points="points"
-        :screen_record="screen_record"
-      />
+      <Heatmap @close="showHeatmap = false" :gaze_points="points" :screen_record="screen_record" />
     </v-dialog>
   </div>
 </template>
 
 <script>
-import Toolbar from "@/components/Toolbar";
+import Toolbar from "@/components/general/Toolbar.vue";
 import api from "@/services/session";
-import Heatmap from "@/components/HeatmapViewer.vue";
+import Heatmap from "@/components/general/HeatmapViewer.vue";
 
 export default {
   components: {

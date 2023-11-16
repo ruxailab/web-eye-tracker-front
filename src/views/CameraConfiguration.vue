@@ -17,8 +17,8 @@
 </template>
   
 <script>
-import Toolbar from "@/components/Toolbar.vue";
-import CameraComponent from "@/components/CameraComponent.vue"
+import Toolbar from "@/components/general/Toolbar.vue";
+import CameraComponent from "@/components/general/CameraComponent.vue"
 
 const tf = require("@tensorflow/tfjs");
 const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");

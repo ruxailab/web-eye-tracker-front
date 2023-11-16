@@ -10,7 +10,7 @@
 </template>
   
 <script>
-import Slider from "@/components/Slider.vue";
+import Slider from "@/components/general/Slider.vue";
 
 export default {
     components: {
@@ -32,12 +32,12 @@ export default {
             const centerY = canvas.height / 2;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.beginPath();
-            ctx.arc(centerX, centerY, radius*2, 0, 2 * Math.PI);
+            ctx.arc(centerX, centerY, radius * 2, 0, 2 * Math.PI);
             ctx.fillStyle = "black";
             ctx.fill();
             ctx.closePath();
             ctx.beginPath();
-            ctx.arc(centerX, centerY, (radius/3)*2, 0, 2 * Math.PI);
+            ctx.arc(centerX, centerY, (radius / 3) * 2, 0, 2 * Math.PI);
             ctx.fillStyle = "red";
             ctx.fill();
             ctx.closePath();

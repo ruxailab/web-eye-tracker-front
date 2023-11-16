@@ -7,39 +7,13 @@
           <v-col cols="12" lg="7" md="7">
             <h2 class="mb-4">New Session</h2>
             <v-form ref="form" lazy-validation v-model="isFormValid">
-              <v-text-field
-                v-model="title"
-                outlined
-                dense
-                placeholder="Title"
-                label="Title"
-                :rules="rules.required"
-              />
-              <v-text-field
-                v-model="website_url"
-                outlined
-                dense
-                placeholder="URL"
-                label="URL"
-                :rules="rules.required"
-              />
-              <v-textarea
-                v-model="description"
-                outlined
-                placeholder="Description"
-                label="Description"
-                :rules="rules.required"
-              />
+              <v-text-field v-model="title" outlined dense placeholder="Title" label="Title" :rules="rules.required" />
+              <v-text-field v-model="website_url" outlined dense placeholder="URL" label="URL" :rules="rules.required" />
+              <v-textarea v-model="description" outlined placeholder="Description" label="Description"
+                :rules="rules.required" />
               <v-row justify="end" class="ma-0">
-                <v-btn outlined color="red" class="mr-6" to="/sessions"
-                  >cancel</v-btn
-                >
-                <v-btn
-                  color="success"
-                  @click="setCurrentSession()"
-                  :disabled="!isFormValid"
-                  >start</v-btn
-                >
+                <v-btn outlined color="red" class="mr-6" to="/sessions">cancel</v-btn>
+                <v-btn color="success" @click="setCurrentSession()" :disabled="!isFormValid">start</v-btn>
               </v-row>
             </v-form>
           </v-col>
@@ -74,7 +48,7 @@
 </template>
 
 <script>
-import Toolbar from "@/components/Toolbar";
+import Toolbar from "@/components/general/Toolbar.vue";
 
 export default {
   components: {

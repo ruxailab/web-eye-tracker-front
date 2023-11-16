@@ -5,32 +5,17 @@
       <v-spacer />
       <v-toolbar-items>
         <v-row class="ma-0" align="center">
-          <v-icon
-            :color="recording.color"
-            small
-            :class="`${recording.isPaused ? 'blink' : ''}`"
-            >mdi-record</v-icon
-          >
+          <v-icon :color="recording.color" small :class="`${recording.isPaused ? 'blink' : ''}`">mdi-record</v-icon>
           <p class="pt-4 pr-4 pl-2">
             {{ displayTime.hour }}:{{ displayTime.min }}:{{ displayTime.sec }}
           </p>
           <v-btn icon small @click="stopRecord()" :disabled="!recording.value">
             <v-icon color="red">mdi-stop-circle-outline</v-icon>
           </v-btn>
-          <v-btn
-            icon
-            small
-            @click="pauseRecord()"
-            :disabled="recording.isPaused || !recording.value ? true : false"
-          >
+          <v-btn icon small @click="pauseRecord()" :disabled="recording.isPaused || !recording.value ? true : false">
             <v-icon>mdi-pause-circle-outline</v-icon>
           </v-btn>
-          <v-btn
-            icon
-            small
-            @click="startRecord()"
-            :disabled="recording.isPaused || !recording.value ? false : true"
-          >
+          <v-btn icon small @click="startRecord()" :disabled="recording.isPaused || !recording.value ? false : true">
             <v-icon>mdi-play-circle-outline</v-icon>
           </v-btn>
         </v-row>
@@ -42,24 +27,17 @@
         <h2 class="ml-4">Saving Session...</h2>
       </v-row>
     </v-overlay>
-    <iframe
-      :src="currentSession.website_url"
-      style="border: 0; width: 100%; height: 93%"
-    />
+    <iframe :src="currentSession.website_url" style="border: 0; width: 100%; height: 93%" />
     <video autoplay id="video-tag" style="display: none"></video>
     <!-- Confirm Send Dialog -->
-    <dialog-confirm-send
-      :dialog="dialog"
-      v-on:dialog="dialog = false"
-      v-on:consent="sendToAPI"
-    />
+    <dialog-confirm-send :dialog="dialog" v-on:dialog="dialog = false" v-on:consent="sendToAPI" />
   </div>
 </template>
 
 <script>
 const tf = require("@tensorflow/tfjs");
 const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
-import DialogConfirmSend from "@/components/DialogConfirmSend.vue";
+import DialogConfirmSend from "@/components/general/DialogConfirmSend.vue";
 import api from "@/services/session.js";
 
 export default {
@@ -229,13 +207,13 @@ export default {
           // Define screen capture events
 
           // Save frames to recordingScreen array
-          this.recordScreen.ondataavailable = function(ev) {
+          this.recordScreen.ondataavailable = function (ev) {
             recordingScreen.push(ev.data);
           };
 
           // OnStop Screen Record
           const th = this;
-          this.recordScreen.onstop = function() {
+          this.recordScreen.onstop = function () {
             // Generate blob from the frames
             let blob = new Blob(recordingScreen, { type: "video/webm" });
             recordingScreen = [];
@@ -347,16 +325,20 @@ export default {
   height: 100%;
   overflow: hidden;
 }
+
 .blink {
   animation: blink 1s steps(1, end) infinite;
 }
+
 @keyframes blink {
   0% {
     opacity: 1;
   }
+
   50% {
     opacity: 0;
   }
+
   100% {
     opacity: 1;
   }

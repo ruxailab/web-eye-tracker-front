@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import Toolbar from "@/components/Toolbar.vue";
+import Toolbar from "@/components/general/Toolbar.vue";
 
 export default {
   components: {

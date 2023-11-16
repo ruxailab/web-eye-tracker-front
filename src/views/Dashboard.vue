@@ -10,16 +10,7 @@
     <!-- New Session Btn -->
     <v-tooltip left>
       <template v-slot:activator="{ on, attrs }">
-        <v-btn
-          dark
-          bottom
-          right
-          fab
-          fixed
-          v-bind="attrs"
-          v-on="on"
-          :to="`/callibration`"
-        >
+        <v-btn dark bottom right fab fixed v-bind="attrs" v-on="on" :to="`/callibration`">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
       </template>
@@ -29,8 +20,8 @@
 </template>
 
 <script>
-import Toolbar from "@/components/Toolbar.vue";
-import SessionsTable from "@/components/SessionsTable.vue";
+import Toolbar from "@/components/general/Toolbar.vue";
+import SessionsTable from "@/components/general/SessionsTable.vue";
 
 export default {
   components: {

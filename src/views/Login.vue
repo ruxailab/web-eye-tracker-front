@@ -9,21 +9,9 @@
             Login with Google to start creating your usability tests
           </p>
           <v-row justify="center" class="mt-12">
-            <v-btn
-              id="login-btn-google"
-              large
-              tile
-              class="rounded-0 ma-0"
-              color="#ffffff"
-              @click="login"
-            >
-              <v-img
-                height="35px"
-                width="35px"
-                class="signin-icon"
-                src="@/assets/iconGoogle.svg"
-                alt="Google sign in - icon"
-              >
+            <v-btn id="login-btn-google" large tile class="rounded-0 ma-0" color="#ffffff" @click="login">
+              <v-img height="35px" width="35px" class="signin-icon" src="@/assets/iconGoogle.svg"
+                alt="Google sign in - icon">
               </v-img>
               <p class="pl-1 pr-1 ma-0 text-center text-capitalize">
                 Sign in with Google
@@ -37,7 +25,7 @@
 </template>
 
 <script>
-import Toolbar from "@/components/Toolbar.vue";
+import Toolbar from "@/components/general/Toolbar.vue";
 
 export default {
   components: {
