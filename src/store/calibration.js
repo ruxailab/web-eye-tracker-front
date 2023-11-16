@@ -32,6 +32,10 @@ export default {
         async sendData(context, data) {
             let formData = new FormData();
             formData.append(
+                "file_name",
+                JSON.stringify(context.state.calibName)
+            )
+            formData.append(
                 "fixed_circle_iris_points",
                 JSON.stringify(data.circleIrisPoints)
             );
