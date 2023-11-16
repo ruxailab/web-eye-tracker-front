@@ -1,12 +1,16 @@
 import axios from 'axios';
 export default {
     state: {
+        calibName: '',
         pointNumber: 5,
         samplePerPoint: 10,
         radius: 20,
         offset: 50,
     },
     mutations: {
+        setCalibName(state, value){
+            state.calibName = value
+        },
         setSamplePerPoint(state, value) {
             state.samplePerPoint = value;
         },

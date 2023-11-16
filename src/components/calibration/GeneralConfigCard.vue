@@ -6,6 +6,9 @@
                     general configuration
                 </v-card-title>
                 <div class="custom-outline">
+                    <TextField :value="calibName" @input="updateCalibName" />
+                </div>
+                <div class="custom-outline">
                     <Slider :value="pointNumber" :min="Number(1)" :max="Number(9)" label="Point Number"
                         @input="updatePointNumber" />
                 </div>
@@ -25,6 +28,7 @@
   
 <script>
 import Slider from "@/components/general/Slider.vue";
+import TextField from "@/components/general/TextField.vue";
 import Radius from "@/components/calibration/Radius"
 import Offset from "@/components/calibration/Offset.vue";
 
@@ -32,7 +36,8 @@ export default {
     components: {
         Radius,
         Offset,
-        Slider
+        Slider,
+        TextField
     },
     computed: {
         samplePerPoint() {
@@ -40,6 +45,9 @@ export default {
         },
         pointNumber() {
             return Number(this.$store.state.calibration.pointNumber ?? 0);
+        },
+        calibName() {
+            return this.$store.state.calibration.calibName
         }
     },
     methods: {
@@ -49,6 +57,9 @@ export default {
         updatePointNumber(value) {
             this.$store.commit('setPointNumber', value);
         },
+        updateCalibName(value) {
+            this.$store.commit('setCalibName', value);
+        }
     },
 };
 </script>
