@@ -5,8 +5,12 @@
             <v-col>
                 <v-card outlined>
                     <v-card-title>
-                        numeric calibration
+                        general configuration
                     </v-card-title>
+                    <div class="custom-outline">
+                        <Slider :value="pointNumber" :min="Number(1)" :max="Number(9)" label="Point Number"
+                            @input="updatePointNumber" />
+                    </div>
                     <div class="custom-outline">
                         <Slider :value="samplePerPoint" label="Sample Per Point" @input="updateSamplePerPoint" />
                     </div>
@@ -15,9 +19,6 @@
                     </div>
                     <div class="custom-outline">
                         <Offset />
-                    </div>
-                    <div class="custom-outline">
-                        <Slider :value="pointNumber" :min="Number(1)" :max="Number(9)" label="Point Number" @input="updatePointNumber" />
                     </div>
                 </v-card>
             </v-col>
