@@ -1,6 +1,6 @@
 <template>
     <div>
-        <label>{{ label }}</label>
+        {{ label }} : 
         <input type="text" v-model="inputValue" />
     </div>
 </template>
@@ -14,7 +14,7 @@ export default {
         },
         label: {
             type: String,
-            default: 'Text Field:',
+            default: '',
         },
     },
     data() {

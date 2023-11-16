@@ -6,7 +6,7 @@
                     general configuration
                 </v-card-title>
                 <div class="custom-outline">
-                    <TextField :value="calibName" @input="updateCalibName" />
+                    <TextField label="calib name" :value="calibName" @input="updateCalibName" />
                 </div>
                 <div class="custom-outline">
                     <Slider :value="pointNumber" :min="Number(1)" :max="Number(9)" label="Point Number"
@@ -58,7 +58,13 @@ export default {
             this.$store.commit('setPointNumber', value);
         },
         updateCalibName(value) {
-            this.$store.commit('setCalibName', value);
+            const trimmedValue = value.replace(/\s+/g, '');
+
+            if (trimmedValue !== '') {
+                this.$store.commit('setCalibName', trimmedValue);
+            } else {
+                console.log('Value contains only white spaces or is empty');
+            }
         }
     },
 };
