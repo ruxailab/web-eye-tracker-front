@@ -17,7 +17,7 @@
                         <Offset />
                     </div>
                     <div class="custom-outline">
-                        <Slider :value="pointNumber" :min="Number(1)" :max="Number(10)" label="Point Number" @input="updatePointNumber" />
+                        <Slider :value="pointNumber" :min="Number(1)" :max="Number(9)" label="Point Number" @input="updatePointNumber" />
                     </div>
                 </v-card>
             </v-col>
