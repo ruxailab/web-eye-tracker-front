@@ -3,7 +3,7 @@
         <Toolbar />
         <GeneralConfigCard />
         <v-btn color="green darken-2" fab bottom right absolute
-            :style="{ 'z-index': 10, 'elevation': '12', 'bottom':'20px','right':'20px'}">
+            :style="{ 'z-index': 10, 'elevation': '12', 'bottom': '20px', 'right': '20px' }" @click="changePage">
             <v-icon color="white">
                 mdi-content-save
             </v-icon>
@@ -20,5 +20,10 @@ export default {
         Toolbar,
         GeneralConfigCard,
     },
+    methods: {
+        changePage() {
+            this.$router.push("/callibration/camera");
+        }
+    }
 };
 </script>
