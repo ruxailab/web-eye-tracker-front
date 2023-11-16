@@ -42,7 +42,6 @@ export default {
   methods: {
     goToCameraConfig() {
       this.$router.push("/callibration/configuration");
-      // this.$router.push("/callibration/camera");
     },
   },
 };

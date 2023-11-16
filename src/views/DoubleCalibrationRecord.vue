@@ -30,9 +30,6 @@ export default {
       canvas: null,
       w: 0,
       h: 0,
-      radius: 20,
-      offset: 50,
-      predByPointCount: 5,
       ctx: null,
       callibPoints: [],
       index: 0,
@@ -53,6 +50,17 @@ export default {
       calibPredictionEnded: false,
       calibPredictionPoints: [],
     };
+  },
+  computed: {
+    radius() {
+      return this.$store.state.calibration.radius
+    },
+    offset(){
+      return this.$store.state.calibration.offset
+    },
+    predByPointCount(){
+      return this.$store.state.calibration.samplePerPoint
+    }
   },
   watch: {
     predictions: {

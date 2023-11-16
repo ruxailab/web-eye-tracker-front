@@ -48,70 +48,70 @@ export default {
                 ctx.closePath();
             });
         },
-        generatePoints(offset, canvasWidth, canvasHeight, pointNum) {
+        generatePoints(offset, width, height, pointNum) {
             const possiblePatterns = [
                 [
-                    { x: canvasWidth / 2, y: canvasHeight / 2 }
+                    { x: width / 2, y: height / 2 }
                 ],
                 [
-                    { x: offset, y: canvasHeight / 2 },
-                    { x: canvasWidth - offset, y: canvasHeight / 2 }
+                    { x: offset, y: height / 2 },
+                    { x: width - offset, y: height / 2 }
                 ],
                 [
-                    { x: offset, y: canvasHeight / 2 },
-                    { x: canvasWidth / 2, y: offset },
-                    { x: canvasWidth - offset, y: canvasHeight / 2 }
-                ],
-                [
-                    { x: offset, y: offset },
-                    { x: canvasWidth - offset, y: offset },
-                    { x: offset, y: canvasHeight - offset },
-                    { x: canvasWidth - offset, y: canvasHeight - offset }
+                    { x: offset, y: height / 2 },
+                    { x: width / 2, y: offset },
+                    { x: width - offset, y: height / 2 }
                 ],
                 [
                     { x: offset, y: offset },
-                    { x: canvasWidth - offset, y: offset },
-                    { x: canvasWidth / 2, y: canvasHeight / 2 },
-                    { x: offset, y: canvasHeight - offset },
-                    { x: canvasWidth - offset, y: canvasHeight - offset },
+                    { x: width - offset, y: offset },
+                    { x: offset, y: height - offset },
+                    { x: width - offset, y: height - offset }
                 ],
                 [
                     { x: offset, y: offset },
-                    { x: offset, y: canvasHeight / 2 },
-                    { x: offset, y: canvasHeight - offset },
-                    { x: canvasWidth - offset, y: offset },
-                    { x: canvasWidth - offset, y: canvasHeight / 2 },
-                    { x: canvasWidth - offset, y: canvasHeight - offset },
+                    { x: width - offset, y: offset },
+                    { x: width / 2, y: height / 2 },
+                    { x: offset, y: height - offset },
+                    { x: width - offset, y: height - offset },
                 ],
                 [
                     { x: offset, y: offset },
-                    { x: offset, y: canvasHeight / 2 },
-                    { x: offset, y: canvasHeight - offset },
-                    { x: canvasWidth / 2, y: canvasHeight / 2 },
-                    { x: canvasWidth - offset, y: offset },
-                    { x: canvasWidth - offset, y: canvasHeight / 2 },
-                    { x: canvasWidth - offset, y: canvasHeight - offset },
+                    { x: offset, y: height / 2 },
+                    { x: offset, y: height - offset },
+                    { x: width - offset, y: offset },
+                    { x: width - offset, y: height / 2 },
+                    { x: width - offset, y: height - offset },
                 ],
                 [
                     { x: offset, y: offset },
-                    { x: offset, y: canvasHeight / 2 },
-                    { x: offset, y: canvasHeight - offset },
-                    { x: canvasWidth / 2, y: offset },
-                    { x: canvasWidth / 2, y: canvasHeight - offset },
-                    { x: canvasWidth - offset, y: offset },
-                    { x: canvasWidth - offset, y: canvasHeight / 2 },
-                    { x: canvasWidth - offset, y: canvasHeight - offset },
+                    { x: offset, y: height / 2 },
+                    { x: offset, y: height - offset },
+                    { x: width / 2, y: height / 2 },
+                    { x: width - offset, y: offset },
+                    { x: width - offset, y: height / 2 },
+                    { x: width - offset, y: height - offset },
                 ],
                 [
                     { x: offset, y: offset },
-                    { x: offset, y: canvasHeight / 2 },
-                    { x: offset, y: canvasHeight - offset },
-                    { x: canvasWidth / 2, y: offset },
-                    { x: canvasWidth / 2, y: canvasHeight / 2 },
-                    { x: canvasWidth / 2, y: canvasHeight - offset },
-                    { x: canvasWidth - offset, y: offset },
-                    { x: canvasWidth - offset, y: canvasHeight / 2 },
-                    { x: canvasWidth - offset, y: canvasHeight - offset },
+                    { x: offset, y: height / 2 },
+                    { x: offset, y: height - offset },
+                    { x: width / 2, y: offset },
+                    { x: width / 2, y: height - offset },
+                    { x: width - offset, y: offset },
+                    { x: width - offset, y: height / 2 },
+                    { x: width - offset, y: height - offset },
+                ],
+                [
+                    { x: offset, y: offset },
+                    { x: offset, y: height / 2 },
+                    { x: offset, y: height - offset },
+                    { x: width / 2, y: offset },
+                    { x: width / 2, y: height / 2 },
+                    { x: width / 2, y: height - offset },
+                    { x: width - offset, y: offset },
+                    { x: width - offset, y: height / 2 },
+                    { x: width - offset, y: height - offset },
                 ]
             ]
             const pattern = possiblePatterns.find(pattern => pattern.length === pointNum)
