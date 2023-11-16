@@ -78,6 +78,7 @@ export default {
           let calibCount = 0;
           intervalId = setInterval(function () {
             isCalib ? th.savePoint(th.circleIrisPoints, true) : th.savePoint(th.calibPredictionPoints, false);
+            isCalib ? console.log(th.circleIrisPoints) : console.log(th.calibPredictionPoints);
             calibCount++;
             if (calibCount === th.predByPointCount) {
               clearInterval(intervalId);
@@ -120,7 +121,11 @@ export default {
           whereToSave.push({
             ...data
           });
+        } else {
+          console.log('sorry no predictions')
         }
+      } else {
+        console.log('sorry, it has stopped')
       }
     },
     // canvas related
