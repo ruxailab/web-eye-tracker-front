@@ -1,19 +1,24 @@
 <template>
   <div style="height: 100%;">
-    <v-row justify="center" class="ma-0">
-      <v-col v-if="callibFinished && currentStep === 1" cols="12" lg="4" md="4" sm="6">
-        {{ circleIrisPoints.length }}
-        <v-btn block outlined color="primary" @click="startValidation()">
-          Next Step
-        </v-btn>
-      </v-col>
-      <div v-else-if="calibPredictionEnded && currentStep === 2">
-        <v-row justify="center" class="mt-12 pt-12">
-          {{ calibPredictionPoints.length }}
-          <v-btn @click="endCalib()">End calib</v-btn>
-        </v-row>
-      </div>
-    </v-row>
+    <div v-if="!this.model">
+      loading model....
+    </div>
+    <div v-else>
+      <v-row justify="center" class="ma-0">
+        <v-col v-if="callibFinished && currentStep === 1" cols="12" lg="4" md="4" sm="6">
+          {{ circleIrisPoints.length }}
+          <v-btn block outlined color="primary" @click="startValidation()">
+            Next Step
+          </v-btn>
+        </v-col>
+        <div v-else-if="calibPredictionEnded && currentStep === 2">
+          <v-row justify="center" class="mt-12 pt-12">
+            {{ calibPredictionPoints.length }}
+            <v-btn @click="endCalib()">End calib</v-btn>
+          </v-row>
+        </div>
+      </v-row>
+    </div>
     <canvas id="canvas" />
     <video autoplay id="video-tag" style="display: none;"></video>
   </div>
@@ -73,14 +78,14 @@ export default {
       deep: true,
     },
   },
-  mounted() {
-    this.startCallib(true);
+  async mounted() {
+    await this.startCallib(true);
   },
   methods: {
-    startCallib(isCalib) {
+    async startCallib(isCalib) {
       if (this.index == 0) {
         this.generateCallibPoints();
-        this.startWebCamCapture();
+        await this.startWebCamCapture();
       }
       const th = this;
       let intervalId = null;
@@ -131,7 +136,9 @@ export default {
           whereToSave.push({
             ...data
           });
+          console.log(this.model)
         } else {
+          console.log(this.model)
           console.log('sorry no predictions')
         }
       } else {
@@ -197,12 +204,12 @@ export default {
       this.callibFinished = true;
       this.canvas.style.display = "none";
     },
-    startValidation() {
+    async startValidation() {
       this.currentStep = 2;
       this.isStop = false;
       this.index = 0;
       this.canvas.style.display = "block";
-      this.startCallib(false)
+      await this.startCallib(false)
     },
     move() {
       if (this.index == this.callibPoints.length) {
