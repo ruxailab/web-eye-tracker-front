@@ -1,7 +1,9 @@
 <template>
   <div style="height: 100%;">
-    <div v-if="!this.model">
-      loading model....
+    <div v-if="!model" class="center-container">
+      <v-progress-circular :size="80" :width="8" indeterminate color="black" class="loading-spinner"
+        style="margin-bottom: 16px;"></v-progress-circular>
+      <div>Loading model...</div>
     </div>
     <div v-else>
       <v-row justify="center" class="ma-0">
@@ -205,6 +207,7 @@ export default {
       this.canvas.style.display = "none";
     },
     async startValidation() {
+      this.model = null
       this.currentStep = 2;
       this.isStop = false;
       this.index = 0;
@@ -276,5 +279,13 @@ html {
   left: 0;
   width: 100%;
   height: 100%;
+}
+
+.center-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
 }
 </style>
