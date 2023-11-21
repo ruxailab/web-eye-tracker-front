@@ -7,26 +7,30 @@ export default {
         radius: 20,
         offset: 50,
         pattern: [],
+        model: null,
     },
     mutations: {
-        setCalibName(state, value) {
-            state.calibName = value
+        setCalibName(state, newCalibName) {
+            state.calibName = newCalibName;
         },
-        setSamplePerPoint(state, value) {
-            state.samplePerPoint = value;
+        setSamplePerPoint(state, newSamplePerPoint) {
+            state.samplePerPoint = newSamplePerPoint;
         },
-        setRadius(state, value) {
-            state.radius = value;
+        setRadius(state, newRadius) {
+            state.radius = newRadius;
         },
-        setOffset(state, value) {
-            state.offset = value;
+        setOffset(state, newOffset) {
+            state.offset = newOffset;
         },
-        setPointNumber(state, value) {
-            state.pointNumber = value
+        setPointNumber(state, newPointNumber) {
+            state.pointNumber = newPointNumber;
         },
-        setPattern(state, value) {
-            state.pattern = value
-        }
+        setPattern(state, newPattern) {
+            state.pattern = newPattern;
+        },
+        setCalibName(state, newModel) {
+            state.model = newModel;
+        },
     },
     actions: {
         async sendData(context, data) {
