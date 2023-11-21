@@ -43,6 +43,12 @@ export default {
                 "calib_circle_iris_points",
                 JSON.stringify(data.calibPredictionPoints)
             );
+            formData.append("screen_height",
+                JSON.stringify(data.screenHeight)
+            );
+            formData.append("screen_width",
+                JSON.stringify(data.screenWidth)
+            );
             const res = await axios.post(`/api/session/calib_validation`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
