@@ -33,7 +33,6 @@ const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detect
 export default {
   data() {
     return {
-      model: null,
       canvas: null,
       w: 0,
       h: 0,
@@ -70,7 +69,10 @@ export default {
     },
     pattern() {
       return this.$store.state.calibration.pattern
-    }
+    },
+    model() {
+      return this.$store.state.detect.model
+    },
   },
   watch: {
     predictions: {
