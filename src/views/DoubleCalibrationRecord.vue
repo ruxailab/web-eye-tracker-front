@@ -81,13 +81,14 @@ export default {
     },
   },
   async mounted() {
+    console.log('this is where it mounts');
     await this.startCallib(true);
   },
   methods: {
     async startCallib(isCalib) {
       if (this.index == 0) {
-        this.generateCallibPoints();
         await this.startWebCamCapture();
+        this.generateCallibPoints();
       }
       const th = this;
       let intervalId = null;
