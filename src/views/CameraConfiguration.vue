@@ -4,8 +4,23 @@
         <v-container class="mt-12">
             <v-row justify="center">
                 <v-col cols="12" lg="7" md="7">
-                    <CameraComponent />
-
+                    <div id="box" style="text-align: center;">
+                        <v-col>
+                            <div v-if="!isModelLoaded && isCameraOn" class="loading-container">
+                                <v-progress-circular :size="50" :width="7" color="black"
+                                    indeterminate></v-progress-circular>
+                                <h2 class="ml-4">Loading model...</h2>
+                            </div>
+                            <div style="position: relative; display: flex; justify-content: center; align-items: center;">
+                                <video autoplay id="video-tag" style="width: 100%; height: 100%;"></video>
+                                <canvas id="canvas" width="600" height="500"
+                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></canvas>
+                                <v-img v-if="isModelLoaded" style="width: 100%; height: 100%; position: absolute;"
+                                    src="@/assets/mask_desktop.svg">
+                                </v-img>
+                            </div>
+                        </v-col>
+                    </div>
                     <v-btn class="calibration-btn" outlined color="green" :disabled="!isCameraOn"
                         @click="goToCallibRecord()">
                         Start Calibration
@@ -18,7 +33,6 @@
   
 <script>
 import Toolbar from "@/components/general/Toolbar.vue";
-import CameraComponent from "@/components/general/CameraComponent.vue"
 
 const tf = require("@tensorflow/tfjs");
 const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
@@ -26,7 +40,6 @@ const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detect
 export default {
     components: {
         Toolbar,
-        CameraComponent
     },
     data() {
         return {
