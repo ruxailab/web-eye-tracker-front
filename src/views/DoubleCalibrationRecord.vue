@@ -27,8 +27,8 @@
 </template>
 
 <script>
-const tf = require("@tensorflow/tfjs");
-const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
+// const tf = require("@tensorflow/tfjs");
+// const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
 
 export default {
   data() {
@@ -182,12 +182,12 @@ export default {
             th.stopRecord();
           };
           // Start Tensorflow Model
-          await tf.getBackend();
-          // Load the faceLandmarksDetection model assets.
-          this.model = await faceLandmarksDetection.load(
-            faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
-            { maxFaces: 1 }
-          );
+          // await tf.getBackend();
+          // // Load the faceLandmarksDetection model assets.
+          // this.model = await faceLandmarksDetection.load(
+          //   faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
+          //   { maxFaces: 1 }
+          // );
           // Init record webcam
           this.recordWebCam.start();
           this.detectFace();
