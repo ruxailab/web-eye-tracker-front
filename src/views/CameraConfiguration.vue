@@ -70,51 +70,6 @@ export default {
         this.setupCamera()
     },
     methods: {
-        fullScreen() {
-            var element = document.documentElement;
-            if (element.requestFullscreen) {
-                if (!document.fullscreenElement) {
-                    element.requestFullscreen().catch((err) => {
-                        console.error("Erro ao entrar em tela cheia:", err);
-                    });
-                } else {
-                    document.exitFullscreen();
-                }
-            } else if (element.mozRequestFullScreen) {
-                // Para o Firefox
-                if (!document.mozFullScreenElement) {
-                    element.mozRequestFullScreen().catch((err) => {
-                        console.error("Erro ao entrar em tela cheia:", err);
-                    });
-                } else {
-                    document.mozCancelFullScreen();
-                }
-            } else if (element.webkitRequestFullscreen) {
-                // Para o Chrome, Safari e Opera
-                if (!document.webkitFullscreenElement) {
-                    element.webkitRequestFullscreen().catch((err) => {
-                        console.error("Erro ao entrar em tela cheia:", err);
-                    });
-                } else {
-                    document.webkitExitFullscreen();
-                }
-            } else if (element.msRequestFullscreen) {
-                // Para o Internet Explorer e Microsoft Edge
-                if (!document.msFullscreenElement) {
-                    element.msRequestFullscreen().catch((err) => {
-                        console.error("Erro ao entrar em tela cheia:", err);
-                    });
-                } else {
-                    document.msExitFullscreen();
-                }
-            }
-        },
-        goToCallibRecord() {
-            this.webcamStream.getTracks().forEach((track) => {
-                track.stop();
-            });
-            this.$router.push("/callibration/record");
-        },
         setupCamera() {
             let video = document.getElementById("video-tag");
             navigator.mediaDevices
@@ -184,6 +139,51 @@ export default {
                 );
                 ctx.stroke();
             });
+        },
+        fullScreen() {
+            var element = document.documentElement;
+            if (element.requestFullscreen) {
+                if (!document.fullscreenElement) {
+                    element.requestFullscreen().catch((err) => {
+                        console.error("Erro ao entrar em tela cheia:", err);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            } else if (element.mozRequestFullScreen) {
+                // Para o Firefox
+                if (!document.mozFullScreenElement) {
+                    element.mozRequestFullScreen().catch((err) => {
+                        console.error("Erro ao entrar em tela cheia:", err);
+                    });
+                } else {
+                    document.mozCancelFullScreen();
+                }
+            } else if (element.webkitRequestFullscreen) {
+                // Para o Chrome, Safari e Opera
+                if (!document.webkitFullscreenElement) {
+                    element.webkitRequestFullscreen().catch((err) => {
+                        console.error("Erro ao entrar em tela cheia:", err);
+                    });
+                } else {
+                    document.webkitExitFullscreen();
+                }
+            } else if (element.msRequestFullscreen) {
+                // Para o Internet Explorer e Microsoft Edge
+                if (!document.msFullscreenElement) {
+                    element.msRequestFullscreen().catch((err) => {
+                        console.error("Erro ao entrar em tela cheia:", err);
+                    });
+                } else {
+                    document.msExitFullscreen();
+                }
+            }
+        },
+        goToCallibRecord() {
+            this.webcamStream.getTracks().forEach((track) => {
+                track.stop();
+            });
+            this.$router.push("/callibration/record");
         },
     },
 };
