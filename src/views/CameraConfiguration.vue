@@ -102,7 +102,7 @@ export default {
             let ctx = canvas.getContext("2d");
 
             this.$store.commit('setPredictions', await this.model.estimateFaces({
-                input: document.getElementById("video-tag"),
+                input: video,
             }))
 
             // draw the video first
