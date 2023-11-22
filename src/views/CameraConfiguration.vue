@@ -44,11 +44,19 @@ export default {
     data() {
         return {
             isCameraOn: false,
-            model: null,
-            predictions: [],
-            isModelLoaded: false,
             webcamStream: null,
         };
+    },
+    computed: {
+        model() {
+            return this.$store.state.detect.model
+        },
+        isModelLoaded() {
+            return this.$store.state.detect.loaded
+        },
+        predictions() {
+            return this.$store.state.detect.predictions
+        }
     },
     watch: {
         predictions: {
@@ -123,12 +131,13 @@ export default {
 
                     await tf.getBackend();
                     // Load the faceLandmarksDetection model assets.
-                    this.model = await faceLandmarksDetection.load(
+                    const model = await faceLandmarksDetection.load(
                         faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
                         { maxFaces: 1 }
                     );
 
-                    this.isModelLoaded = true;
+                    this.$store.commit('setModel', model)
+                    this.$store.commit('setLoaded', (model != null))
                     this.detectFace();
                 });
         },
@@ -137,9 +146,9 @@ export default {
             let canvas = document.getElementById("canvas");
             let ctx = canvas.getContext("2d");
 
-            this.predictions = await this.model.estimateFaces({
+            this.$store.commit('setPredictions', await this.model.estimateFaces({
                 input: document.getElementById("video-tag"),
-            });
+            }))
 
             // draw the video first
             ctx.drawImage(video, 0, 0, 600, 500);
