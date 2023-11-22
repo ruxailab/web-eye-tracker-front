@@ -6,8 +6,6 @@ export default {
         samplePerPoint: 10,
         radius: 20,
         offset: 50,
-        pattern: [],
-        model: null,
     },
     mutations: {
         setCalibName(state, newCalibName) {
@@ -27,9 +25,6 @@ export default {
         },
         setPattern(state, newPattern) {
             state.pattern = newPattern;
-        },
-        setCalibName(state, newModel) {
-            state.model = newModel;
         },
     },
     actions: {
