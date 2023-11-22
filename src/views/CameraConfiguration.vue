@@ -63,10 +63,7 @@ export default {
     },
     methods: {
         fullScreen() {
-            // Obtenha o elemento que você deseja colocar em tela cheia (por exemplo, um elemento de vídeo ou um elemento de div).
-            var element = document.documentElement; // Use document.documentElement para a página inteira.
-
-            // Verifique se o modo de tela cheia já está ativado.
+            var element = document.documentElement;
             if (element.requestFullscreen) {
                 if (!document.fullscreenElement) {
                     element.requestFullscreen().catch((err) => {
@@ -108,8 +105,6 @@ export default {
             this.webcamStream.getTracks().forEach((track) => {
                 track.stop();
             });
-
-            // this.fullScreen();
             this.$router.push("/callibration/record");
         },
         setupCamera() {
@@ -129,7 +124,8 @@ export default {
                     await tf.getBackend();
                     // Load the faceLandmarksDetection model assets.
                     this.model = await faceLandmarksDetection.load(
-                        faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
+                        faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
+                        { maxFaces: 1 }
                     );
 
                     this.isModelLoaded = true;
