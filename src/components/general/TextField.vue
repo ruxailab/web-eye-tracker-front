@@ -1,6 +1,5 @@
 <template>
     <div>
-        {{ label }} : 
         <input type="text" v-model="inputValue" />
     </div>
 </template>
@@ -9,10 +8,6 @@
 export default {
     props: {
         value: {
-            type: String,
-            default: '',
-        },
-        label: {
             type: String,
             default: '',
         },

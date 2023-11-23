@@ -6,7 +6,8 @@
                     general configuration
                 </v-card-title>
                 <div class="custom-outline">
-                    <TextField label="calib name" :value="calibName" @input="updateCalibName" />
+                    calib name: 
+                    <TextField :value="calibName" @input="updateCalibName" />
                 </div>
                 <div class="custom-outline">
                     <Slider :value="pointNumber" :min="Number(1)" :max="Number(9)" label="Point Number"
