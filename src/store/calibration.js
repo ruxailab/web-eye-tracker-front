@@ -27,7 +27,6 @@ export default {
         },
         setPattern(state, newPattern) {
             state.pattern = newPattern;
-            console.log(state.pattern)
         },
         setBackgroundColor(state, newBackgroundColor) {
             state.backgroundColor = newBackgroundColor

@@ -231,6 +231,10 @@ export default {
         return;
       }
       this.ctx.clearRect(0, 0, this.w, this.h);
+      // background
+      this.ctx.fillStyle = this.backgroundColor;
+      this.ctx.fillRect(0, 0, this.w, this.h);
+
       // outer circle
       this.ctx.beginPath();
       this.ctx.strokeStyle = this.pointColor;
@@ -267,10 +271,6 @@ export default {
       this.h = this.canvas.height = window.innerHeight;
       this.ctx = this.canvas.getContext("2d");
       this.callibPoints = this.pattern
-      console.log('==== pattern ====')
-      console.log(this.pattern)
-      console.log('==== pattern ====')
-
     },
   },
 };
