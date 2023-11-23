@@ -45,7 +45,7 @@ export default {
             const w = canvas.width;
 
             const canvasCalib = this.generatePoints(trueOffsetX, trueOffsetY, w, h, pointNum);
-            const trueCalib = this.generatePoints(offset, window.innerWidth, window.innerHeight, pointNum);
+            const trueCalib = this.generatePoints(offset, offset, window.innerWidth, window.innerHeight, pointNum);
             this.updatePattern(trueCalib);
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);

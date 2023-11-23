@@ -70,7 +70,13 @@ export default {
     },
     pattern() {
       return this.$store.state.calibration.pattern
-    }
+    },
+    backgroundColor() {
+      return this.$store.state.calibration.backgroundColor
+    },
+    pointColor() {
+      return this.$store.state.calibration.pointColor
+    },
   },
   watch: {
     predictions: {
@@ -227,8 +233,8 @@ export default {
       this.ctx.clearRect(0, 0, this.w, this.h);
       // outer circle
       this.ctx.beginPath();
-      this.ctx.strokeStyle = "black";
-      this.ctx.fillStyle = "black";
+      this.ctx.strokeStyle = this.pointColor;
+      this.ctx.fillStyle = this.pointColor;
       this.ctx.arc(
         this.callibPoints[this.index].x,
         this.callibPoints[this.index].y,
@@ -261,6 +267,10 @@ export default {
       this.h = this.canvas.height = window.innerHeight;
       this.ctx = this.canvas.getContext("2d");
       this.callibPoints = this.pattern
+      console.log('==== pattern ====')
+      console.log(this.pattern)
+      console.log('==== pattern ====')
+
     },
   },
 };
