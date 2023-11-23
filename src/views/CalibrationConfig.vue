@@ -1,7 +1,15 @@
 <template>
     <div>
         <Toolbar />
-        <GeneralConfigCard />
+        <v-row justify="center" align="center">
+            <v-col cols="6">
+                <GeneralConfigCard />
+            </v-col>
+            <v-col cols="6">
+                <GeneralConfigCard />
+            </v-col>
+        </v-row>
+
         <v-btn color="green darken-2" fab bottom right absolute
             :style="{ 'z-index': 10, 'elevation': '12', 'bottom': '20px', 'right': '20px' }" @click="changePage">
             <v-icon color="white">

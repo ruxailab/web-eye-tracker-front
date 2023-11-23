@@ -6,6 +6,8 @@ export default {
         samplePerPoint: 10,
         radius: 20,
         offset: 50,
+        backgroundColor: '',
+        pointColor: '',
     },
     mutations: {
         setCalibName(state, newCalibName) {
@@ -25,6 +27,12 @@ export default {
         },
         setPattern(state, newPattern) {
             state.pattern = newPattern;
+        },
+        setBackgroundColor(state, newBackgroundColor) {
+            state.backgroundColor = newBackgroundColor
+        },
+        setPointColor(state, newPointColor) {
+            state.pointColor = newPointColor
         },
     },
     actions: {
