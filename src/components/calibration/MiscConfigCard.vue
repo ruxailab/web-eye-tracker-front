@@ -6,10 +6,12 @@
                     miscelaneous configuration
                 </v-card-title>
                 <div class="custom-outline">
-                    <v-color-picker v-model="backgroundColor"></v-color-picker>
+                    background color:
+                    <v-color-picker v-model="backgroundColor" hide-inputs></v-color-picker>
                 </div>
                 <div class="custom-outline">
-                    <v-color-picker v-model="pointColor"></v-color-picker>
+                    point color:
+                    <v-color-picker v-model="pointColor" hide-inputs></v-color-picker>
                 </div>
             </v-card>
         </v-col>
