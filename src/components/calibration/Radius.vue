@@ -22,7 +22,7 @@ export default {
         },
         pointColor() {
             return this.$store.state.calibration.pointColor
-        }
+        },
     },
     methods: {
         updateRadius(value) {

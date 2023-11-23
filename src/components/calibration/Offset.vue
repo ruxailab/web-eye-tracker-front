@@ -23,6 +23,9 @@ export default {
         pointNumber() {
             return Number(this.$store.state.calibration.pointNumber ?? 0)
         },
+        backgroundColor() {
+            return this.$store.state.calibration.backgroundColor
+        },
     },
     methods: {
         updateOffset(value) {
@@ -31,7 +34,7 @@ export default {
         updatePattern(value) {
             this.$store.commit('setPattern', value);
         },
-        drawOffset(offset, pointNum) {
+        drawOffset(offset, pointNum, backgroundColor) {
             const canvas = document.getElementById("offCanvas");
             const ctx = canvas.getContext("2d");
             const xFac = canvas.width / window.innerWidth;
@@ -40,10 +43,13 @@ export default {
             const w = canvas.width;
 
             const canvasCalib = this.generatePoints(trueOffset, w, h, pointNum);
-            const trueCalib = this.generatePoints(offset,window.innerWidth, window.innerHeight, pointNum )
-            this.updatePattern(trueCalib)  
+            const trueCalib = this.generatePoints(offset, window.innerWidth, window.innerHeight, pointNum);
+            this.updatePattern(trueCalib);
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = backgroundColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             ctx.fillStyle = "red";
             canvasCalib.forEach((point) => {
@@ -125,11 +131,14 @@ export default {
     },
     watch: {
         offset(newOffset) {
-            this.drawOffset(newOffset, this.pointNumber);
+            this.drawOffset(newOffset, this.pointNumber, this.backgroundColor);
         },
         pointNumber(newPointNumber) {
-            this.drawOffset(this.offset, newPointNumber);
-        }
+            this.drawOffset(this.offset, newPointNumber, this.backgroundColor);
+        },
+        backgroundColor(newBackgroundColor) {
+            this.drawOffset(this.offset, this.pointNumber, newBackgroundColor)
+        },
     },
     mounted() {
         this.drawOffset(this.offset, this.pointNumber)
