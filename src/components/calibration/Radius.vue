@@ -20,12 +20,15 @@ export default {
         radius() {
             return Number(this.$store.state.calibration.radius ?? 0);
         },
+        pointColor() {
+            return this.$store.state.calibration.pointColor
+        }
     },
     methods: {
         updateRadius(value) {
             this.$store.commit('setRadius', value);
         },
-        drawBall(radius) {
+        drawBall(radius, pointColor) {
             const canvas = document.getElementById("radCanvas");
             const ctx = canvas.getContext("2d");
             const centerX = canvas.width / 2;
@@ -33,7 +36,7 @@ export default {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.beginPath();
             ctx.arc(centerX, centerY, radius * 2, 0, 2 * Math.PI);
-            ctx.fillStyle = "black";
+            ctx.fillStyle = pointColor;
             ctx.fill();
             ctx.closePath();
             ctx.beginPath();
@@ -45,7 +48,10 @@ export default {
     },
     watch: {
         radius(newRadius) {
-            this.drawBall(newRadius);
+            this.drawBall(newRadius, this.pointColor);
+        },
+        pointColor(newPointColor) {
+            this.drawBall(this.radius, newPointColor);
         },
     },
     mounted() {

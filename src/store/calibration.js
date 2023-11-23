@@ -6,8 +6,8 @@ export default {
         samplePerPoint: 10,
         radius: 20,
         offset: 50,
-        backgroundColor: '',
-        pointColor: '',
+        backgroundColor: '#FFFFFFFF',
+        pointColor: '#000000FF',
     },
     mutations: {
         setCalibName(state, newCalibName) {

@@ -6,7 +6,7 @@
                 <GeneralConfigCard />
             </v-col>
             <v-col cols="6">
-                <GeneralConfigCard />
+                <MiscConfigCard />
             </v-col>
         </v-row>
 
@@ -22,11 +22,13 @@
 <script>
 import Toolbar from "@/components/general/Toolbar.vue";
 import GeneralConfigCard from "@/components/calibration/GeneralConfigCard.vue";
+import MiscConfigCard from "@/components/calibration/MiscConfigCard.vue";
 
 export default {
     components: {
         Toolbar,
         GeneralConfigCard,
+        MiscConfigCard,
     },
     methods: {
         changePage() {
