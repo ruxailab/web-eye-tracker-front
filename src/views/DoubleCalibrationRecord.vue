@@ -27,13 +27,14 @@
 </template>
 
 <script>
-// const tf = require("@tensorflow/tfjs");
-// const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
+const tf = require("@tensorflow/tfjs");
+const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
 
 export default {
   data() {
     return {
       canvas: null,
+      model: null,
       w: 0,
       h: 0,
       ctx: null,
@@ -70,9 +71,9 @@ export default {
     pattern() {
       return this.$store.state.calibration.pattern
     },
-    model() {
-      return this.$store.state.detect.model
-    },
+    // model() {
+    //   return this.$store.state.detect.model
+    // },
   },
   watch: {
     predictions: {
@@ -182,12 +183,12 @@ export default {
             th.stopRecord();
           };
           // Start Tensorflow Model
-          // await tf.getBackend();
-          // // Load the faceLandmarksDetection model assets.
-          // this.model = await faceLandmarksDetection.load(
-          //   faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
-          //   { maxFaces: 1 }
-          // );
+          await tf.getBackend();
+          // Load the faceLandmarksDetection model assets.
+          this.model = await faceLandmarksDetection.load(
+            faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
+            { maxFaces: 1 }
+          );
           // Init record webcam
           this.recordWebCam.start();
           this.detectFace();
