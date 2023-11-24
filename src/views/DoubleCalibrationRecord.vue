@@ -200,7 +200,7 @@ export default {
         .then(async (mediaStreamObj) => {
           // Create media recorder object
           this.recordWebCam = new MediaRecorder(mediaStreamObj, {
-            mimeType: "video/webm; codecs=vp9",
+            mimeType: "video/webm;",
           });
           let recordingWebCam = [];
           let video = document.getElementById("video-tag");
