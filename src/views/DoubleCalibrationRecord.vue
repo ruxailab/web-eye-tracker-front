@@ -105,7 +105,7 @@ export default {
           let calibCount = 0;
           intervalId = setInterval(function () {
             isCalib ? th.savePoint(th.circleIrisPoints, true) : th.savePoint(th.calibPredictionPoints, false);
-            isCalib ? console.log(th.circleIrisPoints) : console.log(th.calibPredictionPoints);
+            // isCalib ? console.log(th.circleIrisPoints) : console.log(th.calibPredictionPoints);
             calibCount++;
             if (calibCount === th.predByPointCount) {
               clearInterval(intervalId);
@@ -127,7 +127,6 @@ export default {
       }
     },
     async timedCallib(isCalib) {
-      console.log('this is timed');
       if (this.index == 0) {
         this.generateCallibPoints();
         await this.startWebCamCapture();
@@ -138,7 +137,7 @@ export default {
         let calibCount = 0;
         intervalId = setInterval(function () {
           isCalib ? th.savePoint(th.circleIrisPoints, true) : th.savePoint(th.calibPredictionPoints, false);
-          isCalib ? console.log(th.circleIrisPoints) : console.log(th.calibPredictionPoints);
+          // isCalib ? console.log(th.circleIrisPoints) : console.log(th.calibPredictionPoints);
           calibCount++;
           if (calibCount === th.predByPointCount) {
             clearInterval(intervalId);
@@ -153,8 +152,10 @@ export default {
           this.circleIrisPoints.pop();
         }
       } else {
-        startTimer()
-        this.move();
+        if (!this.isStop) {
+          startTimer()
+          this.move();
+        }
       }
     },
     async endCalib() {

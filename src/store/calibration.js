@@ -37,7 +37,6 @@ export default {
         },
         setControlled(state, newControlled) {
             state.isControlled = newControlled
-            console.log(state.isControlled);
         },
     },
     actions: {
