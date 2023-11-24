@@ -10,7 +10,7 @@
                                 style="position: relative; display: flex; justify-content: center; align-items: center;">
                                 <video autoplay id="video-tag" />
                                 <canvas id="canvas" width="600" height="500"
-                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" />
+                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1)" />
                                 <v-img v-if="isCameraOn" style="width: 100%; height: 100%; position: absolute;"
                                     src="@/assets/mask_desktop.svg" />
                             </div>
