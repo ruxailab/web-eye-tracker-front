@@ -77,6 +77,9 @@ export default {
     pointColor() {
       return this.$store.state.calibration.pointColor
     },
+    isControlled() {
+      return this.$store.state.calibration.isControlled
+    },
   },
   watch: {
     predictions: {
@@ -87,10 +90,11 @@ export default {
     },
   },
   async mounted() {
-    await this.startCallib(true);
+    this.isControlled ? await this.controlledCalib(true) : await this.timedCallib(true);
   },
   methods: {
-    async startCallib(isCalib) {
+    async controlledCalib(isCalib) {
+      console.log('this is controlled');
       if (this.index == 0) {
         this.generateCallibPoints();
         await this.startWebCamCapture();
@@ -109,7 +113,7 @@ export default {
               intervalId = null;
               calibCount = 0;
               document.removeEventListener("keydown", keydownHandler);
-              th.startCallib(isCalib);
+              th.controlledCalib(isCalib);
             }
           }, 100);
         }
@@ -122,6 +126,10 @@ export default {
         document.addEventListener("keydown", keydownHandler);
         this.move();
       }
+    },
+    async timedCallib(isCalib) {
+      console.log('this is timed');
+      
     },
     async endCalib() {
       const screenHeight = window.screen.height;
@@ -219,7 +227,7 @@ export default {
       this.isStop = false;
       this.index = 0;
       this.canvas.style.display = "block";
-      await this.startCallib(false)
+      this.isControlled ? await this.controlledCalib(false) : await this.timedCallib(false);
     },
     move() {
       if (this.index == this.callibPoints.length) {

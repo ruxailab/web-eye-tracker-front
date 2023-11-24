@@ -8,6 +8,7 @@ export default {
         offset: 50,
         backgroundColor: '#FFFFFFFF',
         pointColor: '#000000FF',
+        isControlled: true,
     },
     mutations: {
         setCalibName(state, newCalibName) {
@@ -33,6 +34,10 @@ export default {
         },
         setPointColor(state, newPointColor) {
             state.pointColor = newPointColor
+        },
+        setControlled(state, newControlled) {
+            state.isControlled = newControlled
+            console.log(state.isControlled);
         },
     },
     actions: {
