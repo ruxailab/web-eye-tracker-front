@@ -71,9 +71,12 @@ export default {
     pattern() {
       return this.$store.state.calibration.pattern
     },
-    // model() {
-    //   return this.$store.state.detect.model
-    // },
+    backgroundColor() {
+      return this.$store.state.calibration.backgroundColor
+    },
+    pointColor() {
+      return this.$store.state.calibration.pointColor
+    },
   },
   watch: {
     predictions: {
@@ -229,10 +232,14 @@ export default {
         return;
       }
       this.ctx.clearRect(0, 0, this.w, this.h);
+      // background
+      this.ctx.fillStyle = this.backgroundColor;
+      this.ctx.fillRect(0, 0, this.w, this.h);
+
       // outer circle
       this.ctx.beginPath();
-      this.ctx.strokeStyle = "black";
-      this.ctx.fillStyle = "black";
+      this.ctx.strokeStyle = this.pointColor;
+      this.ctx.fillStyle = this.pointColor;
       this.ctx.arc(
         this.callibPoints[this.index].x,
         this.callibPoints[this.index].y,
