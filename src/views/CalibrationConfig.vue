@@ -1,14 +1,16 @@
 <template>
     <div>
         <Toolbar />
-        <v-row justify="center" align="center">
-            <v-col cols="6">
-                <GeneralConfigCard />
-            </v-col>
-            <v-col cols="6">
-                <MiscConfigCard />
-            </v-col>
-        </v-row>
+        <v-container>
+            <v-row justify="center" align="start">
+                <v-col cols="6">
+                    <GeneralConfigCard />
+                </v-col>
+                <v-col cols="6">
+                    <MiscConfigCard />
+                </v-col>
+            </v-row>
+        </v-container>
 
         <v-btn color="green darken-2" fab bottom right absolute
             :style="{ 'z-index': 10, 'elevation': '12', 'bottom': '20px', 'right': '20px' }" @click="changePage">

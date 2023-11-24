@@ -79,7 +79,10 @@ export default {
         return this.$store.state.detect.model
       },
       set() { }
-    }
+    },
+    isControlled() {
+      return this.$store.state.calibration.isControlled
+    },
   },
   watch: {
     predictions: {
@@ -90,11 +93,10 @@ export default {
     },
   },
   async mounted() {
-    console.log('this is where it mounts');
-    await this.startCallib(true);
+    this.isControlled ? await this.controlledCalib(true) : await this.timedCallib(true);
   },
   methods: {
-    async startCallib(isCalib) {
+    async controlledCalib(isCalib) {
       if (this.index == 0) {
         await this.startWebCamCapture();
         this.generateCallibPoints();
@@ -106,14 +108,14 @@ export default {
           let calibCount = 0;
           intervalId = setInterval(function () {
             isCalib ? th.savePoint(th.circleIrisPoints, true) : th.savePoint(th.calibPredictionPoints, false);
-            isCalib ? console.log(th.circleIrisPoints) : console.log(th.calibPredictionPoints);
+            // isCalib ? console.log(th.circleIrisPoints) : console.log(th.calibPredictionPoints);
             calibCount++;
             if (calibCount === th.predByPointCount) {
               clearInterval(intervalId);
               intervalId = null;
               calibCount = 0;
               document.removeEventListener("keydown", keydownHandler);
-              th.startCallib(isCalib);
+              th.controlledCalib(isCalib);
             }
           }, 100);
         }
@@ -125,6 +127,38 @@ export default {
       } else {
         document.addEventListener("keydown", keydownHandler);
         this.move();
+      }
+    },
+    async timedCallib(isCalib) {
+      if (this.index == 0) {
+        this.generateCallibPoints();
+        await this.startWebCamCapture();
+      }
+      const th = this;
+      let intervalId = null;
+      function startTimer() {
+        let calibCount = 0;
+        intervalId = setInterval(function () {
+          isCalib ? th.savePoint(th.circleIrisPoints, true) : th.savePoint(th.calibPredictionPoints, false);
+          // isCalib ? console.log(th.circleIrisPoints) : console.log(th.calibPredictionPoints);
+          calibCount++;
+          if (calibCount === th.predByPointCount) {
+            clearInterval(intervalId);
+            intervalId = null;
+            calibCount = 0;
+            th.timedCallib(isCalib);
+          }
+        }, 100);
+      }
+      if (isCalib && (this.callibFinished && this.currentStep === 2)) {
+        for (let i = 0; i < this.predByPointCount; i++) {
+          this.circleIrisPoints.pop();
+        }
+      } else {
+        if (!this.isStop) {
+          startTimer()
+          this.move();
+        }
       }
     },
     async endCalib() {
@@ -219,7 +253,7 @@ export default {
       this.isStop = false;
       this.index = 0;
       this.canvas.style.display = "block";
-      await this.startCallib(false)
+      this.isControlled ? await this.controlledCalib(false) : await this.timedCallib(false);
     },
     move() {
       if (this.index == this.callibPoints.length) {

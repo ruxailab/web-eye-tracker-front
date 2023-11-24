@@ -6,6 +6,10 @@
                     miscelaneous configuration
                 </v-card-title>
                 <div class="custom-outline">
+                    control:
+                    <v-checkbox v-model="isControlled" label="Controlled Calibration" color="black"></v-checkbox>
+                </div>
+                <div class="custom-outline">
                     background color:
                     <v-color-picker v-model="backgroundColor" hide-inputs></v-color-picker>
                 </div>
@@ -20,18 +24,11 @@
   
 <script>
 export default {
-    // computed: {
-    //     backgroundColor() {
-    //         return this.$store.state.calibration.backgroundColor;
-    //     },
-    //     pointColor() {
-    //         return this.$store.state.calibration.pointColor;
-    //     },
-    // },
     data() {
         return {
             backgroundColor: '#FFFFFFFF',
             pointColor: '#000000FF',
+            isControlled: true,
         }
     },
     watch: {
@@ -41,6 +38,9 @@ export default {
         pointColor(value) {
             this.updatePointColor(value)
         },
+        isControlled(value) {
+            this.updateControlled(value)
+        }
     },
     methods: {
         updateBackgroundColor(value) {
@@ -49,6 +49,9 @@ export default {
         updatePointColor(value) {
             this.$store.commit('setPointColor', value);
         },
+        updateControlled(value) {
+            this.$store.commit('setControlled', value)
+        }
     }
 }
 </script>
