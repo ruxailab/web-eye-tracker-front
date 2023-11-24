@@ -94,7 +94,6 @@ export default {
   },
   methods: {
     async controlledCalib(isCalib) {
-      console.log('this is controlled');
       if (this.index == 0) {
         this.generateCallibPoints();
         await this.startWebCamCapture();
@@ -129,7 +128,34 @@ export default {
     },
     async timedCallib(isCalib) {
       console.log('this is timed');
-      
+      if (this.index == 0) {
+        this.generateCallibPoints();
+        await this.startWebCamCapture();
+      }
+      const th = this;
+      let intervalId = null;
+      function startTimer() {
+        let calibCount = 0;
+        intervalId = setInterval(function () {
+          isCalib ? th.savePoint(th.circleIrisPoints, true) : th.savePoint(th.calibPredictionPoints, false);
+          isCalib ? console.log(th.circleIrisPoints) : console.log(th.calibPredictionPoints);
+          calibCount++;
+          if (calibCount === th.predByPointCount) {
+            clearInterval(intervalId);
+            intervalId = null;
+            calibCount = 0;
+            th.timedCallib(isCalib);
+          }
+        }, 100);
+      }
+      if (isCalib && (this.callibFinished && this.currentStep === 2)) {
+        for (let i = 0; i < this.predByPointCount; i++) {
+          this.circleIrisPoints.pop();
+        }
+      } else {
+        startTimer()
+        this.move();
+      }
     },
     async endCalib() {
       const screenHeight = window.screen.height;
