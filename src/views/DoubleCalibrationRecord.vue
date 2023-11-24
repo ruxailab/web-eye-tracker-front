@@ -27,14 +27,11 @@
 </template>
 
 <script>
-const tf = require("@tensorflow/tfjs");
-const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
-
 export default {
   data() {
     return {
-      model: null,
       canvas: null,
+      //model: null,
       w: 0,
       h: 0,
       ctx: null,
@@ -77,6 +74,12 @@ export default {
     pointColor() {
       return this.$store.state.calibration.pointColor
     },
+    model: {
+      get() {
+        return this.$store.state.detect.model
+      },
+      set() { }
+    },
     isControlled() {
       return this.$store.state.calibration.isControlled
     },
@@ -95,8 +98,8 @@ export default {
   methods: {
     async controlledCalib(isCalib) {
       if (this.index == 0) {
-        this.generateCallibPoints();
         await this.startWebCamCapture();
+        this.generateCallibPoints();
       }
       const th = this;
       let intervalId = null;
@@ -219,16 +222,12 @@ export default {
             mediaStreamObj.getTracks().forEach((track) => track.stop());
             th.stopRecord();
           };
-          // Start Tensorflow Model
-          await tf.getBackend();
-          // Load the faceLandmarksDetection model assets.
-          this.model = await faceLandmarksDetection.load(
-            faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
-            { maxFaces: 1 }
-          );
+
           // Init record webcam
           this.recordWebCam.start();
-          this.detectFace();
+          video.onloadeddata = () => {
+            this.detectFace();
+          }
         })
         .catch((e) => {
           console.error("Error", e);

@@ -6,18 +6,18 @@
                 <v-col cols="12" lg="7" md="7">
                     <div id="box" style="text-align: center;">
                         <v-col>
-                            <div v-if="!isModelLoaded && isCameraOn" class="loading-container">
+                            <div v-if="isModelLoaded"
+                                style="position: relative; display: flex; justify-content: center; align-items: center;">
+                                <video autoplay id="video-tag" />
+                                <canvas id="canvas" width="600" height="500"
+                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1)" />
+                                <v-img v-if="isCameraOn" style="width: 100%; height: 100%; position: absolute;"
+                                    src="@/assets/mask_desktop.svg" />
+                            </div>
+                            <div v-else class="loading-container">
                                 <v-progress-circular :size="50" :width="7" color="black"
                                     indeterminate></v-progress-circular>
                                 <h2 class="ml-4">Loading model...</h2>
-                            </div>
-                            <div style="position: relative; display: flex; justify-content: center; align-items: center;">
-                                <video autoplay id="video-tag" style="width: 100%; height: 100%;"></video>
-                                <canvas id="canvas" width="600" height="500"
-                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></canvas>
-                                <v-img v-if="isModelLoaded" style="width: 100%; height: 100%; position: absolute;"
-                                    src="@/assets/mask_desktop.svg">
-                                </v-img>
                             </div>
                         </v-col>
                     </div>
@@ -44,11 +44,20 @@ export default {
     data() {
         return {
             isCameraOn: false,
-            model: null,
-            predictions: [],
-            isModelLoaded: false,
             webcamStream: null,
+            video: null
         };
+    },
+    computed: {
+        model() {
+            return this.$store.state.detect.model
+        },
+        isModelLoaded() {
+            return this.$store.state.detect.loaded
+        },
+        predictions() {
+            return this.$store.state.detect.predictions
+        }
     },
     watch: {
         predictions: {
@@ -62,11 +71,84 @@ export default {
         this.setupCamera()
     },
     methods: {
-        fullScreen() {
-            // Obtenha o elemento que você deseja colocar em tela cheia (por exemplo, um elemento de vídeo ou um elemento de div).
-            var element = document.documentElement; // Use document.documentElement para a página inteira.
+        async setupCamera() {
+            // Load the faceLandmarksDetection model assets.
+            const model = await faceLandmarksDetection.load(
+                faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
+                { maxFaces: 1 }
+            );
 
-            // Verifique se o modo de tela cheia já está ativado.
+            this.$store.commit('setModel', model)
+            this.$store.commit('setLoaded', (model != null))
+
+            this.$nextTick(() => {
+                this.video = document.getElementById("video-tag");
+
+                navigator.mediaDevices
+                    .getUserMedia({
+                        audio: false,
+                        video: { width: 600, height: 500 },
+                    })
+                    .then(async (stream) => {
+                        // stream is a MediaStream object
+                        this.video.srcObject = stream;
+
+                        this.webcamStream = stream;
+
+                        tf.getBackend();
+
+                        this.video.onloadeddata = () => {
+                            this.isCameraOn = true;
+                            this.detectFace();
+                        };
+                    });
+            });
+        },
+        async detectFace() {
+            let canvas = document.getElementById("canvas");
+            let ctx = canvas.getContext("2d");
+
+            this.$store.commit('setPredictions', await this.model.estimateFaces({
+                input: this.video,
+            }))
+
+            // draw the video first
+            ctx.drawImage(this.video, 0, 0, 600, 500);
+            this.predictions.forEach((pred) => {
+                // draw the rectangle enclosing the face
+                ctx.fillStyle = "red";
+
+                // left iris
+                ctx.fillRect(
+                    pred.scaledMesh[468]["0"],
+                    pred.scaledMesh[468]["1"],
+                    5,
+                    5
+                );
+
+                // right iris
+                ctx.fillRect(
+                    pred.scaledMesh[473]["0"],
+                    pred.scaledMesh[473]["1"],
+                    5,
+                    5
+                );
+
+                // face contour
+                ctx.beginPath();
+                ctx.lineWidth = "4";
+                ctx.strokeStyle = "blue";
+                ctx.rect(
+                    pred.boundingBox.topLeft[0],
+                    pred.boundingBox.topLeft[1],
+                    pred.boundingBox.bottomRight[0] - pred.boundingBox.topLeft[0],
+                    pred.boundingBox.bottomRight[1] - pred.boundingBox.topLeft[1]
+                );
+                ctx.stroke();
+            });
+        },
+        fullScreen() {
+            var element = document.documentElement;
             if (element.requestFullscreen) {
                 if (!document.fullscreenElement) {
                     element.requestFullscreen().catch((err) => {
@@ -108,77 +190,7 @@ export default {
             this.webcamStream.getTracks().forEach((track) => {
                 track.stop();
             });
-
-            // this.fullScreen();
             this.$router.push("/callibration/record");
-        },
-        setupCamera() {
-            let video = document.getElementById("video-tag");
-            navigator.mediaDevices
-                .getUserMedia({
-                    audio: false,
-                    video: { width: 600, height: 500 },
-                })
-                .then(async (stream) => {
-                    // stream is a MediaStream object
-                    video.srcObject = stream;
-                    this.isCameraOn = true;
-
-                    this.webcamStream = stream;
-
-                    await tf.getBackend();
-                    // Load the faceLandmarksDetection model assets.
-                    this.model = await faceLandmarksDetection.load(
-                        faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
-                    );
-
-                    this.isModelLoaded = true;
-                    this.detectFace();
-                });
-        },
-        async detectFace() {
-            let video = document.getElementById("video-tag");
-            let canvas = document.getElementById("canvas");
-            let ctx = canvas.getContext("2d");
-
-            this.predictions = await this.model.estimateFaces({
-                input: document.getElementById("video-tag"),
-            });
-
-            // draw the video first
-            ctx.drawImage(video, 0, 0, 600, 500);
-            this.predictions.forEach((pred) => {
-                // draw the rectangle enclosing the face
-                ctx.fillStyle = "red";
-
-                // left iris
-                ctx.fillRect(
-                    pred.scaledMesh[468]["0"],
-                    pred.scaledMesh[468]["1"],
-                    5,
-                    5
-                );
-
-                // right iris
-                ctx.fillRect(
-                    pred.scaledMesh[473]["0"],
-                    pred.scaledMesh[473]["1"],
-                    5,
-                    5
-                );
-
-                // face contour
-                ctx.beginPath();
-                ctx.lineWidth = "4";
-                ctx.strokeStyle = "blue";
-                ctx.rect(
-                    pred.boundingBox.topLeft[0],
-                    pred.boundingBox.topLeft[1],
-                    pred.boundingBox.bottomRight[0] - pred.boundingBox.topLeft[0],
-                    pred.boundingBox.bottomRight[1] - pred.boundingBox.topLeft[1]
-                );
-                ctx.stroke();
-            });
         },
     },
 };
@@ -203,5 +215,10 @@ export default {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
+}
+
+#video-tag {
+    width: 100%;
+    height: 100%;
 }
 </style>
