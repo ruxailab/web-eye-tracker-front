@@ -107,45 +107,53 @@ export default {
         async detectFace() {
             let canvas = document.getElementById("canvas");
             let ctx = canvas.getContext("2d");
-
-            this.$store.commit('setPredictions', await this.model.estimateFaces({
+            let prediction = await this.model.estimateFaces({
                 input: this.video,
-            }))
-
-            // draw the video first
+            })
+            this.$store.commit('setPredictions', prediction)
             ctx.drawImage(this.video, 0, 0, 600, 500);
+
+
             this.predictions.forEach((pred) => {
-                // draw the rectangle enclosing the face
-                ctx.fillStyle = "red";
-
-                // left iris
-                ctx.fillRect(
-                    pred.scaledMesh[468]["0"],
-                    pred.scaledMesh[468]["1"],
-                    5,
-                    5
-                );
-
-                // right iris
-                ctx.fillRect(
-                    pred.scaledMesh[473]["0"],
-                    pred.scaledMesh[473]["1"],
-                    5,
-                    5
-                );
-
+                // left eye
+                const leftIris = pred.annotations.leftEyeIris;
+                const leftEyelid = pred.annotations.leftEyeUpper0.concat(pred.annotations.leftEyeLower0);
+                this.drawEye(leftIris, leftEyelid, ctx)
+                // right eye
+                const rightIris = pred.annotations.rightEyeIris;
+                const rightEyelid = pred.annotations.rightEyeUpper0.concat(pred.annotations.rightEyeLower0);
+                this.drawEye(rightIris, rightEyelid, ctx)
                 // face contour
-                ctx.beginPath();
-                ctx.lineWidth = "4";
-                ctx.strokeStyle = "blue";
-                ctx.rect(
-                    pred.boundingBox.topLeft[0],
-                    pred.boundingBox.topLeft[1],
-                    pred.boundingBox.bottomRight[0] - pred.boundingBox.topLeft[0],
-                    pred.boundingBox.bottomRight[1] - pred.boundingBox.topLeft[1]
-                );
-                ctx.stroke();
+                this.drawFace(ctx, pred)
             });
+        },
+        drawEye(iris, eyelid, ctx) {
+            ctx.fillStyle = 'yellow'
+            for (let i = 0; i < eyelid.length; i++) {
+                ctx.fillRect(eyelid[i][0], eyelid[i][1], 3, 3);
+            }
+            ctx.fillStyle = 'blue'
+            ctx.fillRect(eyelid[3][0], eyelid[3][1], 3, 3);
+            ctx.fillRect(eyelid[11][0], eyelid[11][1], 3, 3);
+            ctx.fillStyle = 'red'
+            ctx.fillRect(
+                iris[0][0],
+                iris[0][1],
+                3,
+                3
+            );
+        },
+        drawFace(ctx, pred) {
+            ctx.beginPath();
+            ctx.lineWidth = "4";
+            ctx.strokeStyle = "blue";
+            ctx.rect(
+                pred.boundingBox.topLeft[0],
+                pred.boundingBox.topLeft[1],
+                pred.boundingBox.bottomRight[0] - pred.boundingBox.topLeft[0],
+                pred.boundingBox.bottomRight[1] - pred.boundingBox.topLeft[1]
+            );
+            ctx.stroke();
         },
         fullScreen() {
             var element = document.documentElement;
