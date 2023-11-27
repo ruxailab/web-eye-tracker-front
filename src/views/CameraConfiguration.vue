@@ -8,7 +8,7 @@
                         <v-col>
                             <div v-if="isModelLoaded"
                                 style="position: relative; display: flex; justify-content: center; align-items: center;">
-                                <video autoplay id="video-tag" />
+                                <video autoplay id="video-tag" style="transform: scaleX(-1)" />
                                 <canvas id="canvas" width="600" height="500"
                                     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1)" />
                                 <v-img v-if="isCameraOn" style="width: 100%; height: 100%; position: absolute;"
@@ -132,14 +132,14 @@ export default {
                 const leftEyelidBottom = leftEyelid[11]
                 const isLeftBlink = this.calculateDistance(leftEyelidTip, leftEyelidBottom) < th.leftEyeTreshold
                 th.blinkFilter ? this.drawEye(leftIris, leftEyelid, ctx, isLeftBlink) : this.drawEye(leftIris, leftEyelid, ctx, false)
-                
+
                 // right eye
                 const rightIris = pred.annotations.rightEyeIris;
                 const rightEyelid = pred.annotations.rightEyeUpper0.concat(pred.annotations.rightEyeLower0);
                 const rightEyelidTip = rightEyelid[3]
                 const rightEyelidBottom = rightEyelid[11]
                 const isRightBlink = this.calculateDistance(rightEyelidTip, rightEyelidBottom) < th.rightEyeTreshold
-                th.blinkFilter ? this.drawEye(rightIris, rightEyelid, ctx, isRightBlink) : this.drawEye(rightIris, rightEyelid, ctx, false) 
+                th.blinkFilter ? this.drawEye(rightIris, rightEyelid, ctx, isRightBlink) : this.drawEye(rightIris, rightEyelid, ctx, false)
 
                 // face contour
                 this.drawFace(ctx, pred)

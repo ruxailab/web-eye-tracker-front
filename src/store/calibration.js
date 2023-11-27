@@ -12,6 +12,7 @@ export default {
         blinkFilter: true,
         leftEyeTreshold: 5,
         rightEyeTreshold: 5,
+        index: 0,
     },
     mutations: {
         setCalibName(state, newCalibName) {
@@ -49,6 +50,9 @@ export default {
         },
         setRightTreshold(state, newRightTreshold) {
             state.rightEyeTreshold = newRightTreshold
+        },
+        setIndex(state, newIndex) {
+            state.index = newIndex
         },
     },
     actions: {

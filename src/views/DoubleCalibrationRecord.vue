@@ -5,20 +5,23 @@
         style="margin-bottom: 16px;"></v-progress-circular>
       <div>Loading model...</div>
     </div>
+    <!-- loading case ^ -->
+
     <div v-else>
       <v-row justify="center" class="ma-0">
-        <v-col v-if="callibFinished && currentStep === 1" cols="12" lg="4" md="4" sm="6">
-          {{ circleIrisPoints.length }}
-          <v-btn block outlined color="primary" @click="startValidation()">
-            Next Step
-          </v-btn>
-        </v-col>
-        <div v-else-if="calibPredictionEnded && currentStep === 2">
-          <v-row justify="center" class="mt-12 pt-12">
-            {{ calibPredictionPoints.length }}
-            <v-btn @click="endCalib()">End calib</v-btn>
-          </v-row>
+        <div v-if="!pattern[0].data">
+          please press 'S' to begin
         </div>
+
+        <div v-if="index === 4">
+          <div v-if="currentStep === 1">
+            this is the first condition
+          </div>
+          <div v-else>
+            this is the second condition
+          </div>
+        </div>
+
       </v-row>
     </div>
     <canvas id="canvas" />
@@ -30,12 +33,7 @@
 export default {
   data() {
     return {
-      canvas: null,
-      w: 0,
-      h: 0,
-      ctx: null,
-      callibPoints: [],
-      index: 0,
+      // camera
       webcamfile: null,
       recordWebCam: null,
       configWebCam: {
@@ -45,13 +43,12 @@ export default {
           height: 864,
         },
       },
+
+      // cablibration
       circleIrisPoints: [],
-      callibFinished: false,
-      predictions: [],
-      isStop: false,
-      currentStep: 1,
-      calibPredictionEnded: false,
       calibPredictionPoints: [],
+      callibFinished: false,
+      currentStep: 1,
     };
   },
   computed: {
@@ -79,6 +76,9 @@ export default {
     rightEyeTreshold() {
       return this.$store.state.calibration.rightEyeTreshold
     },
+    index() {
+      return this.$store.state.calibration.index
+    },
     model: {
       get() {
         return this.$store.state.detect.model
@@ -89,17 +89,7 @@ export default {
       return this.$store.state.calibration.isControlled
     },
   },
-  watch: {
-    predictions: {
-      handler() {
-        if (!this.isStop) this.detectFace();
-      },
-      deep: true,
-    },
-  },
   async mounted() {
-    this.w = window.innerWidth;
-    this.h = window.innerHeight;
     await this.startWebCamCapture();
     this.advance(this.pattern)
   },
@@ -111,9 +101,15 @@ export default {
         if ((event.key === "s" || event.key === "S")) {
           if (i <= pattern.length - 1) {
             th.drawAndExtract(pattern[i])
+            th.$store.commit('setIndex', i)
+            console.log(th.index)
+            console.log(pattern)
             i++
           } else {
             console.log('enough bruh')
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
             document.removeEventListener('keydown', keydownHandler)
           }
         }
@@ -143,10 +139,8 @@ export default {
         if (isLeftBlink || isRightBlink) {
           console.log('i wont do it')
         } else {
-          const prediction = { leftIris: leftIris, rightIris: rightIris }
+          const prediction = { leftIris: leftIris[0], rightIris: rightIris[0] }
           point.data.push(prediction)
-          console.log(a)
-          console.log(point.data)
           a++
         }
       }
@@ -162,9 +156,9 @@ export default {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight
       const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, this.w, this.h)
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.fillStyle = this.backgroundColor;
-      ctx.fillRect(0, 0, this.w, this.h);
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.beginPath();
       ctx.strokeStyle = this.pointColor;
@@ -201,29 +195,29 @@ export default {
       this.$store.dispatch('extractXYValues', { extract: this.calibPredictionPoints, hasCalib: false })
       this.$router.push('/postCalibration');
     },
-    savePoint(whereToSave, isCalib) {
-      if (!this.isStop) {
-        if (this.predictions[0]) {
-          const data = {
-            left_iris_x: this.predictions[0].scaledMesh[468]["0"],
-            left_iris_y: this.predictions[0].scaledMesh[468]["1"],
-            right_iris_x: this.predictions[0].scaledMesh[473]["0"],
-            right_iris_y: this.predictions[0].scaledMesh[473]["1"],
-          }
-          if (isCalib) {
-            data.point_x = this.callibPoints[this.index - 1].x;
-            data.point_y = this.callibPoints[this.index - 1].y;
-          }
-          whereToSave.push({
-            ...data
-          });
-        } else {
-          console.log('sorry no predictions')
-        }
-      } else {
-        console.log('sorry, it has stopped')
-      }
-    },
+    // savePoint(whereToSave, isCalib) {
+    //   if (!this.isStop) {
+    //     if (this.predictions[0]) {
+    //       const data = {
+    //         left_iris_x: this.predictions[0].scaledMesh[468]["0"],
+    //         left_iris_y: this.predictions[0].scaledMesh[468]["1"],
+    //         right_iris_x: this.predictions[0].scaledMesh[473]["0"],
+    //         right_iris_y: this.predictions[0].scaledMesh[473]["1"],
+    //       }
+    //       if (isCalib) {
+    //         data.point_x = this.callibPoints[this.index - 1].x;
+    //         data.point_y = this.callibPoints[this.index - 1].y;
+    //       }
+    //       whereToSave.push({
+    //         ...data
+    //       });
+    //     } else {
+    //       console.log('sorry no predictions')
+    //     }
+    //   } else {
+    //     console.log('sorry, it has stopped')
+    //   }
+    // },
     // canvas related
     async startWebCamCapture() {
       // Request permission for screen capture
@@ -267,7 +261,7 @@ export default {
         });
     },
     async detectFace() {
-      const lastPrediction = this.predictions = await this.model.estimateFaces({
+      const lastPrediction = await this.model.estimateFaces({
         input: document.getElementById("video-tag"),
       });
       return lastPrediction
@@ -278,7 +272,6 @@ export default {
     async stopWebCamCapture() {
       await this.recordWebCam.stop();
       this.callibFinished = true;
-      this.canvas.style.display = "none";
     },
   },
 };
