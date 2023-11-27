@@ -113,7 +113,8 @@ export default {
             this.$store.commit('setPredictions', prediction)
             ctx.drawImage(this.video, 0, 0, 600, 500);
 
-            const eyeTreshold = 5
+            const rightEyeTreshold = 5
+            const leftEyeTreshold = 5.5
 
             this.predictions.forEach((pred) => {
                 // left eye
@@ -121,7 +122,7 @@ export default {
                 const leftEyelid = pred.annotations.leftEyeUpper0.concat(pred.annotations.leftEyeLower0);
                 const leftEyelidTip = leftEyelid[3]
                 const leftEyelidBottom = leftEyelid[11]
-                const isLeftBlink = this.calculateDistance(leftEyelidTip, leftEyelidBottom) < eyeTreshold
+                const isLeftBlink = this.calculateDistance(leftEyelidTip, leftEyelidBottom) < leftEyeTreshold
                 this.drawEye(leftIris, leftEyelid, ctx, isLeftBlink)
 
                 // right eye
@@ -129,7 +130,7 @@ export default {
                 const rightEyelid = pred.annotations.rightEyeUpper0.concat(pred.annotations.rightEyeLower0);
                 const rightEyelidTip = rightEyelid[3]
                 const rightEyelidBottom = rightEyelid[11]
-                const isRightBlink = this.calculateDistance(rightEyelidTip, rightEyelidBottom) < eyeTreshold
+                const isRightBlink = this.calculateDistance(rightEyelidTip, rightEyelidBottom) < rightEyeTreshold
                 this.drawEye(rightIris, rightEyelid, ctx, isRightBlink)
 
                 // face contour

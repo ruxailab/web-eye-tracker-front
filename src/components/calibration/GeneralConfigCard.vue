@@ -6,20 +6,22 @@
                     general configuration
                 </v-card-title>
                 <div class="custom-outline">
-                    calib name: 
+                    calib name:
                     <TextField :value="calibName" @input="updateCalibName" />
                 </div>
                 <div class="custom-outline">
                     <Slider :value="pointNumber" :min="Number(1)" :max="Number(9)" label="Point Number"
                         @input="updatePointNumber" />
-                </div>
-                <div class="custom-outline">
                     <Slider :value="samplePerPoint" label="Sample Per Point" @input="updateSamplePerPoint" />
+                </div>
+                <div v-if="blinkFilter" class="custom-outline">
+                    <Slider :value="leftEyeTreshold" :min="Number(3)" :max="Number(7)" :decimal="true"
+                        label="left eye treshold" @input="updateLeftTreshold" />
+                    <Slider :value="rightEyeTreshold" :min="Number(3)" :max="Number(7)" :decimal="true"
+                        label="right eye treshold" @input="updateRightTreshold" />
                 </div>
                 <div class="custom-outline">
                     <Radius />
-                </div>
-                <div class="custom-outline">
                     <Offset />
                 </div>
             </v-card>
@@ -42,14 +44,23 @@ export default {
     },
     computed: {
         samplePerPoint() {
-            return Number(this.$store.state.calibration.samplePerPoint ?? 0);
+            return Number(this.$store.state.calibration.samplePerPoint);
         },
         pointNumber() {
-            return Number(this.$store.state.calibration.pointNumber ?? 0);
+            return Number(this.$store.state.calibration.pointNumber);
         },
         calibName() {
             return this.$store.state.calibration.calibName
-        }
+        },
+        blinkFilter() {
+            return this.$store.state.calibration.blinkFilter
+        },
+        leftEyeTreshold() {
+            return Number(this.$store.state.calibration.leftEyeTreshold)
+        },
+        rightEyeTreshold() {
+            return Number(this.$store.state.calibration.rightEyeTreshold)
+        },
     },
     methods: {
         updateSamplePerPoint(value) {
@@ -66,7 +77,13 @@ export default {
             } else {
                 console.log('Value contains only white spaces or is empty');
             }
-        }
+        },
+        updateLeftTreshold(value) {
+            this.$store.commit('setLeftTreshold', value);
+        },
+        updateRightTreshold(value) {
+            this.$store.commit('setRightTreshold', value);
+        },
     },
 };
 </script>

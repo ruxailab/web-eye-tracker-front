@@ -9,6 +9,9 @@ export default {
         backgroundColor: '#FFFFFFFF',
         pointColor: '#000000FF',
         isControlled: true,
+        blinkFilter: true,
+        leftEyeTreshold: 5,
+        rightEyeTreshold: 5,
     },
     mutations: {
         setCalibName(state, newCalibName) {
@@ -37,6 +40,15 @@ export default {
         },
         setControlled(state, newControlled) {
             state.isControlled = newControlled
+        },
+        setBlinkFilter(state, newBlinkFilter) {
+            state.blinkFilter = newBlinkFilter
+        },
+        setLeftTreshold(state, newLeftTreshold) {
+            state.leftEyeTreshold = newLeftTreshold
+        },
+        setRightTreshold(state, newRightTreshold) {
+            state.rightEyeTreshold = newRightTreshold
         },
     },
     actions: {
