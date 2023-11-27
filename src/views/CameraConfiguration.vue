@@ -57,7 +57,16 @@ export default {
         },
         predictions() {
             return this.$store.state.detect.predictions
-        }
+        },
+        blinkFilter() {
+            return this.$store.state.calibration.blinkFilter
+        },
+        leftEyeTreshold() {
+            return this.$store.state.calibration.leftEyeTreshold
+        },
+        rightEyeTreshold() {
+            return this.$store.state.calibration.rightEyeTreshold
+        },
     },
     watch: {
         predictions: {
@@ -113,8 +122,7 @@ export default {
             this.$store.commit('setPredictions', prediction)
             ctx.drawImage(this.video, 0, 0, 600, 500);
 
-            const rightEyeTreshold = 5
-            const leftEyeTreshold = 5.5
+            const th = this
 
             this.predictions.forEach((pred) => {
                 // left eye
@@ -122,16 +130,16 @@ export default {
                 const leftEyelid = pred.annotations.leftEyeUpper0.concat(pred.annotations.leftEyeLower0);
                 const leftEyelidTip = leftEyelid[3]
                 const leftEyelidBottom = leftEyelid[11]
-                const isLeftBlink = this.calculateDistance(leftEyelidTip, leftEyelidBottom) < leftEyeTreshold
-                this.drawEye(leftIris, leftEyelid, ctx, isLeftBlink)
-
+                const isLeftBlink = this.calculateDistance(leftEyelidTip, leftEyelidBottom) < th.leftEyeTreshold
+                th.blinkFilter ? this.drawEye(leftIris, leftEyelid, ctx, isLeftBlink) : this.drawEye(leftIris, leftEyelid, ctx, false)
+                
                 // right eye
                 const rightIris = pred.annotations.rightEyeIris;
                 const rightEyelid = pred.annotations.rightEyeUpper0.concat(pred.annotations.rightEyeLower0);
                 const rightEyelidTip = rightEyelid[3]
                 const rightEyelidBottom = rightEyelid[11]
-                const isRightBlink = this.calculateDistance(rightEyelidTip, rightEyelidBottom) < rightEyeTreshold
-                this.drawEye(rightIris, rightEyelid, ctx, isRightBlink)
+                const isRightBlink = this.calculateDistance(rightEyelidTip, rightEyelidBottom) < th.rightEyeTreshold
+                th.blinkFilter ? this.drawEye(rightIris, rightEyelid, ctx, isRightBlink) : this.drawEye(rightIris, rightEyelid, ctx, false) 
 
                 // face contour
                 this.drawFace(ctx, pred)
