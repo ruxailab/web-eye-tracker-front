@@ -31,7 +31,6 @@ export default {
   data() {
     return {
       canvas: null,
-      //model: null,
       w: 0,
       h: 0,
       ctx: null,
@@ -74,6 +73,12 @@ export default {
     pointColor() {
       return this.$store.state.calibration.pointColor
     },
+    leftEyeTreshold() {
+      return this.$store.state.calibration.leftEyeTreshold
+    },
+    rightEyeTreshold() {
+      return this.$store.state.calibration.rightEyeTreshold
+    },
     model: {
       get() {
         return this.$store.state.detect.model
@@ -93,73 +98,100 @@ export default {
     },
   },
   async mounted() {
-    this.isControlled ? await this.controlledCalib(true) : await this.timedCallib(true);
+    this.w = window.innerWidth;
+    this.h = window.innerHeight;
+    await this.startWebCamCapture();
+    this.advance(this.pattern)
   },
   methods: {
-    async controlledCalib(isCalib) {
-      if (this.index == 0) {
-        await this.startWebCamCapture();
-        this.generateCallibPoints();
-      }
-      const th = this;
-      let intervalId = null;
+    advance(pattern) {
+      const th = this
+      var i = 0
       function keydownHandler(event) {
-        if ((event.key === "s" || event.key === "S") && !intervalId) {
-          let calibCount = 0;
-          intervalId = setInterval(function () {
-            isCalib ? th.savePoint(th.circleIrisPoints, true) : th.savePoint(th.calibPredictionPoints, false);
-            // isCalib ? console.log(th.circleIrisPoints) : console.log(th.calibPredictionPoints);
-            calibCount++;
-            if (calibCount === th.predByPointCount) {
-              clearInterval(intervalId);
-              intervalId = null;
-              calibCount = 0;
-              document.removeEventListener("keydown", keydownHandler);
-              th.controlledCalib(isCalib);
-            }
-          }, 100);
+        if ((event.key === "s" || event.key === "S")) {
+          if (i <= pattern.length - 1) {
+            th.drawAndExtract(pattern[i])
+            i++
+          } else {
+            console.log('enough bruh')
+            document.removeEventListener('keydown', keydownHandler)
+          }
         }
       }
-      if (isCalib && (this.callibFinished && this.currentStep === 2)) {
-        for (let i = 0; i < this.predByPointCount; i++) {
-          this.circleIrisPoints.pop();
+      document.addEventListener('keydown', keydownHandler)
+    },
+
+    async drawAndExtract(point) {
+      point.data = []
+      this.drawPoint(point.x, point.y)
+      for (var a = 0; a < this.predByPointCount;) {
+        const prediction = await this.detectFace()
+        const pred = prediction[0]
+        // left eye
+        const leftIris = pred.annotations.leftEyeIris;
+        const leftEyelid = pred.annotations.leftEyeUpper0.concat(pred.annotations.leftEyeLower0);
+        const leftEyelidTip = leftEyelid[3]
+        const leftEyelidBottom = leftEyelid[11]
+        const isLeftBlink = this.calculateDistance(leftEyelidTip, leftEyelidBottom) < this.leftEyeTreshold
+        // right eye
+        const rightIris = pred.annotations.rightEyeIris;
+        const rightEyelid = pred.annotations.rightEyeUpper0.concat(pred.annotations.rightEyeLower0);
+        const rightEyelidTip = rightEyelid[3]
+        const rightEyelidBottom = rightEyelid[11]
+        const isRightBlink = this.calculateDistance(rightEyelidTip, rightEyelidBottom) < this.rightEyeTreshold
+
+        if (isLeftBlink || isRightBlink) {
+          console.log('i wont do it')
+        } else {
+          const prediction = { leftIris: leftIris, rightIris: rightIris }
+          point.data.push(prediction)
+          console.log(a)
+          console.log(point.data)
+          a++
         }
-      } else {
-        document.addEventListener("keydown", keydownHandler);
-        this.move();
       }
     },
-    async timedCallib(isCalib) {
-      if (this.index == 0) {
-        this.generateCallibPoints();
-        await this.startWebCamCapture();
-      }
-      const th = this;
-      let intervalId = null;
-      function startTimer() {
-        let calibCount = 0;
-        intervalId = setInterval(function () {
-          isCalib ? th.savePoint(th.circleIrisPoints, true) : th.savePoint(th.calibPredictionPoints, false);
-          // isCalib ? console.log(th.circleIrisPoints) : console.log(th.calibPredictionPoints);
-          calibCount++;
-          if (calibCount === th.predByPointCount) {
-            clearInterval(intervalId);
-            intervalId = null;
-            calibCount = 0;
-            th.timedCallib(isCalib);
-          }
-        }, 100);
-      }
-      if (isCalib && (this.callibFinished && this.currentStep === 2)) {
-        for (let i = 0; i < this.predByPointCount; i++) {
-          this.circleIrisPoints.pop();
-        }
-      } else {
-        if (!this.isStop) {
-          startTimer()
-          this.move();
-        }
-      }
+    calculateDistance(eyelidTip, eyelidBottom) {
+      const xDistance = eyelidBottom[0] - eyelidTip[0];
+      const yDistance = eyelidBottom[1] - eyelidTip[1];
+      const distance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
+      return distance;
+    },
+    drawPoint(x, y) {
+      const canvas = document.getElementById('canvas');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, this.w, this.h)
+      ctx.fillStyle = this.backgroundColor;
+      ctx.fillRect(0, 0, this.w, this.h);
+
+      ctx.beginPath();
+      ctx.strokeStyle = this.pointColor;
+      ctx.fillStyle = this.pointColor;
+      ctx.arc(
+        x,
+        y,
+        this.radius,
+        0,
+        Math.PI * 2,
+        false
+      );
+      ctx.stroke();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.strokeStyle = "red";
+      ctx.fillStyle = "red";
+      ctx.arc(
+        x,
+        y,
+        5,
+        0,
+        Math.PI * 2,
+        false
+      );
+      ctx.stroke();
+      ctx.fill();
     },
     async endCalib() {
       const screenHeight = window.screen.height;
@@ -235,9 +267,10 @@ export default {
         });
     },
     async detectFace() {
-      this.predictions = await this.model.estimateFaces({
+      const lastPrediction = this.predictions = await this.model.estimateFaces({
         input: document.getElementById("video-tag"),
       });
+      return lastPrediction
     },
     stopRecord() {
       this.recordWebCam.state != "inactive" ? this.stopWebCamCapture() : null;
@@ -246,65 +279,6 @@ export default {
       await this.recordWebCam.stop();
       this.callibFinished = true;
       this.canvas.style.display = "none";
-    },
-    async startValidation() {
-      this.model = null
-      this.currentStep = 2;
-      this.isStop = false;
-      this.index = 0;
-      this.canvas.style.display = "block";
-      this.isControlled ? await this.controlledCalib(false) : await this.timedCallib(false);
-    },
-    move() {
-      if (this.index == this.callibPoints.length) {
-        this.stopRecord();
-        this.isStop = true;
-        if (this.calibPredictionPoints.length == (this.predByPointCount * this.callibPoints.length)) {
-          this.calibPredictionEnded = true
-        }
-        return;
-      }
-      this.ctx.clearRect(0, 0, this.w, this.h);
-      // background
-      this.ctx.fillStyle = this.backgroundColor;
-      this.ctx.fillRect(0, 0, this.w, this.h);
-
-      // outer circle
-      this.ctx.beginPath();
-      this.ctx.strokeStyle = this.pointColor;
-      this.ctx.fillStyle = this.pointColor;
-      this.ctx.arc(
-        this.callibPoints[this.index].x,
-        this.callibPoints[this.index].y,
-        this.radius,
-        0,
-        Math.PI * 2,
-        false
-      );
-      this.ctx.stroke();
-      this.ctx.fill();
-      // inner circle
-      this.ctx.beginPath();
-      this.ctx.strokeStyle = "red";
-      this.ctx.fillStyle = "red";
-      this.ctx.arc(
-        this.callibPoints[this.index].x,
-        this.callibPoints[this.index].y,
-        5,
-        0,
-        Math.PI * 2,
-        false
-      );
-      this.ctx.stroke();
-      this.ctx.fill();
-      this.index++;
-    },
-    generateCallibPoints() {
-      this.canvas = document.getElementById("canvas");
-      this.w = this.canvas.width = window.innerWidth;
-      this.h = this.canvas.height = window.innerHeight;
-      this.ctx = this.canvas.getContext("2d");
-      this.callibPoints = this.pattern
     },
   },
 };
