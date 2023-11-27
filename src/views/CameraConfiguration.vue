@@ -113,35 +113,58 @@ export default {
             this.$store.commit('setPredictions', prediction)
             ctx.drawImage(this.video, 0, 0, 600, 500);
 
+            const eyeTreshold = 5
 
             this.predictions.forEach((pred) => {
                 // left eye
                 const leftIris = pred.annotations.leftEyeIris;
                 const leftEyelid = pred.annotations.leftEyeUpper0.concat(pred.annotations.leftEyeLower0);
-                this.drawEye(leftIris, leftEyelid, ctx)
+                const leftEyelidTip = leftEyelid[3]
+                const leftEyelidBottom = leftEyelid[11]
+                const isLeftBlink = this.calculateDistance(leftEyelidTip, leftEyelidBottom) < eyeTreshold
+                this.drawEye(leftIris, leftEyelid, ctx, isLeftBlink)
+
                 // right eye
                 const rightIris = pred.annotations.rightEyeIris;
                 const rightEyelid = pred.annotations.rightEyeUpper0.concat(pred.annotations.rightEyeLower0);
-                this.drawEye(rightIris, rightEyelid, ctx)
+                const rightEyelidTip = rightEyelid[3]
+                const rightEyelidBottom = rightEyelid[11]
+                const isRightBlink = this.calculateDistance(rightEyelidTip, rightEyelidBottom) < eyeTreshold
+                this.drawEye(rightIris, rightEyelid, ctx, isRightBlink)
+
                 // face contour
                 this.drawFace(ctx, pred)
             });
         },
-        drawEye(iris, eyelid, ctx) {
-            ctx.fillStyle = 'yellow'
-            for (let i = 0; i < eyelid.length; i++) {
-                ctx.fillRect(eyelid[i][0], eyelid[i][1], 3, 3);
+        calculateDistance(eyelidTip, eyelidBottom) {
+            const xDistance = eyelidBottom[0] - eyelidTip[0];
+            const yDistance = eyelidBottom[1] - eyelidTip[1];
+            const distance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
+            return distance;
+        },
+        drawEye(iris, eyelid, ctx, isBlink) {
+            if (isBlink) {
+                ctx.fillStyle = 'red'
+                for (let i = 0; i < eyelid.length; i++) {
+                    ctx.fillRect(eyelid[i][0], eyelid[i][1], 3, 3);
+                }
+            } else {
+                ctx.fillStyle = 'yellow'
+                for (let i = 0; i < eyelid.length; i++) {
+                    ctx.fillRect(eyelid[i][0], eyelid[i][1], 3, 3);
+                }
+                ctx.fillStyle = 'blue'
+                ctx.fillRect(eyelid[3][0], eyelid[3][1], 3, 3);
+                ctx.fillRect(eyelid[11][0], eyelid[11][1], 3, 3);
+                ctx.fillStyle = 'red'
+                ctx.fillRect(
+                    iris[0][0],
+                    iris[0][1],
+                    3,
+                    3
+                );
             }
-            ctx.fillStyle = 'blue'
-            ctx.fillRect(eyelid[3][0], eyelid[3][1], 3, 3);
-            ctx.fillRect(eyelid[11][0], eyelid[11][1], 3, 3);
-            ctx.fillStyle = 'red'
-            ctx.fillRect(
-                iris[0][0],
-                iris[0][1],
-                3,
-                3
-            );
+
         },
         drawFace(ctx, pred) {
             ctx.beginPath();
