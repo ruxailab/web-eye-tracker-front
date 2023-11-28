@@ -3,6 +3,9 @@
         <Toolbar />
         <v-container class="mt-12">
             <v-row justify="center">
+                <v-col>
+                    <BlinkTresholdCard />
+                </v-col>
                 <v-col cols="12" lg="7" md="7">
                     <div id="box" style="text-align: center;">
                         <v-col>
@@ -33,6 +36,7 @@
   
 <script>
 import Toolbar from "@/components/general/Toolbar.vue";
+import BlinkTresholdCard from "../components/calibration/BlinkTresholdCard.vue";
 
 const tf = require("@tensorflow/tfjs");
 const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
@@ -40,12 +44,13 @@ const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detect
 export default {
     components: {
         Toolbar,
+        BlinkTresholdCard
     },
     data() {
         return {
             isCameraOn: false,
             webcamStream: null,
-            video: null
+            video: null,
         };
     },
     computed: {

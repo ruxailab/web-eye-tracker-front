@@ -14,12 +14,6 @@
                         @input="updatePointNumber" />
                     <Slider :value="samplePerPoint" label="Sample Per Point" @input="updateSamplePerPoint" />
                 </div>
-                <div v-if="blinkFilter" class="custom-outline">
-                    <Slider :value="leftEyeTreshold" :min="Number(3)" :max="Number(7)" :decimal="true"
-                        label="left eye treshold" @input="updateLeftTreshold" />
-                    <Slider :value="rightEyeTreshold" :min="Number(3)" :max="Number(7)" :decimal="true"
-                        label="right eye treshold" @input="updateRightTreshold" />
-                </div>
                 <div class="custom-outline">
                     <Radius />
                     <Offset />
@@ -40,7 +34,7 @@ export default {
         Radius,
         Offset,
         Slider,
-        TextField
+        TextField,
     },
     computed: {
         samplePerPoint() {
@@ -54,12 +48,6 @@ export default {
         },
         blinkFilter() {
             return this.$store.state.calibration.blinkFilter
-        },
-        leftEyeTreshold() {
-            return Number(this.$store.state.calibration.leftEyeTreshold)
-        },
-        rightEyeTreshold() {
-            return Number(this.$store.state.calibration.rightEyeTreshold)
         },
     },
     methods: {
@@ -77,12 +65,6 @@ export default {
             } else {
                 console.log('Value contains only white spaces or is empty');
             }
-        },
-        updateLeftTreshold(value) {
-            this.$store.commit('setLeftTreshold', value);
-        },
-        updateRightTreshold(value) {
-            this.$store.commit('setRightTreshold', value);
         },
     },
 };

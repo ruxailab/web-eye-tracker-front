@@ -8,7 +8,6 @@
                 <div class="custom-outline">
                     Control:
                     <v-checkbox v-model="isControlled" label="Controlled Calibration" color="black"></v-checkbox>
-                    <v-checkbox v-model="blinkFilter" label="Blink Filter" color="black"></v-checkbox>
                 </div>
                 <div class="custom-outline">
                     Background Color:
@@ -30,7 +29,6 @@ export default {
             backgroundColor: '#FFFFFFFF',
             pointColor: '#000000FF',
             isControlled: true,
-            blinkFilter: true,
         }
     },
     watch: {
@@ -43,9 +41,6 @@ export default {
         isControlled(value) {
             this.updateControlled(value)
         },
-        blinkFilter(value) {
-            this.updateBlinkFilter(value)
-        },
     },
     methods: {
         updateBackgroundColor(value) {
@@ -56,9 +51,6 @@ export default {
         },
         updateControlled(value) {
             this.$store.commit('setControlled', value)
-        },
-        updateBlinkFilter(value) {
-            this.$store.commit('setBlinkFilter', value)
         },
     }
 }
