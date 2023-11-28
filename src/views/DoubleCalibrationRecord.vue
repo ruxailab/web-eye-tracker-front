@@ -19,10 +19,13 @@
             <div>
               you've collected {{ circleIrisPoints.length }} points
             </div>
-            <v-btn @click="nextStep()">next step</v-btn>
+            <v-btn @click="nextStep()">Next Step</v-btn>
           </div>
           <div v-else>
-            this is the second condition
+            <div>
+              you've collected {{ calibPredictionPoints.length }} points
+            </div>
+            <v-btn @click="endCalib()">End Calib</v-btn>
           </div>
         </div>
       </v-row>
@@ -110,7 +113,6 @@ export default {
             th.$store.commit('setIndex', i)
             document.removeEventListener('keydown', keydownHandler)
             th.savePoint(whereToSave, th.pattern)
-            console.log('enough bruh')
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -120,6 +122,9 @@ export default {
       document.addEventListener('keydown', keydownHandler)
     },
     nextStep() {
+      this.pattern.forEach(element => {
+        delete element.data;
+      });
       this.$store.commit('setIndex', 0)
       this.currentStep = 2
       this.advance(this.pattern, this.calibPredictionPoints)
@@ -195,6 +200,10 @@ export default {
       ctx.fill();
     },
     async endCalib() {
+      this.calibPredictionPoints.forEach(element => {
+        delete element.point_x;
+        delete element.point_y;
+      })
       const screenHeight = window.screen.height;
       const screenWidth = window.screen.width;
       await this.$store.dispatch('sendData', { circleIrisPoints: this.circleIrisPoints, calibPredictionPoints: this.calibPredictionPoints, screenHeight: screenHeight, screenWidth: screenWidth })
