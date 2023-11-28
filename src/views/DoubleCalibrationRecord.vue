@@ -9,9 +9,10 @@
 
     <div v-else>
       <v-row justify="center" align="center" class="ma-0 justify-center align-center">
-        <div v-if="!pattern[0].data" class="text-center" style="z-index: 1;">
-          please, slowly press 'S' while looking at the point to begin
+        <div v-if="index === 0" class="text-center" style="z-index: 1;">
+          slowly press 'S' while looking at the point to begin
         </div>
+        <div v-if="index === pattern.length - 1" class="text-center" style="z-index: 1;"> press 'S' one more time</div>
         <div v-if="index === pattern.length" class="text-center" style="z-index: 1;">
           <div v-if="currentStep === 1"
             style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
@@ -107,8 +108,6 @@ export default {
         if ((event.key === "s" || event.key === "S")) {
           if (i <= pattern.length - 1) {
             await th.extract(pattern[i])
-            // console.log(pattern[i])
-            // console.log(pattern[i + 1])
             if (th.pattern[i + 1]) {
               th.drawPoint(th.pattern[i + 1].x, th.pattern[i + 1].y)
             }
@@ -135,7 +134,6 @@ export default {
       this.advance(this.pattern, this.calibPredictionPoints)
     },
     async extract(point) {
-      console.log('called')
       point.data = []
       for (var a = 0; a < this.predByPointCount;) {
         const prediction = await this.detectFace()
@@ -157,11 +155,12 @@ export default {
           console.log('i wont do it')
         } else {
           const prediction = { leftIris: leftIris[0], rightIris: rightIris[0] }
-          console.log(prediction)
           point.data.push(prediction)
+          console.log(point.data.length)
           a++
         }
       }
+      console.log('extraction complete!');
     },
     calculateDistance(eyelidTip, eyelidBottom) {
       const xDistance = eyelidBottom[0] - eyelidTip[0];
