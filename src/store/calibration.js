@@ -53,6 +53,7 @@ export default {
         },
         setIndex(state, newIndex) {
             state.index = newIndex
+            console.log(`index: ${state.index}`)
         },
     },
     actions: {
