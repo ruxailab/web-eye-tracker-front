@@ -8,20 +8,23 @@
     <!-- loading case ^ -->
 
     <div v-else>
-      <v-row justify="center" class="ma-0">
-        <div v-if="!pattern[0].data">
+      <v-row justify="center" align="center" class="ma-0 justify-center align-center">
+        <div v-if="!pattern[0].data" class="text-center">
           please press 'S' to begin
         </div>
 
-        <div v-if="index === 4">
-          <div v-if="currentStep === 1">
-            this is the first condition
+        <div v-if="index === 4" class="text-center" style="z-index: 1;">
+          <div v-if="currentStep === 1"
+            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+            <div>
+              you've collected {{ circleIrisPoints.length }} points
+            </div>
+            <v-btn @click="nextStep()">next step</v-btn>
           </div>
           <div v-else>
             this is the second condition
           </div>
         </div>
-
       </v-row>
     </div>
     <canvas id="canvas" />
@@ -91,10 +94,10 @@ export default {
   },
   async mounted() {
     await this.startWebCamCapture();
-    this.advance(this.pattern)
+    this.advance(this.pattern, this.circleIrisPoints)
   },
   methods: {
-    advance(pattern) {
+    advance(pattern, whereToSave) {
       const th = this
       var i = 0
       function keydownHandler(event) {
@@ -107,7 +110,7 @@ export default {
             i++
           } else {
             document.removeEventListener('keydown', keydownHandler)
-            th.savePoint(th.circleIrisPoints, th.pattern)
+            th.savePoint(whereToSave, th.pattern)
             console.log('enough bruh')
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
@@ -117,7 +120,11 @@ export default {
       }
       document.addEventListener('keydown', keydownHandler)
     },
-
+    nextStep() {
+      this.$store.commit('setIndex', 0)
+      this.currentStep = 2
+      this.advance(this.pattern, this.calibPredictionPoints)
+    },
     async drawAndExtract(point) {
       point.data = []
       this.drawPoint(point.x, point.y)
