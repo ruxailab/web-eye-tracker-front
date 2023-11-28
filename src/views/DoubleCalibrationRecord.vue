@@ -102,15 +102,16 @@ export default {
           if (i <= pattern.length - 1) {
             th.drawAndExtract(pattern[i])
             th.$store.commit('setIndex', i)
-            console.log(th.index)
-            console.log(pattern)
+            // console.log(th.index)
+            // console.log(pattern)
             i++
           } else {
+            document.removeEventListener('keydown', keydownHandler)
+            th.savePoint(th.circleIrisPoints, th.pattern)
             console.log('enough bruh')
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height)
-            document.removeEventListener('keydown', keydownHandler)
           }
         }
       }
@@ -195,29 +196,21 @@ export default {
       this.$store.dispatch('extractXYValues', { extract: this.calibPredictionPoints, hasCalib: false })
       this.$router.push('/postCalibration');
     },
-    // savePoint(whereToSave, isCalib) {
-    //   if (!this.isStop) {
-    //     if (this.predictions[0]) {
-    //       const data = {
-    //         left_iris_x: this.predictions[0].scaledMesh[468]["0"],
-    //         left_iris_y: this.predictions[0].scaledMesh[468]["1"],
-    //         right_iris_x: this.predictions[0].scaledMesh[473]["0"],
-    //         right_iris_y: this.predictions[0].scaledMesh[473]["1"],
-    //       }
-    //       if (isCalib) {
-    //         data.point_x = this.callibPoints[this.index - 1].x;
-    //         data.point_y = this.callibPoints[this.index - 1].y;
-    //       }
-    //       whereToSave.push({
-    //         ...data
-    //       });
-    //     } else {
-    //       console.log('sorry no predictions')
-    //     }
-    //   } else {
-    //     console.log('sorry, it has stopped')
-    //   }
-    // },
+    savePoint(whereToSave, patternLike) {
+      patternLike.forEach(point => {
+        point.data.forEach(element => {
+          const data = {
+            left_iris_x: element.leftIris[0],
+            left_iris_y: element.leftIris[1],
+            right_iris_x: element.rightIris[0],
+            right_iris_y: element.rightIris[1],
+            point_x: point.x,
+            point_y: point.y,
+          }
+          whereToSave.push(data)
+        });
+      });
+    },
     // canvas related
     async startWebCamCapture() {
       // Request permission for screen capture
