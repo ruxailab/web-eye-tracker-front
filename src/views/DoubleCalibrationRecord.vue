@@ -13,7 +13,7 @@
           please press 'S' to begin
         </div>
 
-        <div v-if="index === 4" class="text-center" style="z-index: 1;">
+        <div v-if="index === 5" class="text-center" style="z-index: 1;">
           <div v-if="currentStep === 1"
             style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
             <div>
@@ -105,10 +105,9 @@ export default {
           if (i <= pattern.length - 1) {
             th.drawAndExtract(pattern[i])
             th.$store.commit('setIndex', i)
-            // console.log(th.index)
-            // console.log(pattern)
             i++
           } else {
+            th.$store.commit('setIndex', i)
             document.removeEventListener('keydown', keydownHandler)
             th.savePoint(whereToSave, th.pattern)
             console.log('enough bruh')
