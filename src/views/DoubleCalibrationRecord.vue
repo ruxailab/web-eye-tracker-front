@@ -8,8 +8,8 @@
     <!-- loading case ^ -->
 
     <div v-else>
-      <v-row justify="center" align="center" class="ma-0 justify-center align-center">
-        <div v-if="!pattern[0].data" class="text-center">
+      <v-row justify="center" align="center" class="ma-0 justify-center align-center" >
+        <div v-if="!pattern[0].data" class="text-center" style="z-index: 1;">
           please press 'S' to begin
         </div>
 
@@ -30,7 +30,7 @@
         </div>
       </v-row>
     </div>
-    <canvas id="canvas" />
+    <canvas id="canvas" style="z-index: 0;" />
     <video autoplay id="video-tag" style="display: none;"></video>
   </div>
 </template>
@@ -97,6 +97,7 @@ export default {
   },
   async mounted() {
     await this.startWebCamCapture();
+    this.drawPoint(this.pattern[0].x, this.pattern[0].y)
     this.advance(this.pattern, this.circleIrisPoints)
   },
   methods: {
