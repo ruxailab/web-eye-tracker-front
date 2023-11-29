@@ -13,6 +13,7 @@ export default {
         leftEyeTreshold: 5,
         rightEyeTreshold: 5,
         index: 0,
+        msPerCapture: 100,
     },
     mutations: {
         setCalibName(state, newCalibName) {
@@ -54,6 +55,9 @@ export default {
         setIndex(state, newIndex) {
             state.index = newIndex
         },
+        setMsPerCapture(state, newMsPerCapture){
+            state.msPerCapture = newMsPerCapture
+        }
     },
     actions: {
         async sendData(context, data) {

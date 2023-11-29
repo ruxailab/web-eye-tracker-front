@@ -87,6 +87,9 @@ export default {
     index() {
       return this.$store.state.calibration.index
     },
+    msPerCapture() {
+      return this.$store.state.calibration.msPerCapture
+    },
     model: {
       get() {
         return this.$store.state.detect.model
@@ -99,17 +102,17 @@ export default {
   },
   async mounted() {
     await this.startWebCamCapture();
-    this.advance(this.pattern, this.circleIrisPoints)
+    this.advance(this.pattern, this.circleIrisPoints, this.msPerCapture)
   },
   methods: {
-    advance(pattern, whereToSave) {
+    advance(pattern, whereToSave, timeBetweenCaptures) {
       const th = this
       var i = 0
-      this.drawPoint(this.pattern[i].x, this.pattern[i].y)
+      this.drawPoint(pattern[i].x, pattern[i].y)
       async function keydownHandler(event) {
         if ((event.key === "s" || event.key === "S")) {
           if (i <= pattern.length - 1) {
-            await th.extract(pattern[i])
+            await th.extract(pattern[i], timeBetweenCaptures)
             if (th.pattern[i + 1]) {
               th.drawPoint(th.pattern[i + 1].x, th.pattern[i + 1].y)
             }
@@ -135,33 +138,35 @@ export default {
       this.currentStep = 2
       this.advance(this.pattern, this.calibPredictionPoints)
     },
-    async extract(point) {
-      point.data = []
+    async extract(point, timeBetweenCaptures) {
+      point.data = [];
       for (var a = 0; a < this.predByPointCount;) {
-        const prediction = await this.detectFace()
-        const pred = prediction[0]
+        const prediction = await this.detectFace();
+        const pred = prediction[0];
         // left eye
         const leftIris = pred.annotations.leftEyeIris;
         const leftEyelid = pred.annotations.leftEyeUpper0.concat(pred.annotations.leftEyeLower0);
-        const leftEyelidTip = leftEyelid[3]
-        const leftEyelidBottom = leftEyelid[11]
-        const isLeftBlink = this.calculateDistance(leftEyelidTip, leftEyelidBottom) < this.leftEyeTreshold
+        const leftEyelidTip = leftEyelid[3];
+        const leftEyelidBottom = leftEyelid[11];
+        const isLeftBlink = this.calculateDistance(leftEyelidTip, leftEyelidBottom) < this.leftEyeTreshold;
         // right eye
         const rightIris = pred.annotations.rightEyeIris;
         const rightEyelid = pred.annotations.rightEyeUpper0.concat(pred.annotations.rightEyeLower0);
-        const rightEyelidTip = rightEyelid[3]
-        const rightEyelidBottom = rightEyelid[11]
-        const isRightBlink = this.calculateDistance(rightEyelidTip, rightEyelidBottom) < this.rightEyeTreshold
+        const rightEyelidTip = rightEyelid[3];
+        const rightEyelidBottom = rightEyelid[11];
+        const isRightBlink = this.calculateDistance(rightEyelidTip, rightEyelidBottom) < this.rightEyeTreshold;
 
         if (isLeftBlink || isRightBlink) {
-          console.log('i wont do it')
+          console.log('I won\'t do it');
         } else {
-          const prediction = { leftIris: leftIris[0], rightIris: rightIris[0] }
-          point.data.push(prediction)
-          a++
+          const newPrediction = { leftIris: leftIris[0], rightIris: rightIris[0] };
+          point.data.push(newPrediction);
+          console.log(point.data.length)
+          a++;
         }
+        await new Promise(resolve => setTimeout(resolve, timeBetweenCaptures));
       }
-      console.log('extraction complete!');
+      console.log('Extraction complete!');
     },
     calculateDistance(eyelidTip, eyelidBottom) {
       const xDistance = eyelidBottom[0] - eyelidTip[0];

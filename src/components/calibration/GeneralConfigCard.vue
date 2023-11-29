@@ -13,6 +13,8 @@
                     <Slider :value="pointNumber" :min="Number(1)" :max="Number(9)" label="Point Number"
                         @input="updatePointNumber" />
                     <Slider :value="samplePerPoint" label="Sample Per Point" @input="updateSamplePerPoint" />
+                    <Slider :value="msPerCapture" :min="Number(10)" :max="Number(500)" label="Milliseconds Per Point Capture"
+                        @input="updateMsPerCapture" />
                 </div>
                 <div class="custom-outline">
                     <Radius />
@@ -49,6 +51,9 @@ export default {
         blinkFilter() {
             return this.$store.state.calibration.blinkFilter
         },
+        msPerCapture() {
+            return this.$store.state.calibration.msPerCapture
+        },
     },
     methods: {
         updateSamplePerPoint(value) {
@@ -66,6 +71,9 @@ export default {
                 console.log('Value contains only white spaces or is empty');
             }
         },
+        updateMsPerCapture(value) {
+            this.$store.commit('setMsPerCapture', value);
+        }
     },
 };
 </script>
