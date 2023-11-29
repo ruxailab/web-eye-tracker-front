@@ -9,7 +9,8 @@
 
     <div v-else>
       <v-row justify="center" align="center" class="ma-0 justify-center align-center">
-        <div v-if="index === 0" class="text-center" style="z-index: 1;">
+        <div v-if="index === 0" class="text-center"
+          style="z-index: 1;position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
           slowly press 'S' while looking at the point to begin
         </div>
         <div v-if="index === pattern.length - 1" class="text-center"
@@ -102,22 +103,23 @@ export default {
   },
   async mounted() {
     await this.startWebCamCapture();
+    this.drawPoint(this.pattern[0].x, this.pattern[0].y, 1)
     this.advance(this.pattern, this.circleIrisPoints, this.msPerCapture)
   },
   methods: {
     advance(pattern, whereToSave, timeBetweenCaptures) {
       const th = this
       var i = 0
-      this.drawPoint(pattern[i].x, pattern[i].y, timeBetweenCaptures)
+      // this.drawPoint(pattern[i].x, pattern[i].y, timeBetweenCaptures)
       async function keydownHandler(event) {
         if ((event.key === "s" || event.key === "S")) {
           if (i <= pattern.length - 1) {
+            document.removeEventListener('keydown', keydownHandler)
             await th.extract(pattern[i], timeBetweenCaptures)
-            if (th.pattern[i + 1]) {
-              await th.drawPoint(th.pattern[i + 1].x, th.pattern[i + 1].y, timeBetweenCaptures)
-            }
+            console.log('i', i)
             th.$store.commit('setIndex', i)
             i++
+            document.addEventListener('keydown', keydownHandler)
           } else {
             th.$store.commit('setIndex', i)
             document.removeEventListener('keydown', keydownHandler)
@@ -161,12 +163,13 @@ export default {
         } else {
           const newPrediction = { leftIris: leftIris[0], rightIris: rightIris[0] };
           point.data.push(newPrediction);
-          console.log(point.data.length)
+          console.log('index', this.index)
+          const radius = (this.radius / this.predByPointCount) * a
+          this.drawPoint(point.x, point.y, radius)
           a++;
         }
         await new Promise(resolve => setTimeout(resolve, timeBetweenCaptures));
       }
-      console.log('Extraction complete!');
     },
     calculateDistance(eyelidTip, eyelidBottom) {
       const xDistance = eyelidBottom[0] - eyelidTip[0];
@@ -174,45 +177,48 @@ export default {
       const distance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
       return distance;
     },
-    async drawPoint(x, y, timeBetweenCaptures) {
+    drawPoint(x, y, radius) {
       const canvas = document.getElementById('canvas');
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight
       const ctx = canvas.getContext('2d');
-      const ratio = this.radius / this.predByPointCount
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.fillStyle = this.backgroundColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      for (var t = 0; t < this.predByPointCount;) {
-        ctx.beginPath();
-        ctx.strokeStyle = this.pointColor;
-        ctx.fillStyle = this.pointColor;
-        ctx.arc(
-          x,
-          y,
-          ratio * t,
-          0,
-          Math.PI * 2,
-          false
-        );
-        ctx.stroke();
-        ctx.fill();
-        ctx.beginPath();
-        ctx.strokeStyle = "red";
-        ctx.fillStyle = "red";
-        ctx.arc(
-          x,
-          y,
-          5,
-          0,
-          Math.PI * 2,
-          false
-        );
-        ctx.stroke();
-        ctx.fill();
-        t++
-        await new Promise(resolve => setTimeout(resolve, timeBetweenCaptures));
-      }
+      //circle 
+      ctx.beginPath();
+      ctx.strokeStyle = this.pointColor;
+      ctx.fillStyle = this.pointColor;
+      ctx.arc(
+        x,
+        y,
+        radius,
+        0,
+        Math.PI * 2,
+        false
+      );
+      ctx.stroke();
+      ctx.fill();
+      // inner circle
+      ctx.beginPath();
+      ctx.strokeStyle = "red";
+      ctx.fillStyle = "red";
+      ctx.arc(
+        x,
+        y,
+        5,
+        0,
+        Math.PI * 2,
+        false
+      );
+      ctx.stroke();
+      ctx.fill();
+      // hollow circumference
+      ctx.strokeStyle = this.pointColor;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(x, y, this.radius, 0, 2 * Math.PI, false);
+      ctx.stroke();
     },
     async endCalib() {
       this.calibPredictionPoints.forEach(element => {
