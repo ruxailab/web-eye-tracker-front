@@ -7,15 +7,18 @@
                 </v-card-title>
                 <div class="custom-outline">
                     Control:
-                    <v-checkbox v-model="isControlled" label="Controlled Calibration" color="black"></v-checkbox>
+                    <!-- <v-checkbox v-model="isControlled" label="Controlled Calibration" color="black"></v-checkbox> -->
+                    <v-checkbox v-model="customColors" label="Use Custom Colors" color="black"></v-checkbox>
                 </div>
-                <div class="custom-outline">
-                    Background Color:
-                    <v-color-picker v-model="backgroundColor" hide-inputs></v-color-picker>
-                </div>
-                <div class="custom-outline">
-                    Point Color:
-                    <v-color-picker v-model="pointColor" hide-inputs></v-color-picker>
+                <div v-if="customColors">
+                    <div class="custom-outline">
+                        Background Color:
+                        <v-color-picker v-model="backgroundColor" hide-inputs></v-color-picker>
+                    </div>
+                    <div class="custom-outline">
+                        Point Color:
+                        <v-color-picker v-model="pointColor" hide-inputs></v-color-picker>
+                    </div>
                 </div>
             </v-card>
         </v-col>
@@ -28,7 +31,7 @@ export default {
         return {
             backgroundColor: '#FFFFFFFF',
             pointColor: '#000000FF',
-            isControlled: true,
+            customColors: false,
         }
     },
     watch: {
@@ -38,8 +41,8 @@ export default {
         pointColor(value) {
             this.updatePointColor(value)
         },
-        isControlled(value) {
-            this.updateControlled(value)
+        customColors(value) {
+            this.updateCustomColors(value)
         },
     },
     methods: {
@@ -49,9 +52,9 @@ export default {
         updatePointColor(value) {
             this.$store.commit('setPointColor', value);
         },
-        updateControlled(value) {
-            this.$store.commit('setControlled', value)
-        },
+        updateCustomColors(value) {
+            this.$store.commit('setCustomColors', value);
+        }
     }
 }
 </script>
