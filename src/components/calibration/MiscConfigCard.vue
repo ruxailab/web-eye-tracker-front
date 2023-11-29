@@ -7,7 +7,6 @@
                 </v-card-title>
                 <div class="custom-outline">
                     Control:
-                    <!-- <v-checkbox v-model="isControlled" label="Controlled Calibration" color="black"></v-checkbox> -->
                     <v-checkbox v-model="customColors" label="Use Custom Colors" color="black"></v-checkbox>
                 </div>
                 <div v-if="customColors">
