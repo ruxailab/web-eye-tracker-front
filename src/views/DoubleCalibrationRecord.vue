@@ -12,18 +12,20 @@
         <div v-if="index === 0" class="text-center" style="z-index: 1;">
           slowly press 'S' while looking at the point to begin
         </div>
-        <div v-if="index === pattern.length - 1" class="text-center" style="z-index: 1;"> press 'S' one more time</div>
+        <div v-if="index === pattern.length - 1" class="text-center"
+          style="z-index: 1;position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"> press 'S' one
+          more time</div>
         <div v-if="index === pattern.length" class="text-center" style="z-index: 1;">
           <div v-if="currentStep === 1"
             style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
             <div>
-              you've collected {{ circleIrisPoints.length }} points
+              you've collected {{ circleIrisPoints.length }} train points
             </div>
             <v-btn @click="nextStep()">Next Step</v-btn>
           </div>
-          <div v-else>
+          <div v-else style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
             <div>
-              you've collected {{ calibPredictionPoints.length }} points
+              you've collected {{ calibPredictionPoints.length }} validation points
             </div>
             <v-btn @click="endCalib()">End Calib</v-btn>
           </div>
