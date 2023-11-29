@@ -232,7 +232,7 @@ export default {
       ctx.arc(
         x,
         y,
-        innerCircleRadius,
+        this.innerCircleRadius,
         0,
         Math.PI * 2,
         false
