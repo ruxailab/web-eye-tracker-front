@@ -58,7 +58,8 @@ export default {
       calibPredictionPoints: [],
       callibFinished: false,
       currentStep: 1,
-      animationRefreshRate: 10
+      animationRefreshRate: 10,
+      innerCircleRadius: 5,
     };
   },
   computed: {
@@ -180,7 +181,7 @@ export default {
       }
     },
     async triggerAnimation(origin, target, animationRefreshRate) {
-      const maxiterationsuntilvalue = 500
+      const maxiterationsuntilvalue = 250
       const deltaX = (target.x - origin.x) / maxiterationsuntilvalue;
       const deltaY = (target.y - origin.y) / maxiterationsuntilvalue;
 
@@ -190,7 +191,8 @@ export default {
         if (d == maxiterationsuntilvalue) {
           this.drawPoint(xPosition, yPosition, 1);
         } else {
-          this.drawPoint(xPosition, yPosition, this.radius);
+          const radius = (this.radius / maxiterationsuntilvalue) * (maxiterationsuntilvalue - d)
+          this.drawPoint(xPosition, yPosition, radius);
         }
         await new Promise(resolve => setTimeout(resolve, animationRefreshRate));
       }
@@ -230,7 +232,7 @@ export default {
       ctx.arc(
         x,
         y,
-        5,
+        innerCircleRadius,
         0,
         Math.PI * 2,
         false
