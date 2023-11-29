@@ -108,13 +108,13 @@ export default {
     advance(pattern, whereToSave, timeBetweenCaptures) {
       const th = this
       var i = 0
-      this.drawPoint(pattern[i].x, pattern[i].y)
+      this.drawPoint(pattern[i].x, pattern[i].y, timeBetweenCaptures)
       async function keydownHandler(event) {
         if ((event.key === "s" || event.key === "S")) {
           if (i <= pattern.length - 1) {
             await th.extract(pattern[i], timeBetweenCaptures)
             if (th.pattern[i + 1]) {
-              th.drawPoint(th.pattern[i + 1].x, th.pattern[i + 1].y)
+              await th.drawPoint(th.pattern[i + 1].x, th.pattern[i + 1].y, timeBetweenCaptures)
             }
             th.$store.commit('setIndex', i)
             i++
@@ -174,41 +174,45 @@ export default {
       const distance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
       return distance;
     },
-    drawPoint(x, y) {
+    async drawPoint(x, y, timeBetweenCaptures) {
       const canvas = document.getElementById('canvas');
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight
       const ctx = canvas.getContext('2d');
+      const ratio = this.radius / this.predByPointCount
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.fillStyle = this.backgroundColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.beginPath();
-      ctx.strokeStyle = this.pointColor;
-      ctx.fillStyle = this.pointColor;
-      ctx.arc(
-        x,
-        y,
-        this.radius,
-        0,
-        Math.PI * 2,
-        false
-      );
-      ctx.stroke();
-      ctx.fill();
-      ctx.beginPath();
-      ctx.strokeStyle = "red";
-      ctx.fillStyle = "red";
-      ctx.arc(
-        x,
-        y,
-        5,
-        0,
-        Math.PI * 2,
-        false
-      );
-      ctx.stroke();
-      ctx.fill();
+      for (var t = 0; t < this.predByPointCount;) {
+        ctx.beginPath();
+        ctx.strokeStyle = this.pointColor;
+        ctx.fillStyle = this.pointColor;
+        ctx.arc(
+          x,
+          y,
+          ratio * t,
+          0,
+          Math.PI * 2,
+          false
+        );
+        ctx.stroke();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.strokeStyle = "red";
+        ctx.fillStyle = "red";
+        ctx.arc(
+          x,
+          y,
+          5,
+          0,
+          Math.PI * 2,
+          false
+        );
+        ctx.stroke();
+        ctx.fill();
+        t++
+        await new Promise(resolve => setTimeout(resolve, timeBetweenCaptures));
+      }
     },
     async endCalib() {
       this.calibPredictionPoints.forEach(element => {
