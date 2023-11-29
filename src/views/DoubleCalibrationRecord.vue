@@ -110,13 +110,11 @@ export default {
     advance(pattern, whereToSave, timeBetweenCaptures) {
       const th = this
       var i = 0
-      // this.drawPoint(pattern[i].x, pattern[i].y, timeBetweenCaptures)
       async function keydownHandler(event) {
         if ((event.key === "s" || event.key === "S")) {
           if (i <= pattern.length - 1) {
             document.removeEventListener('keydown', keydownHandler)
             await th.extract(pattern[i], timeBetweenCaptures)
-            console.log('i', i)
             th.$store.commit('setIndex', i)
             i++
             document.addEventListener('keydown', keydownHandler)
@@ -159,11 +157,10 @@ export default {
         const isRightBlink = this.calculateDistance(rightEyelidTip, rightEyelidBottom) < this.rightEyeTreshold;
 
         if (isLeftBlink || isRightBlink) {
-          console.log('I won\'t do it');
+          console.log('eyes closed, disconsidered');
         } else {
           const newPrediction = { leftIris: leftIris[0], rightIris: rightIris[0] };
           point.data.push(newPrediction);
-          console.log('index', this.index)
           const radius = (this.radius / this.predByPointCount) * a
           this.drawPoint(point.x, point.y, radius)
           a++;
