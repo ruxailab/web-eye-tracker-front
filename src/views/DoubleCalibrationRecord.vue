@@ -59,6 +59,7 @@ export default {
       callibFinished: false,
       currentStep: 1,
       animationRefreshRate: 10,
+      animationFrames: 500,
       innerCircleRadius: 5,
     };
   },
@@ -181,17 +182,17 @@ export default {
       }
     },
     async triggerAnimation(origin, target, animationRefreshRate) {
-      const maxiterationsuntilvalue = 250
-      const deltaX = (target.x - origin.x) / maxiterationsuntilvalue;
-      const deltaY = (target.y - origin.y) / maxiterationsuntilvalue;
+      const frames = this.animationFrames
+      const deltaX = (target.x - origin.x) / frames;
+      const deltaY = (target.y - origin.y) / frames;
 
-      for (let d = 1; d <= maxiterationsuntilvalue; d++) {
+      for (let d = 1; d <= frames; d++) {
         const xPosition = origin.x + deltaX * d;
         const yPosition = origin.y + deltaY * d;
-        if (d == maxiterationsuntilvalue) {
+        if (d == frames) {
           this.drawPoint(xPosition, yPosition, 1);
         } else {
-          const radius = (this.radius / maxiterationsuntilvalue) * (maxiterationsuntilvalue - d)
+          const radius = (this.radius / frames) * (frames - d)
           this.drawPoint(xPosition, yPosition, radius);
         }
         await new Promise(resolve => setTimeout(resolve, animationRefreshRate));
