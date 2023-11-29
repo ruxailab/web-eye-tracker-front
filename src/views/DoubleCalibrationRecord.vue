@@ -109,13 +109,6 @@ export default {
     this.drawPoint(this.pattern[0].x, this.pattern[0].y, 1)
     this.advance(this.pattern, this.circleIrisPoints, this.msPerCapture)
   },
-  // watch: {
-  //   async index(value) {
-  //     if (value != 0 && value <= this.pattern.length - 1) {
-  //       await this.triggerAnimation(this.pattern[value - 1], this.pattern[value], this.animationRefreshRate)
-  //     }
-  //   },
-  // },
   methods: {
     advance(pattern, whereToSave, timeBetweenCaptures) {
       const th = this
@@ -149,6 +142,7 @@ export default {
       });
       this.$store.commit('setIndex', 0)
       this.currentStep = 2
+      this.drawPoint(this.pattern[0].x, this.pattern[0].y, 1)
       this.advance(this.pattern, this.calibPredictionPoints)
     },
     async extract(point, timeBetweenCaptures) {
