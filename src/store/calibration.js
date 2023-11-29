@@ -8,7 +8,7 @@ export default {
         offset: 50,
         backgroundColor: '#FFFFFFFF',
         pointColor: '#000000FF',
-        isControlled: true,
+        customColors: false,
         blinkFilter: true,
         leftEyeTreshold: 5,
         rightEyeTreshold: 5,
@@ -39,8 +39,8 @@ export default {
         setPointColor(state, newPointColor) {
             state.pointColor = newPointColor
         },
-        setControlled(state, newControlled) {
-            state.isControlled = newControlled
+        setCustomColors(state, newCustomColors) {
+            state.customColors = newCustomColors
         },
         setBlinkFilter(state, newBlinkFilter) {
             state.blinkFilter = newBlinkFilter
@@ -53,7 +53,6 @@ export default {
         },
         setIndex(state, newIndex) {
             state.index = newIndex
-            console.log(`index: ${state.index}`)
         },
     },
     actions: {

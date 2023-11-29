@@ -158,7 +158,6 @@ export default {
         } else {
           const prediction = { leftIris: leftIris[0], rightIris: rightIris[0] }
           point.data.push(prediction)
-          console.log(point.data.length)
           a++
         }
       }
