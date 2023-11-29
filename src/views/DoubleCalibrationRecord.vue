@@ -9,7 +9,8 @@
 
     <div v-else>
       <v-row justify="center" align="center" class="ma-0 justify-center align-center">
-        <div v-if="index === 0" class="text-center" style="z-index: 1;">
+        <div v-if="index === 0" class="text-center"
+          style="z-index: 1;position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
           slowly press 'S' while looking at the point to begin
         </div>
         <div v-if="index === pattern.length - 1" class="text-center"
@@ -57,6 +58,7 @@ export default {
       calibPredictionPoints: [],
       callibFinished: false,
       currentStep: 1,
+      animationRefreshRate: 10
     };
   },
   computed: {
@@ -87,6 +89,9 @@ export default {
     index() {
       return this.$store.state.calibration.index
     },
+    msPerCapture() {
+      return this.$store.state.calibration.msPerCapture
+    },
     model: {
       get() {
         return this.$store.state.detect.model
@@ -99,22 +104,31 @@ export default {
   },
   async mounted() {
     await this.startWebCamCapture();
-    this.advance(this.pattern, this.circleIrisPoints)
+    this.drawPoint(this.pattern[0].x, this.pattern[0].y, 1)
+    this.advance(this.pattern, this.circleIrisPoints, this.msPerCapture)
   },
+  // watch: {
+  //   async index(value) {
+  //     if (value != 0 && value <= this.pattern.length - 1) {
+  //       await this.triggerAnimation(this.pattern[value - 1], this.pattern[value], this.animationRefreshRate)
+  //     }
+  //   },
+  // },
   methods: {
-    advance(pattern, whereToSave) {
+    advance(pattern, whereToSave, timeBetweenCaptures) {
       const th = this
       var i = 0
-      this.drawPoint(this.pattern[i].x, this.pattern[i].y)
       async function keydownHandler(event) {
         if ((event.key === "s" || event.key === "S")) {
           if (i <= pattern.length - 1) {
-            await th.extract(pattern[i])
-            if (th.pattern[i + 1]) {
-              th.drawPoint(th.pattern[i + 1].x, th.pattern[i + 1].y)
-            }
+            document.removeEventListener('keydown', keydownHandler)
+            await th.extract(pattern[i], timeBetweenCaptures)
             th.$store.commit('setIndex', i)
             i++
+            if (i != pattern.length) {
+              await th.triggerAnimation(pattern[i - 1], pattern[i], this.animationRefreshRate)
+            }
+            document.addEventListener('keydown', keydownHandler)
           } else {
             th.$store.commit('setIndex', i)
             document.removeEventListener('keydown', keydownHandler)
@@ -135,33 +149,51 @@ export default {
       this.currentStep = 2
       this.advance(this.pattern, this.calibPredictionPoints)
     },
-    async extract(point) {
-      point.data = []
+    async extract(point, timeBetweenCaptures) {
+      point.data = [];
       for (var a = 0; a < this.predByPointCount;) {
-        const prediction = await this.detectFace()
-        const pred = prediction[0]
+        const prediction = await this.detectFace();
+        const pred = prediction[0];
         // left eye
         const leftIris = pred.annotations.leftEyeIris;
         const leftEyelid = pred.annotations.leftEyeUpper0.concat(pred.annotations.leftEyeLower0);
-        const leftEyelidTip = leftEyelid[3]
-        const leftEyelidBottom = leftEyelid[11]
-        const isLeftBlink = this.calculateDistance(leftEyelidTip, leftEyelidBottom) < this.leftEyeTreshold
+        const leftEyelidTip = leftEyelid[3];
+        const leftEyelidBottom = leftEyelid[11];
+        const isLeftBlink = this.calculateDistance(leftEyelidTip, leftEyelidBottom) < this.leftEyeTreshold;
         // right eye
         const rightIris = pred.annotations.rightEyeIris;
         const rightEyelid = pred.annotations.rightEyeUpper0.concat(pred.annotations.rightEyeLower0);
-        const rightEyelidTip = rightEyelid[3]
-        const rightEyelidBottom = rightEyelid[11]
-        const isRightBlink = this.calculateDistance(rightEyelidTip, rightEyelidBottom) < this.rightEyeTreshold
+        const rightEyelidTip = rightEyelid[3];
+        const rightEyelidBottom = rightEyelid[11];
+        const isRightBlink = this.calculateDistance(rightEyelidTip, rightEyelidBottom) < this.rightEyeTreshold;
 
         if (isLeftBlink || isRightBlink) {
-          console.log('i wont do it')
+          console.log('eyes closed, disconsidered');
         } else {
-          const prediction = { leftIris: leftIris[0], rightIris: rightIris[0] }
-          point.data.push(prediction)
-          a++
+          const newPrediction = { leftIris: leftIris[0], rightIris: rightIris[0] };
+          point.data.push(newPrediction);
+          const radius = (this.radius / this.predByPointCount) * a
+          this.drawPoint(point.x, point.y, radius)
+          a++;
         }
+        await new Promise(resolve => setTimeout(resolve, timeBetweenCaptures));
       }
-      console.log('extraction complete!');
+    },
+    async triggerAnimation(origin, target, animationRefreshRate) {
+      const maxiterationsuntilvalue = 500
+      const deltaX = (target.x - origin.x) / maxiterationsuntilvalue;
+      const deltaY = (target.y - origin.y) / maxiterationsuntilvalue;
+
+      for (let d = 1; d <= maxiterationsuntilvalue; d++) {
+        const xPosition = origin.x + deltaX * d;
+        const yPosition = origin.y + deltaY * d;
+        if (d == maxiterationsuntilvalue) {
+          this.drawPoint(xPosition, yPosition, 1);
+        } else {
+          this.drawPoint(xPosition, yPosition, this.radius);
+        }
+        await new Promise(resolve => setTimeout(resolve, animationRefreshRate));
+      }
     },
     calculateDistance(eyelidTip, eyelidBottom) {
       const xDistance = eyelidBottom[0] - eyelidTip[0];
@@ -169,7 +201,7 @@ export default {
       const distance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
       return distance;
     },
-    drawPoint(x, y) {
+    drawPoint(x, y, radius) {
       const canvas = document.getElementById('canvas');
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight
@@ -177,20 +209,21 @@ export default {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.fillStyle = this.backgroundColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+      //circle 
       ctx.beginPath();
       ctx.strokeStyle = this.pointColor;
       ctx.fillStyle = this.pointColor;
       ctx.arc(
         x,
         y,
-        this.radius,
+        radius,
         0,
         Math.PI * 2,
         false
       );
       ctx.stroke();
       ctx.fill();
+      // inner circle
       ctx.beginPath();
       ctx.strokeStyle = "red";
       ctx.fillStyle = "red";
@@ -204,6 +237,12 @@ export default {
       );
       ctx.stroke();
       ctx.fill();
+      // hollow circumference
+      ctx.strokeStyle = this.pointColor;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(x, y, this.radius, 0, 2 * Math.PI, false);
+      ctx.stroke();
     },
     async endCalib() {
       this.calibPredictionPoints.forEach(element => {
