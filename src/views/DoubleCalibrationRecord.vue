@@ -58,6 +58,7 @@ export default {
       calibPredictionPoints: [],
       callibFinished: false,
       currentStep: 1,
+      animationRefreshRate: 10
     };
   },
   computed: {
@@ -106,6 +107,13 @@ export default {
     this.drawPoint(this.pattern[0].x, this.pattern[0].y, 1)
     this.advance(this.pattern, this.circleIrisPoints, this.msPerCapture)
   },
+  // watch: {
+  //   async index(value) {
+  //     if (value != 0 && value <= this.pattern.length - 1) {
+  //       await this.triggerAnimation(this.pattern[value - 1], this.pattern[value], this.animationRefreshRate)
+  //     }
+  //   },
+  // },
   methods: {
     advance(pattern, whereToSave, timeBetweenCaptures) {
       const th = this
@@ -117,6 +125,9 @@ export default {
             await th.extract(pattern[i], timeBetweenCaptures)
             th.$store.commit('setIndex', i)
             i++
+            if (i != pattern.length) {
+              await th.triggerAnimation(pattern[i - 1], pattern[i], this.animationRefreshRate)
+            }
             document.addEventListener('keydown', keydownHandler)
           } else {
             th.$store.commit('setIndex', i)
@@ -166,6 +177,22 @@ export default {
           a++;
         }
         await new Promise(resolve => setTimeout(resolve, timeBetweenCaptures));
+      }
+    },
+    async triggerAnimation(origin, target, animationRefreshRate) {
+      const maxiterationsuntilvalue = 500
+      const deltaX = (target.x - origin.x) / maxiterationsuntilvalue;
+      const deltaY = (target.y - origin.y) / maxiterationsuntilvalue;
+
+      for (let d = 1; d <= maxiterationsuntilvalue; d++) {
+        const xPosition = origin.x + deltaX * d;
+        const yPosition = origin.y + deltaY * d;
+        if (d == maxiterationsuntilvalue) {
+          this.drawPoint(xPosition, yPosition, 1);
+        } else {
+          this.drawPoint(xPosition, yPosition, this.radius);
+        }
+        await new Promise(resolve => setTimeout(resolve, animationRefreshRate));
       }
     },
     calculateDistance(eyelidTip, eyelidBottom) {

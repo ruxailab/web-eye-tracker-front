@@ -13,7 +13,7 @@ export default {
         leftEyeTreshold: 5,
         rightEyeTreshold: 5,
         index: 0,
-        msPerCapture: 100,
+        msPerCapture: 10,
     },
     mutations: {
         setCalibName(state, newCalibName) {
