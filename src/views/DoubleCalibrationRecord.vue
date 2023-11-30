@@ -165,6 +165,8 @@ export default {
 
         if (isLeftBlink || isRightBlink) {
           console.log('eyes closed, disconsidered');
+          // set timer so that when eyes open it doesnt select the unstable values
+          await new Promise(resolve => setTimeout(resolve, 500));
         } else {
           const newPrediction = { leftIris: leftIris[0], rightIris: rightIris[0] };
           point.data.push(newPrediction);
