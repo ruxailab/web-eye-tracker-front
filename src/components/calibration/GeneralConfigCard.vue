@@ -13,7 +13,7 @@
                     <Slider :value="pointNumber" :min="Number(1)" :max="Number(9)" label="Point Number"
                         @input="updatePointNumber" />
                     <Slider :value="samplePerPoint" label="Sample Per Point" @input="updateSamplePerPoint" />
-                    <Slider :value="msPerCapture" :min="Number(10)" :max="Number(500)" label="Milliseconds Per Point Capture"
+                    <Slider :value="msPerCapture" :min="Number(10)" :max="Number(100)" label="Milliseconds Per Point Capture"
                         @input="updateMsPerCapture" />
                 </div>
                 <div class="custom-outline">
