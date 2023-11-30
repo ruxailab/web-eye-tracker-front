@@ -143,7 +143,7 @@ export default {
       this.$store.commit('setIndex', 0)
       this.currentStep = 2
       this.drawPoint(this.pattern[0].x, this.pattern[0].y, 1)
-      this.advance(this.pattern, this.calibPredictionPoints)
+      this.advance(this.pattern, this.calibPredictionPoints, this.msPerCapture)
     },
     async extract(point, timeBetweenCaptures) {
       point.data = [];
@@ -170,6 +170,7 @@ export default {
         } else {
           const newPrediction = { leftIris: leftIris[0], rightIris: rightIris[0] };
           point.data.push(newPrediction);
+          console.log(point.data.length);
           const radius = (this.radius / this.predByPointCount) * a
           this.drawPoint(point.x, point.y, radius)
           a++;
