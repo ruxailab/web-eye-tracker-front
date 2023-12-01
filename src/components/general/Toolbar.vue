@@ -5,7 +5,7 @@
     </div>
     <v-spacer />
     <v-btn text dark to="/" v-if="$route.name != 'Dashboard'">
-      {{ $route.name != 'Login' ? 'Sessions' : 'Home' }}
+      {{ $route.name != 'Login' ? 'Calibration' : 'Home' }}
     </v-btn>
     <v-btn
       text
