@@ -1,13 +1,12 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import store from '@/store/index'
-import SessionRecord from '@/views/SessionRecord.vue'
+// import SessionRecord from '@/views/SessionRecord.vue'
 import LandingPage from '@/views/LandingPage.vue'
 import Login from '@/views/Login'
 import Dashboard from '@/views/Dashboard'
-import SessionView from '@/views/SessionView'
 import SessionForm from '@/views/SessionForm'
-import Callibration from '@/views/Callibration'
+import Callibration from '@/views/CallibrationCard'
 // import CallibrationRecord from '@/views/CallibrationRecord'
 // import CallibrationRecord from '@/views/MovingCallibrationRecord'
 import CameraConfig from '@/views/CameraConfiguration'
@@ -23,11 +22,11 @@ const routes = [
     name: 'LandingPage',
     component: LandingPage,
   },
-  {
-    path: '/session-record',
-    name: 'SessionRecord',
-    component: SessionRecord,
-  },
+  // {
+  //   path: '/session-record',
+  //   name: 'SessionRecord',
+  //   component: SessionRecord,
+  // },
   {
     path: '/login',
     name: 'Login',
@@ -37,11 +36,6 @@ const routes = [
     path: '/dashboard',
     name: 'Dashboard',
     component: Dashboard,
-  },
-  {
-    path: '/sessions/view/:id',
-    name: 'SessionView',
-    component: SessionView,
   },
   {
     path: '/sessions/new',

@@ -59,7 +59,7 @@ export default {
       callibFinished: false,
       currentStep: 1,
       animationRefreshRate: 10,
-      animationFrames: 500,
+      animationFrames: 250,
       innerCircleRadius: 5,
     };
   },
