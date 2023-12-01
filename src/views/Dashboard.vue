@@ -3,7 +3,7 @@
     <toolbar />
     <v-row justify="center" class="mt-12">
       <v-col cols="12" lg="8" md="8">
-        <sessions-table :data="sessions" :loading="loading" />
+        <CalibTable />
       </v-col>
     </v-row>
 
@@ -21,27 +21,12 @@
 
 <script>
 import Toolbar from "@/components/general/Toolbar.vue";
-import SessionsTable from "@/components/general/SessionsTable.vue";
+import CalibTable from "@/components/general/CalibTable.vue";
 
 export default {
   components: {
     Toolbar,
-    SessionsTable,
+    CalibTable,
   },
-  data() {
-    return {
-      loading: false
-    }
-  },
-  computed: {
-    sessions() {
-      return this.$store.state.session.sessions ?? []
-    }
-  },
-  async created() {
-    this.loading = true
-    await this.$store.dispatch('getUserSessions', this.$store.state.auth.user.uid)
-    this.loading = false
-  }
 };
 </script>

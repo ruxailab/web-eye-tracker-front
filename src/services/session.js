@@ -18,9 +18,6 @@ export default {
             }
         })
     },
-    getUserSessions: (userid) => {
-        return axios.get(`/api/user/sessions?user_id=${userid}`)
-    },
     checkResponseStatus: () => {
         return {msg: 'Sending Video...', value: 2}
     },

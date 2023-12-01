@@ -31,15 +31,6 @@ export default {
             }
             
         },
-        getUserSessions: async ({commit}, payload) => {
-            try {
-                const { data } = await api.getUserSessions(payload)
-                commit('setSessions', data)
-            }
-            catch (e) {
-                commit('setError', e)
-            }
-        },
         getSessionById: async ({commit}, payload) => {
             try {
                 const { data } = await api.getSessionById(payload)
