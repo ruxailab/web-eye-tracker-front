@@ -254,7 +254,8 @@ export default {
       await this.$store.dispatch('sendData', { circleIrisPoints: this.circleIrisPoints, calibPredictionPoints: this.calibPredictionPoints, screenHeight: screenHeight, screenWidth: screenWidth })
       this.$store.dispatch('extractXYValues', { extract: this.circleIrisPoints, hasCalib: true })
       this.$store.dispatch('extractXYValues', { extract: this.calibPredictionPoints, hasCalib: false })
-      this.$router.push('/postCalibration');
+      this.stopRecord()
+      this.$router.push('/dashboard');
     },
     savePoint(whereToSave, patternLike) {
       patternLike.forEach(point => {
