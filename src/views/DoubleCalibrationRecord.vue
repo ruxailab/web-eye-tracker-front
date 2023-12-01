@@ -56,7 +56,7 @@ export default {
       // cablibration
       circleIrisPoints: [],
       calibPredictionPoints: [],
-      callibFinished: false,
+      calibFinished: false,
       currentStep: 1,
       animationRefreshRate: 10,
       animationFrames: 250,
@@ -324,7 +324,7 @@ export default {
     },
     async stopWebCamCapture() {
       await this.recordWebCam.stop();
-      this.callibFinished = true;
+      this.calibFinished = true;
     },
   },
 };

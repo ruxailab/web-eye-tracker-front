@@ -7,14 +7,14 @@
       </v-col>
     </v-row>
 
-    <!-- New Session Btn -->
+    <!-- New Calibration Btn -->
     <v-tooltip left>
       <template v-slot:activator="{ on, attrs }">
-        <v-btn dark bottom right fab fixed v-bind="attrs" v-on="on" :to="`/callibration`">
+        <v-btn dark bottom right fab fixed v-bind="attrs" v-on="on" :to="`/calibration`">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
       </template>
-      <span>New Session</span>
+      <span>New Calibration</span>
     </v-tooltip>
   </div>
 </template>

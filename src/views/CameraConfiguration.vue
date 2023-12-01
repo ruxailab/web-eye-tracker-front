@@ -25,7 +25,7 @@
                         </v-col>
                     </div>
                     <v-btn class="calibration-btn" outlined color="green" :disabled="!isCameraOn"
-                        @click="goToCallibRecord()">
+                        @click="goToCalibRecord()">
                         Start Calibration
                     </v-btn>
                 </v-col>
@@ -231,11 +231,11 @@ export default {
                 }
             }
         },
-        goToCallibRecord() {
+        goToCalibRecord() {
             this.webcamStream.getTracks().forEach((track) => {
                 track.stop();
             });
-            this.$router.push("/callibration/record");
+            this.$router.push("/calibration/record");
         },
     },
 };

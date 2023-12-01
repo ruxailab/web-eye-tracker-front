@@ -4,7 +4,7 @@ import store from '@/store/index'
 import LandingPage from '@/views/LandingPage.vue'
 import Login from '@/views/Login'
 import Dashboard from '@/views/Dashboard'
-import Callibration from '@/views/CallibrationCard'
+import Calibration from '@/views/CalibrationCard'
 import CameraConfig from '@/views/CameraConfiguration'
 import DoubleCalibrationRecord from '@/views/DoubleCalibrationRecord'
 import PostCalibration from '@/views/PostCalibration'
@@ -29,18 +29,18 @@ const routes = [
     component: Dashboard,
   },
   {
-    path: '/callibration',
-    name: 'Callibration',
-    component: Callibration,
+    path: '/calibration',
+    name: 'calibration',
+    component: Calibration,
   },
   {
-    path: '/callibration/camera',
-    name: 'Camera',
+    path: '/calibration/camera',
+    name: 'camera',
     component: CameraConfig,
   },
   {
-    path: '/callibration/record',
-    name: 'CallibrationRecord',
+    path: '/calibration/record',
+    name: 'calibrationRecord',
     component: DoubleCalibrationRecord
   },
   {
@@ -49,7 +49,7 @@ const routes = [
     component: PostCalibration,
   },
   {
-    path: '/callibration/configuration',
+    path: '/calibration/configuration',
     name: 'calibrationConfig',
     component: CalibrationConfig
   },

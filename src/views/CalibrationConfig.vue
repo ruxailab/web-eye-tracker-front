@@ -34,7 +34,7 @@ export default {
     },
     methods: {
         changePage() {
-            this.$router.push("/callibration/camera");
+            this.$router.push("/calibration/camera");
         }
     }
 };
