@@ -2,7 +2,8 @@
     <div>
         <canvas id="canvas" />
         <div>
-            <PointModal :x="x" :y="y" :precision="precision" :dialog="dialog" @dialogCancel="dialogCancel" />
+            <PointModal :x="x" :y="y" :precision="precision" :dialog="dialog" :pointNumber="pointNumber"
+                @dialogCancel="dialogCancel" />
         </div>
     </div>
 </template>
@@ -20,17 +21,20 @@ export default {
             y: 0,
             precision: 0,
             dialog: false,
+            pointNumber: 0
         }
     },
     async mounted() {
-        const calibPointsx = []
-        const calibPointsy = []
+        const calibPointsX = []
+        const calibPointsY = []
+        const precisions = []
         this.pattern.forEach(element => {
-            element.precicion = Math.random()
-            calibPointsx.push(element.x)
-            calibPointsy.push(element.y)
+            element.precision = (Math.random()).toFixed(2)
+            calibPointsX.push(element.x)
+            calibPointsY.push(element.y)
+            precisions.push(element.precision)
         });
-        this.drawPoints(calibPointsx, calibPointsy, 1)
+        this.drawPoints(calibPointsX, calibPointsY, precisions)
     },
     computed: {
         radius() {
@@ -53,16 +57,18 @@ export default {
         },
     },
     methods: {
-        callModal(patternLike) {
+        callModal(patternLike, pointNumber) {
+            console.log(patternLike);
             this.x = patternLike.x
             this.y = patternLike.y
             this.precision = patternLike.precision
             this.dialog = true
+            this.pointNumber = pointNumber + 1
         },
         dialogCancel(newDialog) {
             this.dialog = newDialog
         },
-        drawPoints(x, y, radius) {
+        drawPoints(x, y, precisions) {
             const canvas = document.getElementById('canvas');
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight
@@ -74,12 +80,20 @@ export default {
             //circle 
             for (var i = 0; i < x.length; i++) {
                 ctx.beginPath();
-                ctx.strokeStyle = this.pointColor;
-                ctx.fillStyle = this.pointColor;
+                if (precisions[i] > 0.7) {
+                    ctx.strokeStyle = 'blue';
+                    ctx.fillStyle = 'blue';
+                } else if (precisions[i] < 0.7 && precisions[i] > 0.4) {
+                    ctx.strokeStyle = 'yellow';
+                    ctx.fillStyle = 'yellow';
+                } else {
+                    ctx.strokeStyle = 'orange';
+                    ctx.fillStyle = 'orange';
+                }
                 ctx.arc(
                     x[i],
                     y[i],
-                    radius,
+                    this.radius - 2,
                     0,
                     Math.PI * 2,
                     false
@@ -122,7 +136,7 @@ export default {
 
                     if (distanceFromCenter <= point.radius) {
                         const patternEquivalent = th.pattern[i]
-                        th.callModal(patternEquivalent)
+                        th.callModal(patternEquivalent, i)
                     }
                 }
             });

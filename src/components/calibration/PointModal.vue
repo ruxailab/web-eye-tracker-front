@@ -1,9 +1,10 @@
 <template>
     <v-dialog v-model="auxDialog" max-width="500px">
         <v-card>
-            <v-card-title class="headline">Modal Title</v-card-title>
+            <v-card-title class="headline">Point {{ pointNumber }}</v-card-title>
             <v-card-text>
-                <p>x: {{ x }} y: {{ y }} precision: {{ precision }}</p>
+                <p>xy: ({{ x }}, {{ y }})</p>
+                <p>precision: {{ precision }}</p>
             </v-card-text>
             <v-card-actions>
                 <v-spacer></v-spacer>
@@ -32,6 +33,10 @@ export default {
             type: Number,
             default: 0
         },
+        pointNumber: {
+            type: Number,
+            default: 0
+        }
     },
     data() {
         return {
