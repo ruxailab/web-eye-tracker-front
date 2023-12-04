@@ -15,6 +15,7 @@ export default {
         const calibPointsx = []
         const calibPointsy = []
         this.pattern.forEach(element => {
+            element.precicion = Math.random()
             calibPointsx.push(element.x)
             calibPointsy.push(element.y)
         });
@@ -41,6 +42,9 @@ export default {
         },
     },
     methods: {
+        callModal(patternLike) {
+            console.log(patternLike);
+        },
         drawPoints(x, y, radius) {
             const canvas = document.getElementById('canvas');
             canvas.width = window.innerWidth;
@@ -49,6 +53,7 @@ export default {
             ctx.clearRect(0, 0, canvas.width, canvas.height)
             ctx.fillStyle = this.backgroundColor;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const points = [];
             //circle 
             for (var i = 0; i < x.length; i++) {
                 ctx.beginPath();
@@ -84,7 +89,27 @@ export default {
                 ctx.beginPath();
                 ctx.arc(x[i], y[i], this.radius, 0, 2 * Math.PI, false);
                 ctx.stroke();
+                points.push({ x: x[i], y: y[i], radius: this.radius });
             }
+            const th = this;
+            canvas.addEventListener('click', function (event) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+
+                for (let i = 0; i < points.length; i++) {
+                    const point = points[i];
+                    const distanceFromCenter = Math.sqrt(
+                        Math.pow(mouseX - point.x, 2) + Math.pow(mouseY - point.y, 2)
+                    );
+
+                    if (distanceFromCenter <= point.radius) {
+                        console.log('Clicked on point', i);
+                        const patternEquivalent = th.pattern[i]
+                        th.callModal(patternEquivalent)
+                    }
+                }
+            });
         },
     },
 };
