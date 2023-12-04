@@ -170,7 +170,6 @@ export default {
         } else {
           const newPrediction = { leftIris: leftIris[0], rightIris: rightIris[0] };
           point.data.push(newPrediction);
-          console.log(point.data.length);
           const radius = (this.radius / this.predByPointCount) * a
           this.drawPoint(point.x, point.y, radius)
           a++;
@@ -249,13 +248,13 @@ export default {
         delete element.point_x;
         delete element.point_y;
       })
-      const screenHeight = window.screen.height;
-      const screenWidth = window.screen.width;
-      await this.$store.dispatch('sendData', { circleIrisPoints: this.circleIrisPoints, calibPredictionPoints: this.calibPredictionPoints, screenHeight: screenHeight, screenWidth: screenWidth })
+      // const screenHeight = window.screen.height;
+      // const screenWidth = window.screen.width;
+      // await this.$store.dispatch('sendData', { circleIrisPoints: this.circleIrisPoints, calibPredictionPoints: this.calibPredictionPoints, screenHeight: screenHeight, screenWidth: screenWidth })
       this.$store.dispatch('extractXYValues', { extract: this.circleIrisPoints, hasCalib: true })
       this.$store.dispatch('extractXYValues', { extract: this.calibPredictionPoints, hasCalib: false })
       this.stopRecord()
-      this.$router.push('/dashboard');
+      this.$router.push('/postCalibration');
     },
     savePoint(whereToSave, patternLike) {
       patternLike.forEach(point => {
