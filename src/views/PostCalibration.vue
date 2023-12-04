@@ -5,14 +5,18 @@
             <PointModal :x="x" :y="y" :precision="precision" :dialog="dialog" :pointNumber="pointNumber"
                 @dialogCancel="dialogCancel" />
         </div>
+        <DraggableFloatingButton @click="goToDashboard" />
     </div>
 </template>
 
 <script>
 import PointModal from '@/components/calibration/PointModal.vue';
+import DraggableFloatingButton from '@/components/general/DraggableFloatingButton.vue';
+
 export default {
     components: {
-        PointModal
+        PointModal,
+        DraggableFloatingButton
     },
     data() {
         return {
@@ -57,6 +61,9 @@ export default {
         },
     },
     methods: {
+        goToDashboard() {
+            console.log('emited click')
+        },
         callModal(patternLike, pointNumber) {
             console.log(patternLike);
             this.x = patternLike.x
@@ -80,20 +87,13 @@ export default {
             //circle 
             for (var i = 0; i < x.length; i++) {
                 ctx.beginPath();
-                if (precisions[i] > 0.7) {
-                    ctx.strokeStyle = 'blue';
-                    ctx.fillStyle = 'blue';
-                } else if (precisions[i] < 0.7 && precisions[i] > 0.4) {
-                    ctx.strokeStyle = 'yellow';
-                    ctx.fillStyle = 'yellow';
-                } else {
-                    ctx.strokeStyle = 'orange';
-                    ctx.fillStyle = 'orange';
-                }
+                ctx.strokeStyle = 'black';
+                ctx.fillStyle = 'black';
+
                 ctx.arc(
                     x[i],
                     y[i],
-                    this.radius - 2,
+                    this.radius * precisions[i],
                     0,
                     Math.PI * 2,
                     false
