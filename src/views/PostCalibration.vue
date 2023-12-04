@@ -1,14 +1,25 @@
 <template>
     <div>
         <canvas id="canvas" />
+        <div>
+            <PointModal :x="x" :y="y" :precision="precision" :dialog="dialog" @dialogCancel="dialogCancel" />
+        </div>
     </div>
 </template>
 
 <script>
+import PointModal from '@/components/calibration/PointModal.vue';
 export default {
+    components: {
+        PointModal
+    },
     data() {
         return {
             innerCircleRadius: 5,
+            x: 0,
+            y: 0,
+            precision: 0,
+            dialog: false,
         }
     },
     async mounted() {
@@ -43,7 +54,13 @@ export default {
     },
     methods: {
         callModal(patternLike) {
-            console.log(patternLike);
+            this.x = patternLike.x
+            this.y = patternLike.y
+            this.precision = patternLike.precision
+            this.dialog = true
+        },
+        dialogCancel(newDialog) {
+            this.dialog = newDialog
         },
         drawPoints(x, y, radius) {
             const canvas = document.getElementById('canvas');
@@ -104,7 +121,6 @@ export default {
                     );
 
                     if (distanceFromCenter <= point.radius) {
-                        console.log('Clicked on point', i);
                         const patternEquivalent = th.pattern[i]
                         th.callModal(patternEquivalent)
                     }
