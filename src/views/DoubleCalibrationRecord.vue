@@ -108,9 +108,10 @@ export default {
     },
   },
   async mounted() {
+    const usedPattern = (this.mockPattern.length > 0) ? this.mockPattern : this.pattern
     await this.startWebCamCapture();
-    this.drawPoint(this.pattern[0].x, this.pattern[0].y, 1)
-    this.advance(this.pattern, this.circleIrisPoints, this.msPerCapture)
+    this.drawPoint(usedPattern[0].x, usedPattern[0].y, 1)
+    this.advance(usedPattern, this.circleIrisPoints, this.msPerCapture)
   },
   methods: {
     advance(pattern, whereToSave, timeBetweenCaptures) {
@@ -140,13 +141,14 @@ export default {
       document.addEventListener('keydown', keydownHandler)
     },
     nextStep() {
-      this.pattern.forEach(element => {
+      const usedPattern = (this.mockPattern.length > 0) ? this.mockPattern : this.pattern
+      usedPattern.forEach(element => {
         delete element.data;
       });
       this.$store.commit('setIndex', 0)
       this.currentStep = 2
-      this.drawPoint(this.pattern[0].x, this.pattern[0].y, 1)
-      this.advance(this.pattern, this.calibPredictionPoints, this.msPerCapture)
+      this.drawPoint(usedPattern[0].x, usedPattern[0].y, 1)
+      this.advance(usedPattern, this.calibPredictionPoints, this.msPerCapture)
     },
     async extract(point, timeBetweenCaptures) {
       point.data = [];

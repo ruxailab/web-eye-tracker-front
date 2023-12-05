@@ -72,6 +72,7 @@ export default {
         },
         recalibrate() {
             console.log(this.mockPattern);
+            this.$router.push('/calibration/record')
         },
         goToDashboard() {
             this.$router.push('/dashboard')
