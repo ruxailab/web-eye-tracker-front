@@ -55,7 +55,7 @@ export default {
         this.dragging = false;
         const endTime = new Date();
         const timeDifference = endTime - this.startTime;
-        console.log(`User dragged for ${timeDifference} milliseconds`);
+        // console.log(`User dragged for ${timeDifference} milliseconds`);
         if (timeDifference <= 100) {
           this.handleClick()
         }
