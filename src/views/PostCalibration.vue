@@ -3,11 +3,11 @@
         <canvas id="canvas" />
         <div>
             <PointModal :x="Number(x)" :y="Number(y)" :precision="Number(precision)" :dialog="dialog"
-                :pointNumber="pointNumber" @cancel="dialogCancel" @select="select" />
+                :pointNumber="pointNumber" @close="dialogCancel" @select="select" />
         </div>
         <v-col>
             <DraggableFloatingButton @click="goToDashboard" :icon="'mdi-arrow-left'" />
-            <DraggableFloatingButton @click="goToDashboard" :icon="'mdi-refresh'" />
+            <DraggableFloatingButton @click="recalibrate" :icon="'mdi-refresh'" />
         </v-col>
     </div>
 </template>
@@ -56,6 +56,9 @@ export default {
         pattern() {
             return this.$store.state.calibration.pattern;
         },
+        mockPattern() {
+            return this.$store.state.calibration.mockPattern;
+        },
         fixedTrainData() {
             return this.$store.state.predict.fixedTrainData;
         },
@@ -66,7 +69,9 @@ export default {
     methods: {
         select(pointNumber) {
             this.$store.commit('setMockPattern', this.pattern[pointNumber])
-            // this.$router.push('/calibration/record')
+        },
+        recalibrate() {
+            console.log(this.mockPattern);
         },
         goToDashboard() {
             this.$router.push('/dashboard')

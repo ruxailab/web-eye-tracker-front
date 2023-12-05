@@ -16,7 +16,7 @@
             </v-card-text>
             <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text @click="select">select</v-btn>
+                <v-btn color="blue darken-1" text @click="select">{{ selected ? 'unselect' : 'select' }}</v-btn>
                 <v-btn color="blue darken-1" text @click="auxDialog = false">close</v-btn>
                 <v-spacer></v-spacer>
             </v-card-actions>
@@ -49,9 +49,18 @@ export default {
             default: 0
         }
     },
+    computed: {
+        pattern() {
+            return this.$store.state.calibration.pattern
+        },
+        mockPattern() {
+            return this.$store.state.calibration.mockPattern
+        },
+    },
     data() {
         return {
-            auxDialog: false
+            auxDialog: false,
+            selected: false
         }
     },
     watch: {
@@ -59,8 +68,16 @@ export default {
             this.auxDialog = newDialog
         },
         auxDialog(newAuxDialog) {
-            this.$emit('cancel', newAuxDialog);
+            this.$emit('close', newAuxDialog);
         },
+        mockPattern(newMockPattern) {
+            const point = this.pattern[this.pointNumber]
+            this.selected = newMockPattern.includes(point)
+        },
+        pointNumber(newPointNumber) {
+            const point = this.pattern[newPointNumber]
+            this.selected = this.mockPattern.includes(point)
+        }
     },
     methods: {
         select() {

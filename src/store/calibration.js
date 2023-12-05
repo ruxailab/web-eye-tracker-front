@@ -3,7 +3,7 @@ export default {
     state: {
         calibName: '',
         pointNumber: 5,
-        samplePerPoint: 20,
+        samplePerPoint: 5,
         radius: 20,
         offset: 50,
         backgroundColor: '#FFFFFFFF',
@@ -13,7 +13,7 @@ export default {
         leftEyeTreshold: 5,
         rightEyeTreshold: 5,
         index: 0,
-        msPerCapture: 100,
+        msPerCapture: 10,
         pattern: [],
         mockPattern: []
     },
