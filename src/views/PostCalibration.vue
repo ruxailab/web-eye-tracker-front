@@ -2,10 +2,10 @@
     <div>
         <canvas id="canvas" />
         <div>
-            <PointModal :x="x" :y="y" :precision="precision" :dialog="dialog" :pointNumber="pointNumber"
-                @dialogCancel="dialogCancel" />
+            <PointModal :x="Number(x)" :y="Number(y)" :precision="Number(precision)" :dialog="dialog"
+                :pointNumber="pointNumber" @cancel="dialogCancel" @recalibrate="recalibrate" />
         </div>
-        <DraggableFloatingButton @click="goToDashboard" />
+        <DraggableFloatingButton @click="goToDashboard" :icon="'mdi-arrow-left'" />
     </div>
 </template>
 
@@ -61,16 +61,18 @@ export default {
         },
     },
     methods: {
+        recalibrate(pointNumber) {
+            console.log('recalibre o ponto',this.pattern[pointNumber]);
+        },
         goToDashboard() {
-            console.log('emited click')
+            this.$router.push('/dashboard')
         },
         callModal(patternLike, pointNumber) {
-            console.log(patternLike);
             this.x = patternLike.x
             this.y = patternLike.y
             this.precision = patternLike.precision
             this.dialog = true
-            this.pointNumber = pointNumber + 1
+            this.pointNumber = pointNumber
         },
         dialogCancel(newDialog) {
             this.dialog = newDialog
