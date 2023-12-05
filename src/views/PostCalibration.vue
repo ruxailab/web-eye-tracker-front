@@ -3,9 +3,12 @@
         <canvas id="canvas" />
         <div>
             <PointModal :x="Number(x)" :y="Number(y)" :precision="Number(precision)" :dialog="dialog"
-                :pointNumber="pointNumber" @cancel="dialogCancel" @recalibrate="recalibrate" />
+                :pointNumber="pointNumber" @cancel="dialogCancel" @select="select" />
         </div>
-        <DraggableFloatingButton @click="goToDashboard" :icon="'mdi-arrow-left'" />
+        <v-col>
+            <DraggableFloatingButton @click="goToDashboard" :icon="'mdi-arrow-left'" />
+            <DraggableFloatingButton @click="goToDashboard" :icon="'mdi-refresh'" />
+        </v-col>
     </div>
 </template>
 
@@ -61,8 +64,9 @@ export default {
         },
     },
     methods: {
-        recalibrate(pointNumber) {
-            console.log('recalibre o ponto',this.pattern[pointNumber]);
+        select(pointNumber) {
+            this.$store.commit('setMockPattern', this.pattern[pointNumber])
+            // this.$router.push('/calibration/record')
         },
         goToDashboard() {
             this.$router.push('/dashboard')

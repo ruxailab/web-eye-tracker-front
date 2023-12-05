@@ -14,6 +14,8 @@ export default {
         rightEyeTreshold: 5,
         index: 0,
         msPerCapture: 100,
+        pattern: [],
+        mockPattern: []
     },
     mutations: {
         setCalibName(state, newCalibName) {
@@ -33,6 +35,14 @@ export default {
         },
         setPattern(state, newPattern) {
             state.pattern = newPattern;
+        },
+        setMockPattern(state, newPatternLike) {
+            if (!state.mockPattern.includes(newPatternLike)) {
+                state.mockPattern.push(newPatternLike)
+            } else {
+                const index = state.mockPattern.indexOf(newPatternLike);
+                state.mockPattern.splice(index, 1);
+            }
         },
         setBackgroundColor(state, newBackgroundColor) {
             state.backgroundColor = newBackgroundColor
@@ -55,7 +65,7 @@ export default {
         setIndex(state, newIndex) {
             state.index = newIndex
         },
-        setMsPerCapture(state, newMsPerCapture){
+        setMsPerCapture(state, newMsPerCapture) {
             state.msPerCapture = newMsPerCapture
         }
     },

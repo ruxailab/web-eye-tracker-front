@@ -31,7 +31,7 @@
             <v-btn @click="endCalib()">End Calib</v-btn>
           </div>
         </div>
-      </v-row>
+      </v-row>0
     </div>
     <canvas id="canvas" style="z-index: 0;" />
     <video autoplay id="video-tag" style="display: none;"></video>
@@ -75,6 +75,9 @@ export default {
     },
     pattern() {
       return this.$store.state.calibration.pattern
+    },
+    mockPattern() {
+      return this.$store.state.calibration.mockPattern
     },
     backgroundColor() {
       return this.$store.state.calibration.backgroundColor

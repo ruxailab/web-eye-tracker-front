@@ -16,8 +16,7 @@
             </v-card-text>
             <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text @click="recalibrate">recalib</v-btn>
-                <!-- <v-btn color="blue darken-1" text @click="auxDialog = false">highlight</v-btn> -->
+                <v-btn color="blue darken-1" text @click="select">select</v-btn>
                 <v-btn color="blue darken-1" text @click="auxDialog = false">close</v-btn>
                 <v-spacer></v-spacer>
             </v-card-actions>
@@ -64,8 +63,8 @@ export default {
         },
     },
     methods: {
-        recalibrate() {
-            this.$emit('recalibrate', this.pointNumber)
+        select() {
+            this.$emit('select', this.pointNumber)
         },
     }
 }
