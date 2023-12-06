@@ -13,10 +13,10 @@
           style="z-index: 1;position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
           slowly press 'S' while looking at the point to begin
         </div>
-        <div v-if="index === pattern.length - 1" class="text-center"
+        <div v-if="index === usedPattern.length - 1" class="text-center"
           style="z-index: 1;position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"> press 'S' one
           more time</div>
-        <div v-if="index === pattern.length" class="text-center" style="z-index: 1;">
+        <div v-if="index === usedPattern.length" class="text-center" style="z-index: 1;">
           <div v-if="currentStep === 1"
             style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
             <div>
@@ -61,6 +61,7 @@ export default {
       animationRefreshRate: 10,
       animationFrames: 250,
       innerCircleRadius: 5,
+      usedPattern: [],
     };
   },
   computed: {
@@ -107,11 +108,14 @@ export default {
       return this.$store.state.calibration.isControlled
     },
   },
+  created() {
+    this.$store.commit('setIndex', 0)
+    this.usedPattern = (this.mockPattern.length > 0) ? this.mockPattern : this.pattern
+  },
   async mounted() {
-    const usedPattern = (this.mockPattern.length > 0) ? this.mockPattern : this.pattern
     await this.startWebCamCapture();
-    this.drawPoint(usedPattern[0].x, usedPattern[0].y, 1)
-    this.advance(usedPattern, this.circleIrisPoints, this.msPerCapture)
+    this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
+    this.advance(this.usedPattern, this.circleIrisPoints, this.msPerCapture)
   },
   methods: {
     advance(pattern, whereToSave, timeBetweenCaptures) {
@@ -122,6 +126,8 @@ export default {
           if (i <= pattern.length - 1) {
             document.removeEventListener('keydown', keydownHandler)
             await th.extract(pattern[i], timeBetweenCaptures)
+            console.log('pattern', th.pattern);
+            console.log('mock', th.mockPattern);
             th.$store.commit('setIndex', i)
             i++
             if (i != pattern.length) {
@@ -131,7 +137,7 @@ export default {
           } else {
             th.$store.commit('setIndex', i)
             document.removeEventListener('keydown', keydownHandler)
-            th.savePoint(whereToSave, th.pattern)
+            th.savePoint(whereToSave, th.usedPattern)
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -141,14 +147,13 @@ export default {
       document.addEventListener('keydown', keydownHandler)
     },
     nextStep() {
-      const usedPattern = (this.mockPattern.length > 0) ? this.mockPattern : this.pattern
-      usedPattern.forEach(element => {
+      this.usedPattern.forEach(element => {
         delete element.data;
       });
       this.$store.commit('setIndex', 0)
       this.currentStep = 2
-      this.drawPoint(usedPattern[0].x, usedPattern[0].y, 1)
-      this.advance(usedPattern, this.calibPredictionPoints, this.msPerCapture)
+      this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
+      this.advance(this.usedPattern, this.calibPredictionPoints, this.msPerCapture)
     },
     async extract(point, timeBetweenCaptures) {
       point.data = [];
