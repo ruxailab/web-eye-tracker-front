@@ -126,8 +126,7 @@ export default {
           if (i <= pattern.length - 1) {
             document.removeEventListener('keydown', keydownHandler)
             await th.extract(pattern[i], timeBetweenCaptures)
-            console.log('pattern', th.pattern);
-            console.log('mock', th.mockPattern);
+
             th.$store.commit('setIndex', i)
             i++
             if (i != pattern.length) {
@@ -264,6 +263,8 @@ export default {
       this.$store.dispatch('extractXYValues', { extract: this.circleIrisPoints, hasCalib: true })
       this.$store.dispatch('extractXYValues', { extract: this.calibPredictionPoints, hasCalib: false })
       this.stopRecord()
+      console.log('pattern', this.pattern);
+      console.log('mock', this.mockPattern);
       this.$router.push('/postCalibration');
     },
     savePoint(whereToSave, patternLike) {
