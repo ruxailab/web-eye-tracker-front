@@ -263,8 +263,21 @@ export default {
       this.$store.dispatch('extractXYValues', { extract: this.circleIrisPoints, hasCalib: true })
       this.$store.dispatch('extractXYValues', { extract: this.calibPredictionPoints, hasCalib: false })
       this.stopRecord()
-      console.log('pattern', this.pattern);
-      console.log('mock', this.mockPattern);
+      // console.log('pattern', this.pattern);
+      // console.log('mock', this.mockPattern);
+      // for (let i = 0; i < this.pattern.length; i++) {
+      //   const currentPatternElement = this.pattern[i];
+      //   for (let j = 0; j < this.mockPattern.length; j++) {
+      //     const currentMockPatternElement = this.mockPattern[j];
+      //     if (
+      //       currentPatternElement.x === currentMockPatternElement.x &&
+      //       currentPatternElement.y === currentMockPatternElement.y
+      //     ) {
+      //       console.log(`Match found for pattern element at index ${i}`);
+      //     }
+      //   }
+      // }
+      this.$store.commit('setMockPattern', [])
       this.$router.push('/postCalibration');
     },
     savePoint(whereToSave, patternLike) {

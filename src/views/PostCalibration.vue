@@ -68,7 +68,7 @@ export default {
     },
     methods: {
         select(pointNumber) {
-            this.$store.commit('setMockPattern', this.pattern[pointNumber])
+            this.$store.commit('setMockPatternElement', this.pattern[pointNumber])
         },
         recalibrate() {
             console.log(this.mockPattern);

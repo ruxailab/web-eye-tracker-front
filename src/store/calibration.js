@@ -36,13 +36,16 @@ export default {
         setPattern(state, newPattern) {
             state.pattern = newPattern;
         },
-        setMockPattern(state, newPatternLike) {
+        setMockPatternElement(state, newPatternLike) {
             if (!state.mockPattern.includes(newPatternLike)) {
                 state.mockPattern.push(newPatternLike)
             } else {
                 const index = state.mockPattern.indexOf(newPatternLike);
                 state.mockPattern.splice(index, 1);
             }
+        },
+        setMockPattern(state, newMockPattern) {
+            state.mockPattern = newMockPattern
         },
         setBackgroundColor(state, newBackgroundColor) {
             state.backgroundColor = newBackgroundColor
