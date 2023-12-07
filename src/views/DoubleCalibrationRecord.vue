@@ -261,7 +261,8 @@ export default {
       const screenWidth = window.screen.width;
       const predictions =
         await this.$store.dispatch('sendData', { circleIrisPoints: this.circleIrisPoints, calibPredictionPoints: this.calibPredictionPoints, screenHeight: screenHeight, screenWidth: screenWidth })
-      for (var a = 0; a < this.pattern.length; a++) {
+      for (var a = 0; a < this.usedPattern.length; a++) {
+        console.log('used pattern',this.usedPattern[a]);
         const element = predictions[this.usedPattern[a].x][this.usedPattern[a].y]
         console.log('element', element);
         this.usedPattern[a].precision = element.PrecisionSD.toFixed(2)
