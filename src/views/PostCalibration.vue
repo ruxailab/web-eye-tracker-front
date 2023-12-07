@@ -2,8 +2,8 @@
     <div>
         <canvas id="canvas" />
         <div>
-            <PointModal :x="Number(x)" :y="Number(y)" :precision="Number(precision)" :dialog="dialog"
-                :pointNumber="pointNumber" @close="dialogCancel" @select="select" />
+            <PointModal :x="Number(x)" :y="Number(y)" :precision="Number(precision)" :accuracy="Number(accuracy)"
+                :dialog="dialog" :pointNumber="pointNumber" @close="dialogCancel" @select="select" />
         </div>
         <v-col>
             <DraggableFloatingButton @click="goToDashboard" :icon="'mdi-arrow-left'" />
@@ -27,6 +27,7 @@ export default {
             x: 0,
             y: 0,
             precision: 0,
+            accuracy: 0,
             dialog: false,
             pointNumber: 0
         }
@@ -34,13 +35,15 @@ export default {
     async mounted() {
         const calibPointsX = []
         const calibPointsY = []
-        const precisions = []
+        //const precisions = []
+        const accuracies = []
         this.pattern.forEach(element => {
             calibPointsX.push(element.x)
             calibPointsY.push(element.y)
-            precisions.push(element.precision)
+            //precisions.push(element.precision)
+            accuracies.push(element.accuracy)
         });
-        this.drawPoints(calibPointsX, calibPointsY, precisions)
+        this.drawPoints(calibPointsX, calibPointsY, accuracies)
     },
     computed: {
         radius() {
@@ -80,13 +83,14 @@ export default {
             this.x = patternLike.x
             this.y = patternLike.y
             this.precision = patternLike.precision
+            this.accuracy = patternLike.accuracy
             this.dialog = true
             this.pointNumber = pointNumber
         },
         dialogCancel(newDialog) {
             this.dialog = newDialog
         },
-        drawPoints(x, y, precisions) {
+        drawPoints(x, y, accuracies) {
             const canvas = document.getElementById('canvas');
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight
@@ -104,7 +108,7 @@ export default {
                 ctx.arc(
                     x[i],
                     y[i],
-                    this.radius * precisions[i],
+                    this.radius * accuracies[i],
                     0,
                     Math.PI * 2,
                     false

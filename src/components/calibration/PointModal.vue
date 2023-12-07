@@ -9,8 +9,12 @@
                         <v-col cols="6" class="text-right">({{ x }}, {{ y }})</v-col>
                     </v-row>
                     <v-row>
-                        <v-col cols="6" class="font-weight-bold">precision:</v-col>
-                        <v-col cols="6" class="text-right">{{ precision }}</v-col>
+                        <v-col cols="6" class="font-weight-bold">Accuracy:</v-col>
+                        <v-col cols="6" class="text-right">{{ accuracy }} px</v-col>
+                    </v-row>
+                    <v-row>
+                        <v-col cols="6" class="font-weight-bold">precision (SD):</v-col>
+                        <v-col cols="6" class="text-right">{{ precision }} px</v-col>
                     </v-row>
                 </v-container>
             </v-card-text>
@@ -41,6 +45,10 @@ export default {
             default: 0
         },
         precision: {
+            type: Number,
+            default: 0
+        },
+        accuracy: {
             type: Number,
             default: 0
         },

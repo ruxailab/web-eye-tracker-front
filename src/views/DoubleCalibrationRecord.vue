@@ -266,6 +266,7 @@ export default {
         const element = predictions[this.usedPattern[a].x][this.usedPattern[a].y]
         console.log('element', element);
         this.usedPattern[a].precision = element.PrecisionSD.toFixed(2)
+        this.usedPattern[a].accuracy = element.Accuracy.toFixed(2)
         this.usedPattern[a].predictionX = element.predicted_x
         this.usedPattern[a].predictionY = element.predicted_y
       }
