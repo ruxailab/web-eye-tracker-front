@@ -36,7 +36,6 @@ export default {
         const calibPointsY = []
         const precisions = []
         this.pattern.forEach(element => {
-            element.precision = (Math.random()).toFixed(2)
             calibPointsX.push(element.x)
             calibPointsY.push(element.y)
             precisions.push(element.precision)

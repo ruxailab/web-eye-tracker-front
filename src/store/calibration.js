@@ -98,7 +98,8 @@ export default {
                     "Content-Type": "multipart/form-data",
                 },
             });
-            console.log(res);
+            return res.data
+            // console.log(res);
         }
     }
 }

@@ -257,26 +257,23 @@ export default {
         delete element.point_x;
         delete element.point_y;
       })
-      // const screenHeight = window.screen.height;
-      // const screenWidth = window.screen.width;
-      // await this.$store.dispatch('sendData', { circleIrisPoints: this.circleIrisPoints, calibPredictionPoints: this.calibPredictionPoints, screenHeight: screenHeight, screenWidth: screenWidth })
+      const screenHeight = window.screen.height;
+      const screenWidth = window.screen.width;
+      const predictions =
+        await this.$store.dispatch('sendData', { circleIrisPoints: this.circleIrisPoints, calibPredictionPoints: this.calibPredictionPoints, screenHeight: screenHeight, screenWidth: screenWidth })
+      for (var a = 0; a < this.pattern.length; a++) {
+        const element = predictions[this.usedPattern[a].x][this.usedPattern[a].y]
+        console.log('element', element);
+        this.usedPattern[a].precision = element.PrecisionSD.toFixed(2)
+        this.usedPattern[a].predictionX = element.predicted_x
+        this.usedPattern[a].predictionY = element.predicted_y
+      }
+      console.log(
+        this.usedPattern
+      );
       this.$store.dispatch('extractXYValues', { extract: this.circleIrisPoints, hasCalib: true })
       this.$store.dispatch('extractXYValues', { extract: this.calibPredictionPoints, hasCalib: false })
       this.stopRecord()
-      // console.log('pattern', this.pattern);
-      // console.log('mock', this.mockPattern);
-      // for (let i = 0; i < this.pattern.length; i++) {
-      //   const currentPatternElement = this.pattern[i];
-      //   for (let j = 0; j < this.mockPattern.length; j++) {
-      //     const currentMockPatternElement = this.mockPattern[j];
-      //     if (
-      //       currentPatternElement.x === currentMockPatternElement.x &&
-      //       currentPatternElement.y === currentMockPatternElement.y
-      //     ) {
-      //       console.log(`Match found for pattern element at index ${i}`);
-      //     }
-      //   }
-      // }
       this.$store.commit('setMockPattern', [])
       this.$router.push('/postCalibration');
     },
