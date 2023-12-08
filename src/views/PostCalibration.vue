@@ -34,23 +34,15 @@ export default {
     },
     async mounted() {
         this.initCanvas()
-        const calibPointsX = []
-        const calibPointsY = []
-        const accuracies = []
-        const x = []
-        const y = []
-        this.pattern.forEach(element => {
-            calibPointsX.push(element.x)
-            calibPointsY.push(element.y)
-            accuracies.push(element.accuracy)
-            for (var a = 0; a < element.predictionX.length; a++) {
-                x.push(element.predictionX[a])
-                y.push(element.predictionY[a])
+        for (var i = 0; i < this.pattern.length; i++) {
+            // calib points
+            this.drawPoints(this.pattern[i].x, this.pattern[i].y, this.radius * this.pattern[i].accuracy, true)
+
+            for (var a = 0; a < this.pattern[i].predictionX.length; a++) {
+                // predicted points
+                this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], 0, false)
             }
-        });
-        // console.log(x);
-        // console.log(y);
-        this.drawPoints(calibPointsX, calibPointsY, accuracies)
+        }
     },
     computed: {
         radius() {
@@ -115,7 +107,7 @@ export default {
                     const distanceFromCenter = Math.sqrt(
                         Math.pow(mouseX - point.x, 2) + Math.pow(mouseY - point.y, 2)
                     );
-                    
+
                     if (distanceFromCenter <= th.radius) {
                         const patternEquivalent = th.pattern[i]
                         th.callModal(patternEquivalent, i)
@@ -123,47 +115,45 @@ export default {
                 }
             });
         },
-        drawPoints(x, y, radius) {
+        drawPoints(x, y, radius, hasCircumference) {
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
-            const points = [];
-            //circle 
-            for (var i = 0; i < x.length; i++) {
-                ctx.beginPath();
-                ctx.strokeStyle = 'black';
-                ctx.fillStyle = 'black';
+            //circle
+            ctx.beginPath();
+            ctx.strokeStyle = 'black';
+            ctx.fillStyle = 'black';
 
-                ctx.arc(
-                    x[i],
-                    y[i],
-                    radius,
-                    0,
-                    Math.PI * 2,
-                    false
-                );
-                ctx.stroke();
-                ctx.fill();
-                // inner circle
-                ctx.beginPath();
-                ctx.strokeStyle = "red";
-                ctx.fillStyle = "red";
-                ctx.arc(
-                    x[i],
-                    y[i],
-                    this.innerCircleRadius,
-                    0,
-                    Math.PI * 2,
-                    false
-                );
-                ctx.stroke();
-                ctx.fill();
-                // hollow circumference
+            ctx.arc(
+                x,
+                y,
+                radius,
+                0,
+                Math.PI * 2,
+                false
+            );
+            ctx.stroke();
+            ctx.fill();
+            // inner circle
+            ctx.beginPath();
+            ctx.strokeStyle = "red";
+            ctx.fillStyle = "red";
+            ctx.arc(
+                x,
+                y,
+                this.innerCircleRadius,
+                0,
+                Math.PI * 2,
+                false
+            );
+            ctx.stroke();
+            ctx.fill();
+            // hollow circumference
+            if (hasCircumference) {
                 ctx.strokeStyle = this.pointColor;
                 ctx.lineWidth = 1;
                 ctx.beginPath();
-                ctx.arc(x[i], y[i], this.radius, 0, 2 * Math.PI, false);
+                ctx.arc(x, y, this.radius, 0, 2 * Math.PI, false);
                 ctx.stroke();
-                points.push({ x: x[i], y: y[i], radius: this.radius });
             }
         },
     },
