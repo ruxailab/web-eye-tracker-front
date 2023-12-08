@@ -10,8 +10,6 @@
         </div>
         <v-col>
             <DraggableFloatingButton @click="callConfigModal" :icon="'mdi-cog'" />
-            <!-- <DraggableFloatingButton @click="goToDashboard" :icon="'mdi-arrow-left'" />
-            <DraggableFloatingButton @click="recalibrate" :icon="'mdi-refresh'" /> -->
         </v-col>
     </div>
 </template>
@@ -83,11 +81,11 @@ export default {
             for (var i = 0; i < this.pattern.length; i++) {
                 // calib points
                 const isSelected = this.mockPattern.includes(this.pattern[i])
-                this.drawPoints(this.pattern[i].x, this.pattern[i].y, this.radius * this.pattern[i].accuracy, true, isSelected)
+                this.drawPoints(this.pattern[i].x, this.pattern[i].y, this.radius * this.pattern[i].accuracy, this.innerCircleRadius ,true, isSelected)
 
                 for (var a = 0; a < this.pattern[i].predictionX.length; a++) {
                     // predicted points
-                    this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], 0, false)
+                    this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], 0, 2,false)
                 }
             }
         },
@@ -139,7 +137,7 @@ export default {
                 }
             });
         },
-        drawPoints(x, y, radius, hasCircumference, isSelected) {
+        drawPoints(x, y, radius, innerRadius, hasCircumference, isSelected) {
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
             //circle
@@ -164,7 +162,7 @@ export default {
             ctx.arc(
                 x,
                 y,
-                this.innerCircleRadius,
+                innerRadius,
                 0,
                 Math.PI * 2,
                 false

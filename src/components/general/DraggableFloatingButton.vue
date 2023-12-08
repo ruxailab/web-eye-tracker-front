@@ -76,7 +76,6 @@ export default {
   bottom: 20px;
   right: 20px;
   z-index: 1000;
-  cursor: move;
 }
 </style>
   
