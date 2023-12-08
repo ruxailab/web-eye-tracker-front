@@ -33,16 +33,23 @@ export default {
         }
     },
     async mounted() {
+        this.initCanvas()
         const calibPointsX = []
         const calibPointsY = []
-        //const precisions = []
         const accuracies = []
+        const x = []
+        const y = []
         this.pattern.forEach(element => {
             calibPointsX.push(element.x)
             calibPointsY.push(element.y)
-            //precisions.push(element.precision)
             accuracies.push(element.accuracy)
+            for (var a = 0; a < element.predictionX.length; a++) {
+                x.push(element.predictionX[a])
+                y.push(element.predictionY[a])
+            }
         });
+        // console.log(x);
+        // console.log(y);
         this.drawPoints(calibPointsX, calibPointsY, accuracies)
     },
     computed: {
@@ -73,7 +80,6 @@ export default {
             this.$store.commit('setMockPatternElement', this.pattern[pointNumber])
         },
         recalibrate() {
-            console.log(this.mockPattern);
             this.$router.push('/calibration/record')
         },
         goToDashboard() {
@@ -90,7 +96,7 @@ export default {
         dialogCancel(newDialog) {
             this.dialog = newDialog
         },
-        drawPoints(x, y, accuracies) {
+        initCanvas() {
             const canvas = document.getElementById('canvas');
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight
@@ -98,6 +104,28 @@ export default {
             ctx.clearRect(0, 0, canvas.width, canvas.height)
             ctx.fillStyle = this.backgroundColor;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const th = this;
+            canvas.addEventListener('click', function (event) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+
+                for (let i = 0; i < th.pattern.length; i++) {
+                    const point = th.pattern[i];
+                    const distanceFromCenter = Math.sqrt(
+                        Math.pow(mouseX - point.x, 2) + Math.pow(mouseY - point.y, 2)
+                    );
+                    
+                    if (distanceFromCenter <= th.radius) {
+                        const patternEquivalent = th.pattern[i]
+                        th.callModal(patternEquivalent, i)
+                    }
+                }
+            });
+        },
+        drawPoints(x, y, radius) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
             const points = [];
             //circle 
             for (var i = 0; i < x.length; i++) {
@@ -108,7 +136,7 @@ export default {
                 ctx.arc(
                     x[i],
                     y[i],
-                    this.radius * accuracies[i],
+                    radius,
                     0,
                     Math.PI * 2,
                     false
@@ -137,24 +165,6 @@ export default {
                 ctx.stroke();
                 points.push({ x: x[i], y: y[i], radius: this.radius });
             }
-            const th = this;
-            canvas.addEventListener('click', function (event) {
-                const rect = canvas.getBoundingClientRect();
-                const mouseX = event.clientX - rect.left;
-                const mouseY = event.clientY - rect.top;
-
-                for (let i = 0; i < points.length; i++) {
-                    const point = points[i];
-                    const distanceFromCenter = Math.sqrt(
-                        Math.pow(mouseX - point.x, 2) + Math.pow(mouseY - point.y, 2)
-                    );
-
-                    if (distanceFromCenter <= point.radius) {
-                        const patternEquivalent = th.pattern[i]
-                        th.callModal(patternEquivalent, i)
-                    }
-                }
-            });
         },
     },
 };
