@@ -262,7 +262,7 @@ export default {
       const predictions =
         await this.$store.dispatch('sendData', { circleIrisPoints: this.circleIrisPoints, calibPredictionPoints: this.calibPredictionPoints, screenHeight: screenHeight, screenWidth: screenWidth })
       for (var a = 0; a < this.usedPattern.length; a++) {
-        const element = predictions[this.usedPattern[a].x][this.usedPattern[a].y]
+        const element = predictions[this.usedPattern[a].x.toString().split('.')[0]][this.usedPattern[a].y.toString().split('.')[0]]
         this.usedPattern[a].precision = element.PrecisionSD.toFixed(2)
         this.usedPattern[a].accuracy = element.Accuracy.toFixed(2)
         this.usedPattern[a].predictionX = element.predicted_x
