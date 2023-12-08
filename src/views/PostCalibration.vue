@@ -5,9 +5,13 @@
             <PointModal :x="Number(x)" :y="Number(y)" :precision="Number(precision)" :accuracy="Number(accuracy)"
                 :dialog="dialog" :pointNumber="pointNumber" @close="dialogCancel" @select="select" />
         </div>
+        <div>
+            <ConfigModal :configDialog="configDialog" @close="configDialogCancel" />
+        </div>
         <v-col>
-            <DraggableFloatingButton @click="goToDashboard" :icon="'mdi-arrow-left'" />
-            <DraggableFloatingButton @click="recalibrate" :icon="'mdi-refresh'" />
+            <DraggableFloatingButton @click="callConfigModal" :icon="'mdi-arrow-left'" />
+            <!-- <DraggableFloatingButton @click="goToDashboard" :icon="'mdi-arrow-left'" />
+            <DraggableFloatingButton @click="recalibrate" :icon="'mdi-refresh'" /> -->
         </v-col>
     </div>
 </template>
@@ -15,11 +19,13 @@
 <script>
 import PointModal from '@/components/calibration/PointModal.vue';
 import DraggableFloatingButton from '@/components/general/DraggableFloatingButton.vue';
+import ConfigModal from '@/components/calibration/ConfigModal.vue';
 
 export default {
     components: {
         PointModal,
-        DraggableFloatingButton
+        DraggableFloatingButton,
+        ConfigModal
     },
     data() {
         return {
@@ -29,6 +35,7 @@ export default {
             precision: 0,
             accuracy: 0,
             dialog: false,
+            configDialog: false,
             pointNumber: 0
         }
     },
@@ -98,9 +105,11 @@ export default {
             this.dialog = true
             this.pointNumber = pointNumber
         },
+        configDialogCancel(newDialog) {
+            this.configDialog = newDialog
+        },
         dialogCancel(newDialog) {
             this.dialog = newDialog
-            this.configDialog = newDialog
         },
 
         initCanvas() {

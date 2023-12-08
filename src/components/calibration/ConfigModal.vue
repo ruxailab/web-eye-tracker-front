@@ -1,5 +1,5 @@
 <template>
-    <v-dialog v-model="auxDialog" max-width="300px" max-height="500px">
+    <v-dialog v-model="aDialog" max-width="300px" max-height="500px">
         <v-card>
             <v-card-title class="headline text-center mx-auto">hi</v-card-title>
             <v-card-text>
@@ -7,8 +7,7 @@
             </v-card-text>
             <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text>hi</v-btn>
-                <v-btn color="blue darken-1" text @click="auxDialog = false">close</v-btn>
+                <v-btn color="blue darken-1" text @click="aDialog = false">close</v-btn>
                 <v-spacer></v-spacer>
             </v-card-actions>
         </v-card>
@@ -19,33 +18,23 @@
 <script>
 export default {
     props: {
-        dialog: {
+        configDialog: {
             type: Boolean,
             default: false
-        },
-    },
-    computed: {
-        pattern() {
-            return this.$store.state.calibration.pattern
-        },
-        mockPattern() {
-            return this.$store.state.calibration.mockPattern
-        },
+        }
     },
     data() {
         return {
-            auxDialog: false,
+            aDialog: false
         }
     },
     watch: {
-        dialog(newDialog) {
-            this.auxDialog = newDialog
+        configDialog(newDialog) {
+            this.aDialog = newDialog
         },
-        auxDialog(newAuxDialog) {
-            this.$emit('close', newAuxDialog);
-        },
-    },
-    methods: {
+        aDialog(newAdialog) {
+            this.$emit('close', newAdialog);
+        }
     }
 }
 </script>
