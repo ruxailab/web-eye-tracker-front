@@ -34,15 +34,7 @@ export default {
     },
     async mounted() {
         this.initCanvas()
-        for (var i = 0; i < this.pattern.length; i++) {
-            // calib points
-            this.drawPoints(this.pattern[i].x, this.pattern[i].y, this.radius * this.pattern[i].accuracy, true)
-
-            for (var a = 0; a < this.pattern[i].predictionX.length; a++) {
-                // predicted points
-                this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], 0, false)
-            }
-        }
+        this.drawCalibPoints()
     },
     computed: {
         radius() {
@@ -67,9 +59,30 @@ export default {
             return this.$store.state.predict.predictTrainData;
         },
     },
+    watch: {
+        mockPattern() {
+            this.drawCalibPoints()
+        }
+    },
     methods: {
+        callConfigModal() {
+            this.configDialog = true
+        },
         select(pointNumber) {
             this.$store.commit('setMockPatternElement', this.pattern[pointNumber])
+        },
+        drawCalibPoints() {
+            this.initCanvas()
+            for (var i = 0; i < this.pattern.length; i++) {
+                // calib points
+                const isSelected = this.mockPattern.includes(this.pattern[i])
+                this.drawPoints(this.pattern[i].x, this.pattern[i].y, this.radius * this.pattern[i].accuracy, true, isSelected)
+
+                for (var a = 0; a < this.pattern[i].predictionX.length; a++) {
+                    // predicted points
+                    this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], 0, false)
+                }
+            }
         },
         recalibrate() {
             this.$router.push('/calibration/record')
@@ -87,7 +100,9 @@ export default {
         },
         dialogCancel(newDialog) {
             this.dialog = newDialog
+            this.configDialog = newDialog
         },
+
         initCanvas() {
             const canvas = document.getElementById('canvas');
             canvas.width = window.innerWidth;
@@ -115,13 +130,13 @@ export default {
                 }
             });
         },
-        drawPoints(x, y, radius, hasCircumference) {
+        drawPoints(x, y, radius, hasCircumference, isSelected) {
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
             //circle
             ctx.beginPath();
             ctx.strokeStyle = 'black';
-            ctx.fillStyle = 'black';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
 
             ctx.arc(
                 x,
@@ -149,7 +164,10 @@ export default {
             ctx.fill();
             // hollow circumference
             if (hasCircumference) {
-                ctx.strokeStyle = this.pointColor;
+                const color = isSelected ? 'blue' : this.pointColor
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+
                 ctx.lineWidth = 1;
                 ctx.beginPath();
                 ctx.arc(x, y, this.radius, 0, 2 * Math.PI, false);
