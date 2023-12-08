@@ -6,10 +6,10 @@
                 :dialog="dialog" :pointNumber="pointNumber" @close="dialogCancel" @select="select" />
         </div>
         <div>
-            <ConfigModal :configDialog="configDialog" @close="configDialogCancel" />
+            <ConfigModal :configDialog="configDialog" @close="configDialogCancel" @recalib="recalibrate" @goBack="goToDashboard" />
         </div>
         <v-col>
-            <DraggableFloatingButton @click="callConfigModal" :icon="'mdi-arrow-left'" />
+            <DraggableFloatingButton @click="callConfigModal" :icon="'mdi-cog'" />
             <!-- <DraggableFloatingButton @click="goToDashboard" :icon="'mdi-arrow-left'" />
             <DraggableFloatingButton @click="recalibrate" :icon="'mdi-refresh'" /> -->
         </v-col>
