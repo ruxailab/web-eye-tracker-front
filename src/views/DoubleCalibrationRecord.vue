@@ -259,8 +259,18 @@ export default {
       })
       const screenHeight = window.screen.height;
       const screenWidth = window.screen.width;
-      const predictions =
+      var predictions =
         await this.$store.dispatch('sendData', { circleIrisPoints: this.circleIrisPoints, calibPredictionPoints: this.calibPredictionPoints, screenHeight: screenHeight, screenWidth: screenWidth })
+
+      if (typeof predictions === 'string') {
+        predictions = predictions.replace(/NaN/g, '1');
+        try {
+          predictions = JSON.parse(predictions);
+        } catch (error) {
+          console.error('Error parsing predictions string:', error);
+        }
+      }
+      console.log(predictions);
       for (var a = 0; a < this.usedPattern.length; a++) {
         const element = predictions[this.usedPattern[a].x.toString().split('.')[0]][this.usedPattern[a].y.toString().split('.')[0]]
         this.usedPattern[a].precision = element.PrecisionSD.toFixed(2)
