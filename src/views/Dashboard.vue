@@ -8,25 +8,34 @@
     </v-row>
 
     <!-- New Calibration Btn -->
-    <v-tooltip left>
+    <DraggableFloatingButton :color="'black'" :icon="'mdi-plus'" @click="goToClibration" />
+    <!-- <v-tooltip left>
       <template v-slot:activator="{ on, attrs }">
         <v-btn dark bottom right fab fixed v-bind="attrs" v-on="on" :to="`/calibration`">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
       </template>
       <span>New Calibration</span>
-    </v-tooltip>
+    </v-tooltip> -->
   </div>
 </template>
 
 <script>
 import Toolbar from "@/components/general/Toolbar.vue";
 import CalibTable from "@/components/general/CalibTable.vue";
+import DraggableFloatingButton from '@/components/general/DraggableFloatingButton.vue';
 
 export default {
   components: {
     Toolbar,
     CalibTable,
+    DraggableFloatingButton,
   },
+  methods: {
+    goToClibration() {
+      this.$router.push("/calibration");
+    }
+  }
+
 };
 </script>

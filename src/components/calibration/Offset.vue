@@ -64,16 +64,13 @@ export default {
         generatePoints(offsetX, offsetY, width, height, pointNum) {
             const possiblePatterns = [
                 [
-                    { x: width / 2, y: height / 2 }
+                    { x: offsetX, y: height - offsetY },
+                    { x: width - offsetX, y: offsetY },
                 ],
                 [
-                    { x: offsetX, y: height / 2 },
-                    { x: width - offsetX, y: height / 2 }
-                ],
-                [
-                    { x: offsetX, y: height / 2 },
-                    { x: width / 2, y: offsetY },
-                    { x: width - offsetX, y: height / 2 }
+                    { x: offsetX, y: height - offsetY },
+                    { x: width / 2, y: height / 2 },
+                    { x: width - offsetX, y: offsetY },
                 ],
                 [
                     { x: offsetX, y: offsetY },

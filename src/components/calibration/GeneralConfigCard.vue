@@ -10,10 +10,10 @@
                     <TextField :value="calibName" @input="updateCalibName" />
                 </div>
                 <div class="custom-outline">
-                    <Slider :value="pointNumber" :min="Number(1)" :max="Number(9)" label="Point Number"
+                    <Slider :value="pointNumber" :min="Number(2)" :max="Number(9)" label="Point Number"
                         @input="updatePointNumber" />
                     <Slider :value="samplePerPoint" label="Sample Per Point" @input="updateSamplePerPoint" />
-                    <Slider :value="msPerCapture" :min="Number(100)" :max="Number(800)" label="Milliseconds Per Point Capture"
+                    <Slider :value="msPerCapture" :min="Number(10)" :max="Number(800)" label="Milliseconds Per Point Capture"
                         @input="updateMsPerCapture" />
                 </div>
                 <div class="custom-outline">

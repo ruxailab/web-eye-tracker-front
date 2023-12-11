@@ -10,21 +10,21 @@
     <div v-else>
       <v-row justify="center" align="center" class="ma-0 justify-center align-center">
         <div v-if="index === 0" class="text-center"
-          style="z-index: 1;position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+          style="z-index: 1;position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);">
           slowly press 'S' while looking at the point to begin
         </div>
-        <div v-if="index === pattern.length - 1" class="text-center"
-          style="z-index: 1;position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"> press 'S' one
+        <div v-if="index === usedPattern.length - 1" class="text-center"
+          style="z-index: 1;position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);"> press 'S' one
           more time</div>
-        <div v-if="index === pattern.length" class="text-center" style="z-index: 1;">
+        <div v-if="index === usedPattern.length" class="text-center" style="z-index: 1;">
           <div v-if="currentStep === 1"
-            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+            style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);">
             <div>
               you've collected {{ circleIrisPoints.length }} train points
             </div>
             <v-btn @click="nextStep()">Next Step</v-btn>
           </div>
-          <div v-else style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+          <div v-else style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);">
             <div>
               you've collected {{ calibPredictionPoints.length }} validation points
             </div>
@@ -61,6 +61,7 @@ export default {
       animationRefreshRate: 10,
       animationFrames: 250,
       innerCircleRadius: 5,
+      usedPattern: [],
     };
   },
   computed: {
@@ -75,6 +76,9 @@ export default {
     },
     pattern() {
       return this.$store.state.calibration.pattern
+    },
+    mockPattern() {
+      return this.$store.state.calibration.mockPattern
     },
     backgroundColor() {
       return this.$store.state.calibration.backgroundColor
@@ -104,10 +108,14 @@ export default {
       return this.$store.state.calibration.isControlled
     },
   },
+  created() {
+    this.$store.commit('setIndex', 0)
+    this.usedPattern = (this.mockPattern.length > 0) ? this.mockPattern : this.pattern
+  },
   async mounted() {
     await this.startWebCamCapture();
-    this.drawPoint(this.pattern[0].x, this.pattern[0].y, 1)
-    this.advance(this.pattern, this.circleIrisPoints, this.msPerCapture)
+    this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
+    this.advance(this.usedPattern, this.circleIrisPoints, this.msPerCapture)
   },
   methods: {
     advance(pattern, whereToSave, timeBetweenCaptures) {
@@ -118,6 +126,7 @@ export default {
           if (i <= pattern.length - 1) {
             document.removeEventListener('keydown', keydownHandler)
             await th.extract(pattern[i], timeBetweenCaptures)
+
             th.$store.commit('setIndex', i)
             i++
             if (i != pattern.length) {
@@ -127,7 +136,7 @@ export default {
           } else {
             th.$store.commit('setIndex', i)
             document.removeEventListener('keydown', keydownHandler)
-            th.savePoint(whereToSave, th.pattern)
+            th.savePoint(whereToSave, th.usedPattern)
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -137,13 +146,13 @@ export default {
       document.addEventListener('keydown', keydownHandler)
     },
     nextStep() {
-      this.pattern.forEach(element => {
+      this.usedPattern.forEach(element => {
         delete element.data;
       });
       this.$store.commit('setIndex', 0)
       this.currentStep = 2
-      this.drawPoint(this.pattern[0].x, this.pattern[0].y, 1)
-      this.advance(this.pattern, this.calibPredictionPoints, this.msPerCapture)
+      this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
+      this.advance(this.usedPattern, this.calibPredictionPoints, this.msPerCapture)
     },
     async extract(point, timeBetweenCaptures) {
       point.data = [];
@@ -170,7 +179,6 @@ export default {
         } else {
           const newPrediction = { leftIris: leftIris[0], rightIris: rightIris[0] };
           point.data.push(newPrediction);
-          console.log(point.data.length);
           const radius = (this.radius / this.predByPointCount) * a
           this.drawPoint(point.x, point.y, radius)
           a++;
@@ -251,11 +259,29 @@ export default {
       })
       const screenHeight = window.screen.height;
       const screenWidth = window.screen.width;
-      await this.$store.dispatch('sendData', { circleIrisPoints: this.circleIrisPoints, calibPredictionPoints: this.calibPredictionPoints, screenHeight: screenHeight, screenWidth: screenWidth })
+      var predictions =
+        await this.$store.dispatch('sendData', { circleIrisPoints: this.circleIrisPoints, calibPredictionPoints: this.calibPredictionPoints, screenHeight: screenHeight, screenWidth: screenWidth })
+
+      if (typeof predictions === 'string') {
+        predictions = predictions.replace(/NaN/g, '1');
+        try {
+          predictions = JSON.parse(predictions);
+        } catch (error) {
+          console.error('Error parsing predictions string:', error);
+        }
+      }
+      for (var a = 0; a < this.usedPattern.length; a++) {
+        const element = predictions[this.usedPattern[a].x.toString().split('.')[0]][this.usedPattern[a].y.toString().split('.')[0]]
+        this.usedPattern[a].precision = element.PrecisionSD.toFixed(2)
+        this.usedPattern[a].accuracy = element.Accuracy.toFixed(2)
+        this.usedPattern[a].predictionX = element.predicted_x
+        this.usedPattern[a].predictionY = element.predicted_y
+      }
       this.$store.dispatch('extractXYValues', { extract: this.circleIrisPoints, hasCalib: true })
       this.$store.dispatch('extractXYValues', { extract: this.calibPredictionPoints, hasCalib: false })
       this.stopRecord()
-      this.$router.push('/dashboard');
+      this.$store.commit('setMockPattern', [])
+      this.$router.push('/postCalibration');
     },
     savePoint(whereToSave, patternLike) {
       patternLike.forEach(point => {

@@ -3,7 +3,7 @@ export default {
     state: {
         calibName: '',
         pointNumber: 5,
-        samplePerPoint: 10,
+        samplePerPoint: 20,
         radius: 20,
         offset: 50,
         backgroundColor: '#FFFFFFFF',
@@ -13,7 +13,9 @@ export default {
         leftEyeTreshold: 5,
         rightEyeTreshold: 5,
         index: 0,
-        msPerCapture: 10,
+        msPerCapture: 50,
+        pattern: [],
+        mockPattern: []
     },
     mutations: {
         setCalibName(state, newCalibName) {
@@ -33,6 +35,17 @@ export default {
         },
         setPattern(state, newPattern) {
             state.pattern = newPattern;
+        },
+        setMockPatternElement(state, newPatternLike) {
+            if (!state.mockPattern.includes(newPatternLike)) {
+                state.mockPattern.push(newPatternLike)
+            } else {
+                const index = state.mockPattern.indexOf(newPatternLike);
+                state.mockPattern.splice(index, 1);
+            }
+        },
+        setMockPattern(state, newMockPattern) {
+            state.mockPattern = newMockPattern
         },
         setBackgroundColor(state, newBackgroundColor) {
             state.backgroundColor = newBackgroundColor
@@ -55,7 +68,7 @@ export default {
         setIndex(state, newIndex) {
             state.index = newIndex
         },
-        setMsPerCapture(state, newMsPerCapture){
+        setMsPerCapture(state, newMsPerCapture) {
             state.msPerCapture = newMsPerCapture
         }
     },
@@ -85,7 +98,8 @@ export default {
                     "Content-Type": "multipart/form-data",
                 },
             });
-            console.log(res);
+            return res.data
+            // console.log(res);
         }
     }
 }
