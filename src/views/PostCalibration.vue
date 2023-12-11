@@ -84,8 +84,6 @@ export default {
                 const isSelected = this.mockPattern.includes(this.pattern[i])
                 this.drawPoints(this.pattern[i].x, this.pattern[i].y, this.radius * this.pattern[i].accuracy, this.innerCircleRadius, true, isSelected)
 
-                console.log(this.pattern[i].predictionX);
-                console.log(this.pattern[i].predictionY);
 
                 for (var a = 0; a < this.pattern[i].predictionX.length; a++) {
                     // predicted points
