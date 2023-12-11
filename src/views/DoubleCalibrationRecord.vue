@@ -31,7 +31,7 @@
             <v-btn @click="endCalib()">End Calib</v-btn>
           </div>
         </div>
-      </v-row>0
+      </v-row>
     </div>
     <canvas id="canvas" style="z-index: 0;" />
     <video autoplay id="video-tag" style="display: none;"></video>
