@@ -10,21 +10,21 @@
     <div v-else>
       <v-row justify="center" align="center" class="ma-0 justify-center align-center">
         <div v-if="index === 0" class="text-center"
-          style="z-index: 1;position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+          style="z-index: 1;position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);">
           slowly press 'S' while looking at the point to begin
         </div>
         <div v-if="index === usedPattern.length - 1" class="text-center"
-          style="z-index: 1;position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"> press 'S' one
+          style="z-index: 1;position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);"> press 'S' one
           more time</div>
         <div v-if="index === usedPattern.length" class="text-center" style="z-index: 1;">
           <div v-if="currentStep === 1"
-            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+            style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);">
             <div>
               you've collected {{ circleIrisPoints.length }} train points
             </div>
             <v-btn @click="nextStep()">Next Step</v-btn>
           </div>
-          <div v-else style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+          <div v-else style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);">
             <div>
               you've collected {{ calibPredictionPoints.length }} validation points
             </div>
