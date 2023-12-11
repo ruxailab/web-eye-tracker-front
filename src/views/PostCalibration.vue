@@ -6,7 +6,8 @@
                 :dialog="dialog" :pointNumber="pointNumber" @close="dialogCancel" @select="select" />
         </div>
         <div>
-            <ConfigModal :configDialog="configDialog" @close="configDialogCancel" @recalib="recalibrate" @goBack="goToDashboard" />
+            <ConfigModal :configDialog="configDialog" @close="configDialogCancel" @recalib="recalibrate"
+                @goBack="goToDashboard" />
         </div>
         <v-col>
             <DraggableFloatingButton @click="callConfigModal" :icon="'mdi-cog'" />
@@ -81,11 +82,14 @@ export default {
             for (var i = 0; i < this.pattern.length; i++) {
                 // calib points
                 const isSelected = this.mockPattern.includes(this.pattern[i])
-                this.drawPoints(this.pattern[i].x, this.pattern[i].y, this.radius * this.pattern[i].accuracy, this.innerCircleRadius ,true, isSelected)
+                this.drawPoints(this.pattern[i].x, this.pattern[i].y, this.radius * this.pattern[i].accuracy, this.innerCircleRadius, true, isSelected)
+
+                console.log(this.pattern[i].predictionX);
+                console.log(this.pattern[i].predictionY);
 
                 for (var a = 0; a < this.pattern[i].predictionX.length; a++) {
                     // predicted points
-                    this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], 0, 2,false)
+                    this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], 0, 2, false)
                 }
             }
         },
