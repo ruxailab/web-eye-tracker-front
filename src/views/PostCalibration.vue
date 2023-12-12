@@ -82,10 +82,10 @@ export default {
             for (var i = 0; i < this.pattern.length; i++) {
                 // calib points
                 const isSelected = this.mockPattern.includes(this.pattern[i])
-                const crossColor = isSelected ? 'black' :'grey'
-                const dashColor = isSelected ? 'green' :'red'
-                const pointsColor = isSelected ? 'green' :'red'
-                const centroidColor = isSelected ? 'rgba(255, 255, 0, 0.3)' :'rgba(0, 0, 255, 0.3)'
+                const crossColor = isSelected ? 'black' : 'grey'
+                const dashColor = isSelected ? 'green' : 'red'
+                const pointsColor = isSelected ? 'green' : 'orange'
+                const centroidColor = isSelected ? 'rgba(0, 0, 255, 0.3)' : 'rgba(128, 128, 128, 0.3)'
 
                 this.drawCalibMarks(this.pattern[i].x, this.pattern[i].y, 30, crossColor)
 
@@ -100,7 +100,7 @@ export default {
                 var centroidX = sumX / this.pattern[i].predictionX.length;
                 var centroidY = sumY / this.pattern[i].predictionY.length;
                 this.drawDash(centroidX, centroidY, this.pattern[i].x, this.pattern[i].y, dashColor)
-                this.drawCentroid(centroidX, centroidY, this.pattern[i].accuracy * 25.4, centroidColor)
+                this.drawCentroid(centroidX, centroidY, this.pattern[i].accuracy * 25.4 * this.pattern[i].precision, centroidColor)
             }
         },
         recalibrate() {
@@ -183,7 +183,7 @@ export default {
             const ctx = canvas.getContext('2d');
 
             ctx.strokeStyle = color;
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 1;
 
             ctx.beginPath();
             ctx.moveTo(x - crossSize, y);
