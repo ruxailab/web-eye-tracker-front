@@ -100,7 +100,7 @@ export default {
                 var centroidX = sumX / this.pattern[i].predictionX.length;
                 var centroidY = sumY / this.pattern[i].predictionY.length;
                 this.drawDash(centroidX, centroidY, this.pattern[i].x, this.pattern[i].y, dashColor)
-                this.drawCentroid(centroidX, centroidY, this.pattern[i].accuracy * 25.4 * this.pattern[i].precision, centroidColor)
+                this.drawCentroid(centroidX, centroidY, 1+ this.pattern[i].precision * 25.4, centroidColor)
             }
         },
         recalibrate() {
