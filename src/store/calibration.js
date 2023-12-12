@@ -93,6 +93,7 @@ export default {
             formData.append("screen_width",
                 JSON.stringify(data.screenWidth)
             );
+            formData.append("k", JSON.stringify(data.k));
             const res = await axios.post(`/api/session/calib_validation`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",

@@ -260,7 +260,13 @@ export default {
       const screenHeight = window.screen.height;
       const screenWidth = window.screen.width;
       var predictions =
-        await this.$store.dispatch('sendData', { circleIrisPoints: this.circleIrisPoints, calibPredictionPoints: this.calibPredictionPoints, screenHeight: screenHeight, screenWidth: screenWidth })
+        await this.$store.dispatch('sendData', {
+          circleIrisPoints: this.circleIrisPoints,
+          calibPredictionPoints: this.calibPredictionPoints,
+          screenHeight: screenHeight,
+          screenWidth: screenWidth,
+          k: this.$store.state.calibration.pointNumber
+        })
 
       if (typeof predictions === 'string') {
         predictions = predictions.replace(/NaN/g, '1');
