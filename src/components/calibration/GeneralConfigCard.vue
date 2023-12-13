@@ -15,8 +15,8 @@
                     <Slider :value="samplePerPoint" label="Sample Per Point" @input="updateSamplePerPoint" />
                     <Slider :value="msPerCapture" :min="Number(10)" :max="Number(800)"
                         label="Milliseconds Per Point Capture" @input="updateMsPerCapture" />
-                    <Slider :value="threshold" :min="Number(0)" :max="Number(10)"
-                        label="Threshold" @input="updateThreshold" />
+                    <Slider :value="threshold" :min="Number(0)" :max="Number(500)"
+                        label="Points Distance Threshold" @input="updateThreshold" />
                 </div>
                 <div class="custom-outline">
                     <Radius />

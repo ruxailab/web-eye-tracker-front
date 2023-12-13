@@ -13,10 +13,10 @@ export default {
         leftEyeTreshold: 5,
         rightEyeTreshold: 5,
         index: 0,
-        msPerCapture: 50,
+        msPerCapture: 10,
         pattern: [],
         mockPattern: [],
-        threshold: 0
+        threshold: 200
     },
     mutations: {
         setThreshold(state, newThreshold) {
