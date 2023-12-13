@@ -72,14 +72,11 @@ export default {
         mockPattern() {
             this.drawCalibPoints()
         },
-        updateThreshold() {
+        threshold() {
             this.drawCalibPoints()
         },
     },
     methods: {
-        updateThreshold(value) {
-            this.$store.commit('setThreshold', value);
-        },
         callConfigModal() {
             this.configDialog = true
         },
@@ -87,6 +84,7 @@ export default {
             this.$store.commit('setMockPatternElement', this.pattern[pointNumber])
         },
         drawCalibPoints() {
+            const pointSize = 3.5
             this.initCanvas()
             for (var i = 0; i < this.pattern.length; i++) {
                 // calib points
@@ -99,21 +97,21 @@ export default {
                 this.drawCalibMarks(this.pattern[i].x, this.pattern[i].y, 30, crossColor)
                 var sumX = 0;
                 var sumY = 0;
+                var count = 0;
                 for (var a = 0; a < this.pattern[i].predictionX.length; a++) {
                     // predicted points
-                    sumX += this.pattern[i].predictionX[a];
-                    sumY += this.pattern[i].predictionY[a];
                     const distance = this.euclidianDistance(this.pattern[i].x, this.pattern[i].predictionX[a], this.pattern[i].y, this.pattern[i].predictionY[a])
                     if (distance <= this.threshold) {
-                        console.log(`accepted distance ${distance} =< ${this.threshold}`);
-                        this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], 2, pointsColor)
+                        this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], pointSize, pointsColor)
+                        sumX += this.pattern[i].predictionX[a];
+                        sumY += this.pattern[i].predictionY[a];
+                        count ++
                     } else {
-                        console.log(`denied distance ${distance} > ${this.threshold}`);
-                        this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], 2, 'grey')
+                        this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], pointSize, 'grey')
                     }
                 }
-                var centroidX = sumX / this.pattern[i].predictionX.length;
-                var centroidY = sumY / this.pattern[i].predictionY.length;
+                var centroidX = sumX / count;
+                var centroidY = sumY / count;
                 this.drawDash(centroidX, centroidY, this.pattern[i].x, this.pattern[i].y, dashColor)
                 this.drawCentroid(centroidX, centroidY, 1 + this.pattern[i].precision * 25.4, centroidColor)
             }
