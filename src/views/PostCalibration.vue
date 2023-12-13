@@ -93,6 +93,7 @@ export default {
                 const dashColor = isSelected ? 'green' : 'red'
                 const pointsColor = isSelected ? 'green' : 'orange'
                 const centroidColor = isSelected ? 'rgba(0, 0, 255, 0.3)' : 'rgba(128, 128, 128, 0.3)'
+                const deniedPointColor = isSelected ? 'blue' : 'grey'
 
                 this.drawCalibMarks(this.pattern[i].x, this.pattern[i].y, 30, crossColor)
                 var sumX = 0;
@@ -107,7 +108,7 @@ export default {
                         sumY += this.pattern[i].predictionY[a];
                         count ++
                     } else {
-                        this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], pointSize, 'grey')
+                        this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], pointSize, deniedPointColor)
                     }
                 }
                 var centroidX = sumX / count;
