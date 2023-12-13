@@ -265,7 +265,8 @@ export default {
           calibPredictionPoints: this.calibPredictionPoints,
           screenHeight: screenHeight,
           screenWidth: screenWidth,
-          k: this.$store.state.calibration.pointNumber
+          k: this.$store.state.calibration.pointNumber,
+          threshold: this.$store.state.calibration.threshold
         })
 
       if (typeof predictions === 'string') {
