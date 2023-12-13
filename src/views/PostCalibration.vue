@@ -82,13 +82,25 @@ export default {
             for (var i = 0; i < this.pattern.length; i++) {
                 // calib points
                 const isSelected = this.mockPattern.includes(this.pattern[i])
-                this.drawPoints(this.pattern[i].x, this.pattern[i].y, this.radius * this.pattern[i].accuracy, this.innerCircleRadius, true, isSelected)
+                const crossColor = isSelected ? 'black' : 'grey'
+                const dashColor = isSelected ? 'green' : 'red'
+                const pointsColor = isSelected ? 'green' : 'orange'
+                const centroidColor = isSelected ? 'rgba(0, 0, 255, 0.3)' : 'rgba(128, 128, 128, 0.3)'
 
+                this.drawCalibMarks(this.pattern[i].x, this.pattern[i].y, 30, crossColor)
 
+                var sumX = 0;
+                var sumY = 0;
                 for (var a = 0; a < this.pattern[i].predictionX.length; a++) {
                     // predicted points
-                    this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], 0, 2, false)
+                    sumX += this.pattern[i].predictionX[a];
+                    sumY += this.pattern[i].predictionY[a];
+                    this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], 2, pointsColor)
                 }
+                var centroidX = sumX / this.pattern[i].predictionX.length;
+                var centroidY = sumY / this.pattern[i].predictionY.length;
+                this.drawDash(centroidX, centroidY, this.pattern[i].x, this.pattern[i].y, dashColor)
+                this.drawCentroid(centroidX, centroidY, 1+ this.pattern[i].precision * 25.4, centroidColor)
             }
         },
         recalibrate() {
@@ -111,7 +123,6 @@ export default {
         dialogCancel(newDialog) {
             this.dialog = newDialog
         },
-
         initCanvas() {
             const canvas = document.getElementById('canvas');
             canvas.width = window.innerWidth;
@@ -139,14 +150,23 @@ export default {
                 }
             });
         },
-        drawPoints(x, y, radius, innerRadius, hasCircumference, isSelected) {
+        drawCentroid(x, y, radius, color) {
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
-            //circle
+            ctx.fillStyle = color;
             ctx.beginPath();
-            ctx.strokeStyle = 'black';
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.closePath();
 
+            ctx.fill();
+        },
+        drawPoints(x, y, radius, color) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            // inner circle
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
             ctx.arc(
                 x,
                 y,
@@ -157,32 +177,35 @@ export default {
             );
             ctx.stroke();
             ctx.fill();
-            // inner circle
-            ctx.beginPath();
-            ctx.strokeStyle = "red";
-            ctx.fillStyle = "red";
-            ctx.arc(
-                x,
-                y,
-                innerRadius,
-                0,
-                Math.PI * 2,
-                false
-            );
-            ctx.stroke();
-            ctx.fill();
-            // hollow circumference
-            if (hasCircumference) {
-                const color = isSelected ? 'blue' : this.pointColor
-                ctx.strokeStyle = color;
-                ctx.fillStyle = color;
-
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.arc(x, y, this.radius, 0, 2 * Math.PI, false);
-                ctx.stroke();
-            }
         },
+        drawCalibMarks(x, y, crossSize, color) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1;
+
+            ctx.beginPath();
+            ctx.moveTo(x - crossSize, y);
+            ctx.lineTo(x + crossSize, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y - crossSize);
+            ctx.lineTo(x, y + crossSize);
+            ctx.stroke();
+        },
+        drawDash(fromX, fromY, toX, toY, color) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.strokeStyle = color;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.stroke();
+            ctx.closePath();
+            ctx.setLineDash([]);
+        }
     },
 };
 </script>
