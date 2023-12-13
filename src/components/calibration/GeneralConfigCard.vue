@@ -13,8 +13,10 @@
                     <Slider :value="pointNumber" :min="Number(2)" :max="Number(9)" label="Point Number"
                         @input="updatePointNumber" />
                     <Slider :value="samplePerPoint" label="Sample Per Point" @input="updateSamplePerPoint" />
-                    <Slider :value="msPerCapture" :min="Number(10)" :max="Number(800)" label="Milliseconds Per Point Capture"
-                        @input="updateMsPerCapture" />
+                    <Slider :value="msPerCapture" :min="Number(10)" :max="Number(800)"
+                        label="Milliseconds Per Point Capture" @input="updateMsPerCapture" />
+                    <Slider :value="threshold" :min="Number(0)" :max="Number(10)"
+                        label="Threshold" @input="updateThreshold" />
                 </div>
                 <div class="custom-outline">
                     <Radius />
@@ -54,8 +56,14 @@ export default {
         msPerCapture() {
             return this.$store.state.calibration.msPerCapture
         },
+        threshold() {
+            return this.$store.state.calibration.threshold
+        },
     },
     methods: {
+        updateThreshold(value) {
+            this.$store.commit('setThreshold', value);
+        },
         updateSamplePerPoint(value) {
             this.$store.commit('setSamplePerPoint', value);
         },

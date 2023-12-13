@@ -16,7 +16,7 @@ export default {
         msPerCapture: 50,
         pattern: [],
         mockPattern: [],
-        threshold: 100
+        threshold: 0
     },
     mutations: {
         setThreshold(state, newThreshold) {
