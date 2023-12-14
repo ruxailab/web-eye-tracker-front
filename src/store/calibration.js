@@ -1,5 +1,6 @@
 import axios from 'axios';
 import firebase from 'firebase/app';
+import router from '@/router';
 export default {
     state: {
         calibName: '',
@@ -79,7 +80,6 @@ export default {
         },
         setCalibrations(state, newCalibrations) {
             state.calibrations = newCalibrations
-            console.log('state', state.calibrations);
         }
     },
     actions: {
@@ -96,9 +96,24 @@ export default {
                 console.error('Error saving data to calibrations collection:', error);
             }
         },
-        async getCalibById(context, id) {
-            console.log('context', context);
-            console.log('id', id);
+        async selectCalib({ commit }, calibData) {
+            commit('setThreshold', calibData.threshold)
+            commit('setCalibName', calibData.calibName)
+            commit('setSamplePerPoint', calibData.samplePerPoint)
+            commit('setRadius', calibData.radius)
+            commit('setOffset', calibData.offset)
+            commit('setPointNumber', calibData.pointNumber)
+            commit('setPattern', calibData.pattern)
+            commit('setMockPattern', calibData.mockPattern)
+            commit('setBackgroundColor', calibData.backgroundColor)
+            commit('setPointColor', calibData.pointColor)
+            commit('setCustomColors', calibData.customColors)
+            commit('setBlinkFilter', calibData.blinkFilter)
+            commit('setLeftTreshold', calibData.leftTreshold)
+            commit('setRightTreshold', calibData.rightTreshold)
+            commit('setIndex', calibData.index)
+            commit('setMsPerCapture', calibData.msPerCapture)
+            router.push('/postCalibration')
         },
         async getAllCalibs({ commit }) {
             try {

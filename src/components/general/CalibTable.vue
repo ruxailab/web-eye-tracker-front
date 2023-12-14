@@ -6,8 +6,14 @@
       <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details outlined
         dense></v-text-field>
     </v-card-title>
-
     <v-data-table :headers="headers" :items="filteredCalibrations">
+      <template v-slot:item="{ item }">
+        <tr @click="select(item)">
+          <td v-for="(header, index) in headers" :key="index">
+            {{ item[header.value] }}
+          </td>
+        </tr>
+      </template>
     </v-data-table>
   </v-card>
 </template>
@@ -42,6 +48,9 @@ export default {
     }
   },
   methods: {
+    select(item) {
+      this.$store.dispatch('selectCalib', item)
+    },
     getAllCalibrations() {
       this.$store.dispatch('getAllCalibs')
     },
