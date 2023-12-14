@@ -122,7 +122,18 @@ export default {
 
                 const calibrations = [];
                 calibrationsCollection.forEach(doc => {
-                    calibrations.push({ id: doc.id, ...doc.data() });
+                    var averageAccuracy = 0
+                    var averagePrecision = 0
+                    var data = doc.data()
+                    data.pattern.forEach(element => {
+                        averageAccuracy += Number(element.accuracy);
+                        averagePrecision += Number(element.precision);
+                    })
+                    data.averageAccuracy = averageAccuracy / data.pattern.length
+                    data.averagePrecision = averagePrecision / data.pattern.length
+                    calibrations.push({
+                        id: doc.id, ...data
+                    });
                 });
 
                 commit('setCalibrations', calibrations)

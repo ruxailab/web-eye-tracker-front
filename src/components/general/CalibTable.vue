@@ -27,8 +27,8 @@ export default {
         { text: 'name', value: 'calibName' },
         { text: 'id', value: 'id' },
         { text: 'point number', value: 'pointNumber' },
-        { text: 'average accuracy', value: 'accuracy' },
-        { text: 'average precision', value: 'precision' },
+        { text: 'average accuracy', value: 'averageAccuracy' },
+        { text: 'average precision', value: 'averagePrecision' },
       ],
     };
   },
@@ -44,15 +44,16 @@ export default {
       );
     },
   },
-  created() {
+  async created() {
     if (this.calibrations.length == 0) {
-      this.getAllCalibrations()
+      await this.getAllCalibrations()
+      await this.calibrations.forEach(element => {
+        console.log(element);
+        element.precision = this.getCalibAvgPrecision(element)
+        element.accuracy = this.getCalibAvgAccuracy(element)
+      }
+      )
     }
-    this.calibrations.forEach(element => {
-      element.precision = this.getCalibAvgPrecision(element)
-      element.accuracy = this.getCalibAvgAccuracy(element)
-    }
-    )
   },
   methods: {
     getCalibAvgAccuracy(calibration) {
