@@ -25,7 +25,6 @@ export default {
     goToClibration() {
       this.$router.push("/calibration");
     },
-    
   }
 };
 </script>

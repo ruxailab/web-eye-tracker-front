@@ -6,7 +6,7 @@
                 {{ (mockPattern.length != 0) ? `using ${mockPattern.length} selected points` : `no points selected, using
                 all ${pattern.length} points` }}
             </v-card-text>
-            <Slider :value="threshold" :min="Number(100)" :max="Number(1000)" label="Points Distance Threshold"
+            <Slider :value="threshold" :min="Number(0)" :max="Number(1000)" label="Points Distance Threshold"
                 @input="updateThreshold" />
             <v-card-actions>
                 <v-spacer></v-spacer>
