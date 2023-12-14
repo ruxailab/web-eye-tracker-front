@@ -22,7 +22,7 @@
             <div>
               you've collected {{ circleIrisPoints.length }} train points
             </div>
-            <v-btn @click="endCalib()">Next Step</v-btn>
+            <v-btn @click="endCalib()">End Calib</v-btn>
           </div>
           <div v-else style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);">
             <div>

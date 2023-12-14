@@ -1,4 +1,5 @@
 import axios from 'axios';
+import firebase from 'firebase/app';
 export default {
     state: {
         calibName: '',
@@ -77,6 +78,18 @@ export default {
         }
     },
     actions: {
+        async saveCalib(context) {
+            const state = context.state
+            const db = firebase.firestore()
+            const calibrationData = { ...state }
+            try {
+                const calibrationsCollection = db.collection('calibrations');
+                await calibrationsCollection.add(calibrationData);
+                console.log('Data successfully saved to calibrations collection!');
+            } catch (error) {
+                console.error('Error saving data to calibrations collection:', error);
+            }
+        },
         async sendData(context, data) {
             let formData = new FormData();
             formData.append(
