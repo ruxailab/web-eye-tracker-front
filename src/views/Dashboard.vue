@@ -6,17 +6,7 @@
         <CalibTable />
       </v-col>
     </v-row>
-
-    <!-- New Calibration Btn -->
     <DraggableFloatingButton :color="'black'" :icon="'mdi-plus'" @click="goToClibration" />
-    <!-- <v-tooltip left>
-      <template v-slot:activator="{ on, attrs }">
-        <v-btn dark bottom right fab fixed v-bind="attrs" v-on="on" :to="`/calibration`">
-          <v-icon>mdi-plus</v-icon>
-        </v-btn>
-      </template>
-      <span>New Calibration</span>
-    </v-tooltip> -->
   </div>
 </template>
 
@@ -31,23 +21,11 @@ export default {
     CalibTable,
     DraggableFloatingButton,
   },
-  computed: {
-    calibrations() {
-      return this.$store.state.calibration.calibrations
-    },
-  },
-  created() {
-    if (this.calibrations.length == 0) {
-      this.getAllCalibrations()
-    }
-  },
   methods: {
     goToClibration() {
       this.$router.push("/calibration");
     },
-    getAllCalibrations() {
-      this.$store.dispatch('getAllCalibs')
-    },
+    
   }
 };
 </script>

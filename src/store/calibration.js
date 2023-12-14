@@ -79,6 +79,7 @@ export default {
         },
         setCalibrations(state, newCalibrations) {
             state.calibrations = newCalibrations
+            console.log('state', state.calibrations);
         }
     },
     actions: {

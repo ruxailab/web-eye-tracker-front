@@ -3,16 +3,12 @@
     <v-card-title>
       My Calibrations
       <v-spacer></v-spacer>
-      <v-text-field
-        v-model="search"
-        append-icon="mdi-magnify"
-        label="Search"
-        single-line
-        hide-details
-        outlined
-        dense
-      ></v-text-field>
+      <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details outlined
+        dense></v-text-field>
     </v-card-title>
+
+    <v-data-table :headers="headers" :items="filteredCalibrations">
+    </v-data-table>
   </v-card>
 </template>
 
@@ -21,7 +17,34 @@ export default {
   data() {
     return {
       search: "",
+      headers: [
+        { text: 'name', value: 'calibName' },
+        { text: 'id', value: 'id' },
+        { text: 'point number', value: 'pointNumber' },
+      ],
     };
   },
+  computed: {
+    calibrations() {
+      return this.$store.state.calibration.calibrations
+    },
+    filteredCalibrations() {
+      return this.calibrations.filter(calibration =>
+        Object.values(calibration).some(value =>
+          value.toLowerCase().includes(this.search.toLowerCase())
+        )
+      );
+    },
+  },
+  created() {
+    if (this.calibrations.length == 0) {
+      this.getAllCalibrations()
+    }
+  },
+  methods: {
+    getAllCalibrations() {
+      this.$store.dispatch('getAllCalibs')
+    },
+  }
 };
 </script>
