@@ -13,10 +13,10 @@ export default {
         leftEyeTreshold: 5,
         rightEyeTreshold: 5,
         index: 0,
-        msPerCapture: 50,
+        msPerCapture: 10,
         pattern: [],
         mockPattern: [],
-        threshold: 0
+        threshold: 200
     },
     mutations: {
         setThreshold(state, newThreshold) {
@@ -98,7 +98,6 @@ export default {
                 JSON.stringify(data.screenWidth)
             );
             formData.append("k", JSON.stringify(data.k));
-            formData.append("threshold", JSON.stringify(data.threshold));
             const res = await axios.post(`/api/session/calib_validation`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",

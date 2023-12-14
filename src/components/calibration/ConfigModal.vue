@@ -6,12 +6,13 @@
                 {{ (mockPattern.length != 0) ? `using ${mockPattern.length} selected points` : `no points selected, using
                 all ${pattern.length} points` }}
             </v-card-text>
+            <Slider :value="threshold" :min="Number(100)" :max="Number(1000)" label="Points Distance Threshold"
+                @input="updateThreshold" />
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn color="blue darken-1" text @click="recalibrate">recalib</v-btn>
                 <v-btn color="blue darken-1" text @click="goBack">back</v-btn>
                 <v-btn color="blue darken-1" text @click="aDialog = false">close</v-btn>
-
                 <v-spacer></v-spacer>
             </v-card-actions>
         </v-card>
@@ -20,7 +21,11 @@
   
 
 <script>
+import Slider from '@/components/general/Slider.vue'
 export default {
+    components: {
+        Slider
+    },
     props: {
         configDialog: {
             type: Boolean,
@@ -41,6 +46,9 @@ export default {
         }
     },
     computed: {
+        threshold() {
+            return this.$store.state.calibration.threshold;
+        },
         pattern() {
             return this.$store.state.calibration.pattern
         },
@@ -49,10 +57,13 @@ export default {
         },
     },
     methods: {
+        updateThreshold(value) {
+            this.$store.commit('setThreshold', value);
+        },
         recalibrate() {
             this.$emit('recalib');
         },
-        goBack(){
+        goBack() {
             this.$emit('goBack');
         }
     }
