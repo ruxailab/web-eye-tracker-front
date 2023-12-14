@@ -17,7 +17,8 @@ export default {
         msPerCapture: 10,
         pattern: [],
         mockPattern: [],
-        threshold: 200
+        threshold: 200,
+        calibrations: [],
     },
     mutations: {
         setThreshold(state, newThreshold) {
@@ -75,6 +76,9 @@ export default {
         },
         setMsPerCapture(state, newMsPerCapture) {
             state.msPerCapture = newMsPerCapture
+        },
+        setCalibrations(state, newCalibrations) {
+            state.calibrations = newCalibrations
         }
     },
     actions: {
@@ -82,12 +86,33 @@ export default {
             const state = context.state
             const db = firebase.firestore()
             const calibrationData = { ...state }
+            delete calibrationData.calibrations
             try {
                 const calibrationsCollection = db.collection('calibrations');
                 await calibrationsCollection.add(calibrationData);
                 console.log('Data successfully saved to calibrations collection!');
             } catch (error) {
                 console.error('Error saving data to calibrations collection:', error);
+            }
+        },
+        async getCalibById(context, id) {
+            console.log('context', context);
+            console.log('id', id);
+        },
+        async getAllCalibs({ commit }) {
+            try {
+                const db = firebase.firestore();
+                const calibrationsCollection = await db.collection('calibrations').get();
+
+                const calibrations = [];
+                calibrationsCollection.forEach(doc => {
+                    calibrations.push({ id: doc.id, ...doc.data() });
+                });
+
+                commit('setCalibrations', calibrations)
+            } catch (error) {
+                console.error('Error getting calibrations:', error);
+                throw error;
             }
         },
         async sendData(context, data) {

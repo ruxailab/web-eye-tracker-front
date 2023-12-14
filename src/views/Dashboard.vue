@@ -31,11 +31,23 @@ export default {
     CalibTable,
     DraggableFloatingButton,
   },
+  computed: {
+    calibrations() {
+      return this.$store.state.calibration.calibrations
+    },
+  },
+  created() {
+    if (this.calibrations.length == 0) {
+      this.getAllCalibrations()
+    }
+  },
   methods: {
     goToClibration() {
       this.$router.push("/calibration");
-    }
+    },
+    getAllCalibrations() {
+      this.$store.dispatch('getAllCalibs')
+    },
   }
-
 };
 </script>
