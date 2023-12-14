@@ -7,7 +7,7 @@
         </div>
         <div>
             <ConfigModal :configDialog="configDialog" @close="configDialogCancel" @recalib="recalibrate"
-                @goBack="goToDashboard" />
+                @save="saveCalib" />
         </div>
         <v-col>
             <DraggableFloatingButton @click="callConfigModal" :icon="'mdi-cog'" />
@@ -106,7 +106,7 @@ export default {
                         this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], pointSize, pointsColor)
                         sumX += this.pattern[i].predictionX[a];
                         sumY += this.pattern[i].predictionY[a];
-                        count ++
+                        count++
                     } else {
                         this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], pointSize, deniedPointColor)
                     }
@@ -120,7 +120,8 @@ export default {
         recalibrate() {
             this.$router.push('/calibration/record')
         },
-        goToDashboard() {
+        async saveCalib() {
+            await this.$store.dispatch('saveCalib')
             this.$router.push('/dashboard')
         },
         callModal(patternLike, pointNumber) {

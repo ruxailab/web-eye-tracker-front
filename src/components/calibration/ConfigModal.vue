@@ -1,17 +1,17 @@
 <template>
-    <v-dialog v-model="aDialog" max-width="300px" max-height="500px">
+    <v-dialog v-model="aDialog" max-width="400px" max-height="500px">
         <v-card>
             <v-card-title class="headline text-center mx-auto">recalibrate</v-card-title>
             <v-card-text>
                 {{ (mockPattern.length != 0) ? `using ${mockPattern.length} selected points` : `no points selected, using
                 all ${pattern.length} points` }}
             </v-card-text>
-            <Slider :value="threshold" :min="Number(100)" :max="Number(1000)" label="Points Distance Threshold"
+            <Slider :value="threshold" :min="Number(0)" :max="Number(1000)" label="Points Distance Threshold"
                 @input="updateThreshold" />
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn color="blue darken-1" text @click="recalibrate">recalib</v-btn>
-                <v-btn color="blue darken-1" text @click="goBack">back</v-btn>
+                <v-btn color="blue darken-1" text @click="save">save</v-btn>
                 <v-btn color="blue darken-1" text @click="aDialog = false">close</v-btn>
                 <v-spacer></v-spacer>
             </v-card-actions>
@@ -63,8 +63,8 @@ export default {
         recalibrate() {
             this.$emit('recalib');
         },
-        goBack() {
-            this.$emit('goBack');
+        save() {
+            this.$emit('save');
         }
     }
 }

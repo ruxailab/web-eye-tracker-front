@@ -1,4 +1,6 @@
 import axios from 'axios';
+import firebase from 'firebase/app';
+import router from '@/router';
 export default {
     state: {
         calibName: '',
@@ -16,7 +18,8 @@ export default {
         msPerCapture: 10,
         pattern: [],
         mockPattern: [],
-        threshold: 200
+        threshold: 200,
+        calibrations: [],
     },
     mutations: {
         setThreshold(state, newThreshold) {
@@ -74,9 +77,71 @@ export default {
         },
         setMsPerCapture(state, newMsPerCapture) {
             state.msPerCapture = newMsPerCapture
+        },
+        setCalibrations(state, newCalibrations) {
+            state.calibrations = newCalibrations
         }
     },
     actions: {
+        async saveCalib(context) {
+            const state = context.state
+            const db = firebase.firestore()
+            const calibrationData = { ...state }
+            delete calibrationData.calibrations
+            try {
+                const calibrationsCollection = db.collection('calibrations');
+                await calibrationsCollection.add(calibrationData);
+                console.log('Data successfully saved to calibrations collection!');
+            } catch (error) {
+                console.error('Error saving data to calibrations collection:', error);
+            }
+        },
+        async selectCalib({ commit }, calibData) {
+            commit('setThreshold', calibData.threshold)
+            commit('setCalibName', calibData.calibName)
+            commit('setSamplePerPoint', calibData.samplePerPoint)
+            commit('setRadius', calibData.radius)
+            commit('setOffset', calibData.offset)
+            commit('setPointNumber', calibData.pointNumber)
+            commit('setPattern', calibData.pattern)
+            commit('setMockPattern', calibData.mockPattern)
+            commit('setBackgroundColor', calibData.backgroundColor)
+            commit('setPointColor', calibData.pointColor)
+            commit('setCustomColors', calibData.customColors)
+            commit('setBlinkFilter', calibData.blinkFilter)
+            commit('setLeftTreshold', calibData.leftTreshold)
+            commit('setRightTreshold', calibData.rightTreshold)
+            commit('setIndex', calibData.index)
+            commit('setMsPerCapture', calibData.msPerCapture)
+            router.push('/postCalibration')
+        },
+        async getAllCalibs({ commit }) {
+            try {
+                const db = firebase.firestore();
+                const calibrationsCollection = await db.collection('calibrations').get();
+
+                const calibrations = [];
+                calibrationsCollection.forEach(doc => {
+                    var averageAccuracy = 0
+                    var averagePrecision = 0
+                    var data = doc.data()
+                    data.pattern.forEach(element => {
+                        averageAccuracy += Number(element.accuracy);
+                        averagePrecision += Number(element.precision);
+                    })
+                    data.averageAccuracy = averageAccuracy / data.pattern.length
+                    data.averagePrecision = averagePrecision / data.pattern.length
+                    calibrations.push({
+                        id: doc.id, ...data
+                    });
+                });
+
+                commit('setCalibrations', calibrations)
+            } catch (error) {
+                console.error('Error getting calibrations:', error);
+                throw error;
+            }
+        },
         async sendData(context, data) {
             let formData = new FormData();
             formData.append(
