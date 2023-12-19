@@ -26,6 +26,8 @@ export default {
       initialMouseY: 0,
       initialBtnX: 0,
       initialBtnY: 0,
+      deltaX: 0,
+      deltaY: 0,
       startTime: 0,
     };
   },
@@ -44,21 +46,20 @@ export default {
     },
     handleDrag(event) {
       if (this.dragging) {
-        const deltaX = event.clientX - this.initialMouseX;
-        const deltaY = event.clientY - this.initialMouseY;
-        this.$refs.draggableBtn.$el.style.left = this.initialBtnX + deltaX + "px";
-        this.$refs.draggableBtn.$el.style.top = this.initialBtnY + deltaY + "px";
+        this.deltaX = event.clientX - this.initialMouseX;
+        this.deltaY = event.clientY - this.initialMouseY;
+        this.$refs.draggableBtn.$el.style.left = this.initialBtnX + this.deltaX + "px";
+        this.$refs.draggableBtn.$el.style.top = this.initialBtnY + this.deltaY + "px";
       }
     },
     endDrag() {
       if (this.dragging) {
         this.dragging = false;
-        const endTime = new Date();
-        const timeDifference = endTime - this.startTime;
-        // console.log(`User dragged for ${timeDifference} milliseconds`);
-        if (timeDifference <= 100) {
+        if (this.deltaX == 0 && this.deltaY == 0) {
           this.handleClick()
         }
+        this.deltaX = 0
+        this.deltaY = 0
       }
     },
     handleClick(event) {
