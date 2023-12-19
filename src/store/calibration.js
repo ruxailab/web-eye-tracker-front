@@ -116,6 +116,7 @@ export default {
                 const calibrationsCollection = db.collection('calibrations');
                 await calibrationsCollection.add(calibrationData);
                 console.log('Data successfully saved to calibrations collection!');
+                context.dispatch('getAllCalibs')
             } catch (error) {
                 console.error('Error saving data to calibrations collection:', error);
             }
@@ -166,6 +167,17 @@ export default {
                 throw error;
             }
         },
+        async deleteCalib({ dispatch }, calib) {
+            try {
+                const db = firebase.firestore();
+                const calibrationsCollection = db.collection('calibrations');
+                await calibrationsCollection.doc(calib.id).delete();
+                dispatch('getAllCalibs')
+            } catch (error) {
+                console.error('Error deleting calibration:', error);
+                return { success: false, message: 'Failed to delete calibration' };
+            }
+        },
         async sendData(context, data) {
             let formData = new FormData();
             formData.append(
@@ -195,5 +207,5 @@ export default {
             return res.data
             // console.log(res);
         }
-    }
+    },
 }
