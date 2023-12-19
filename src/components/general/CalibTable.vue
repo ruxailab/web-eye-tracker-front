@@ -8,9 +8,14 @@
     </v-card-title>
     <v-data-table :headers="headers" :items="filteredCalibrations">
       <template v-slot:item="{ item }">
-        <tr @click="select(item)">
-          <td v-for="(header, index) in headers" :key="index">
+        <tr>
+          <td @click="select(item)" v-for="(header, index) in headers" :key="index">
             {{ item[header.value] }}
+          </td>
+          <td>
+            <v-btn icon color="black" @click="deleteItem(item)">
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
           </td>
         </tr>
       </template>
@@ -84,6 +89,9 @@ export default {
     getAllCalibrations() {
       this.$store.dispatch('getAllCalibs')
     },
+    deleteItem(calib) {
+      this.$store.dispatch('deleteCalib', calib)
+    }
   }
 };
 </script>
