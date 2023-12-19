@@ -1,7 +1,7 @@
 <template>
   <v-card outlined class="pa-4">
     <v-card-title>
-      My Calibrations
+      All Calibrations
       <v-spacer></v-spacer>
       <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details outlined
         dense></v-text-field>
