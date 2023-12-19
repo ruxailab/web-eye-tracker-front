@@ -85,6 +85,26 @@ export default {
         setFromDashboard(state, newFromDashboard) {
             state.fromDashboard = newFromDashboard
         },
+        resetAll(state) {
+            state.calibName = ''
+            state.pointNumber = 5
+            state.samplePerPoint = 20
+            state.radius = 20
+            state.offset = 50
+            state.backgroundColor = '#FFFFFFFF'
+            state.pointColor = '#000000FF'
+            state.customColors = false
+            state.blinkFilter = true
+            state.leftEyeTreshold = 5
+            state.rightEyeTreshold = 5
+            state.index = 0
+            state.msPerCapture = 10
+            state.pattern = []
+            state.mockPattern = []
+            state.threshold = 200
+            state.calibrations = []
+            state.fromDashboard = false
+        },
     },
     actions: {
         async saveCalib(context) {
