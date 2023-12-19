@@ -116,6 +116,7 @@ export default {
                 const calibrationsCollection = db.collection('calibrations');
                 await calibrationsCollection.add(calibrationData);
                 console.log('Data successfully saved to calibrations collection!');
+                context.dispatch('getAllCalibs')
             } catch (error) {
                 console.error('Error saving data to calibrations collection:', error);
             }
@@ -177,34 +178,34 @@ export default {
                 return { success: false, message: 'Failed to delete calibration' };
             }
         },
+        async sendData(context, data) {
+            let formData = new FormData();
+            formData.append(
+                "file_name",
+                JSON.stringify(context.state.calibName)
+            )
+            formData.append(
+                "fixed_circle_iris_points",
+                JSON.stringify(data.circleIrisPoints)
+            );
+            formData.append(
+                "calib_circle_iris_points",
+                JSON.stringify(data.calibPredictionPoints)
+            );
+            formData.append("screen_height",
+                JSON.stringify(data.screenHeight)
+            );
+            formData.append("screen_width",
+                JSON.stringify(data.screenWidth)
+            );
+            formData.append("k", JSON.stringify(data.k));
+            const res = await axios.post(`/api/session/calib_validation`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+            return res.data
+            // console.log(res);
+        }
     },
-    async sendData(context, data) {
-        let formData = new FormData();
-        formData.append(
-            "file_name",
-            JSON.stringify(context.state.calibName)
-        )
-        formData.append(
-            "fixed_circle_iris_points",
-            JSON.stringify(data.circleIrisPoints)
-        );
-        formData.append(
-            "calib_circle_iris_points",
-            JSON.stringify(data.calibPredictionPoints)
-        );
-        formData.append("screen_height",
-            JSON.stringify(data.screenHeight)
-        );
-        formData.append("screen_width",
-            JSON.stringify(data.screenWidth)
-        );
-        formData.append("k", JSON.stringify(data.k));
-        const res = await axios.post(`/api/session/calib_validation`, formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        });
-        return res.data
-        // console.log(res);
-    }
 }
