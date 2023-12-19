@@ -23,6 +23,7 @@ export default {
   },
   methods: {
     goToClibration() {
+      this.$store.commit('resetAll')
       this.$router.push("/calibration");
     },
   }

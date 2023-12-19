@@ -10,7 +10,7 @@
                 @input="updateThreshold" />
             <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text @click="recalibrate">recalib</v-btn>
+                <v-btn color="blue darken-1" :disabled="fromDashboard" text @click="recalibrate">recalib</v-btn>
                 <v-btn color="blue darken-1" text @click="save">save</v-btn>
                 <v-btn color="blue darken-1" text @click="aDialog = false">close</v-btn>
                 <v-spacer></v-spacer>
@@ -54,6 +54,9 @@ export default {
         },
         mockPattern() {
             return this.$store.state.calibration.mockPattern
+        },
+        fromDashboard() {
+            return this.$store.state.calibration.fromDashboard
         },
     },
     methods: {
