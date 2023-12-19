@@ -1,8 +1,8 @@
 <template>
     <div>
-        <Slider :value="leftEyeTreshold" :min="Number(3)" :max="Number(10)" :decimal="true" label="left eye treshold"
+        <Slider :value="leftEyeTreshold" :min="Number(3)" :max="Number(10)" :step="0.1" label="left eye treshold"
             @input="updateLeftTreshold" />
-        <Slider :value="rightEyeTreshold" :min="Number(3)" :max="Number(10)" :decimal="true" label="right eye treshold"
+        <Slider :value="rightEyeTreshold" :min="Number(3)" :max="Number(10)" :step="0.1" label="right eye treshold"
             @input="updateRightTreshold" />
     </div>
 </template>

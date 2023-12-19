@@ -3,7 +3,7 @@
         <v-row>
             <v-col>
                 {{ label }} : {{ sliderValue }}
-                <v-slider v-model="sliderValue" :min="min" :max="max" :step="decimal ? 0.1 : 1"
+                <v-slider v-model="sliderValue" :min="min" :max="max" :step="step"
                     class="my-slider"></v-slider>
             </v-col>
         </v-row>
@@ -13,9 +13,9 @@
 <script>
 export default {
     props: {
-        decimal: {
-            type: Boolean,
-            default: false,
+        step: {
+            type: Number,
+            default: 1,
         },
         value: {
             type: Number,
