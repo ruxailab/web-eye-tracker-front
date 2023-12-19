@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="scroll-container">
         <canvas id="canvas" />
         <div>
             <PointModal :x="Number(x)" :y="Number(y)" :precision="Number(precision)" :accuracy="Number(accuracy)"
@@ -153,7 +153,7 @@ export default {
             canvas.height = window.innerHeight
             if (this.fromDashboard) {
                 const dimension = this.getLargerDistancePoint()
-                const offset = 30
+                const offset = 25
                 canvas.width = dimension.x + offset;
                 canvas.height = dimension.y + offset;
             }
@@ -256,3 +256,11 @@ export default {
     },
 };
 </script>
+
+
+<style>
+.scroll-container {
+  width: 100%; /* Set the width to whatever you need */
+  overflow-x: auto; /* Enable horizontal scrolling */
+}
+</style>
