@@ -78,6 +78,7 @@ export default {
       return avgPrecision;
     },
     select(item) {
+      this.$store.commit('setFromDashboard', true)
       this.$store.dispatch('selectCalib', item)
     },
     getAllCalibrations() {

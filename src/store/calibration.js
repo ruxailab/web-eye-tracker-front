@@ -20,6 +20,7 @@ export default {
         mockPattern: [],
         threshold: 200,
         calibrations: [],
+        fromDashboard: false,
     },
     mutations: {
         setThreshold(state, newThreshold) {
@@ -80,7 +81,10 @@ export default {
         },
         setCalibrations(state, newCalibrations) {
             state.calibrations = newCalibrations
-        }
+        },
+        setFromDashboard(state, newFromDashboard) {
+            state.fromDashboard = newFromDashboard
+        },
     },
     actions: {
         async saveCalib(context) {
