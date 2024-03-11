@@ -263,4 +263,11 @@ export default {
   width: 100%; /* Set the width to whatever you need */
   overflow-x: auto; /* Enable horizontal scrolling */
 }
+.v-dialog__content{
+        flex-direction: column;
+        flex-wrap: nowrap;
+        justify-content: center;
+        align-items: unset;
+        width: max-content;
+    }
 </style>
