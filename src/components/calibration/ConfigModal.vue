@@ -24,7 +24,6 @@
                 <v-btn color="blue darken-1" text @click="aDialog = false">close</v-btn>
                 <v-spacer></v-spacer>
             </v-card-actions>
-            <v-tour name="myTour" :steps="steps"></v-tour>
         </v-card>
     </v-dialog>
 </template>
