@@ -10,8 +10,8 @@ The project consists of two parts, this repository contains the frontend of the 
 
 ### Prerequisites
 
-* [Vue CLI 4x](https://www.npmjs.com/package/@vue/cli)
-* [Nodejs 14x](https://nodejs.org/en/download/)
+* [Vue CLI 5x](https://www.npmjs.com/package/@vue/cli)
+* [Nodejs 20x](https://nodejs.org/en/download/)
 
 ### 1. Install dependencies
 

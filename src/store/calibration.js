@@ -1,5 +1,7 @@
 import axios from 'axios';
-import firebase from 'firebase/app';
+import firebase from "firebase/compat/app"
+import 'firebase/compat/auth';
+import 'firebase/compat/firestore';
 import router from '@/router';
 export default {
     state: {
