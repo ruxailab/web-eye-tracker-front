@@ -49,10 +49,7 @@ export default {
       recordWebCam: null,
       configWebCam: {
         audio: false,
-        video: { /*The fixed values earlier were {1536,864}.
-                 These values got the resolution of a 1080p webcam. 
-                 However, this doesn't work on lower/higher resolution cameras.
-                 Changed it to get the videoWidth and videoHeight of the video stream of the user.*/
+        video: { 
           width: document.getElementById("video-tag").videoWidth,
           height: document.getElementById("video-tag").videoHeight,
         },
@@ -352,18 +349,20 @@ export default {
         })
         .catch((e) => {
           console.error("Error", e);
-          //this.stopRecord();
         });
     },
+
     async detectFace() {
       const lastPrediction = await this.model.estimateFaces({
         input: document.getElementById("video-tag"),
       });
       return lastPrediction
     },
+
     stopRecord() {
       this.recordWebCam.state != "inactive" ? this.stopWebCamCapture() : null;
     },
+
     async stopWebCamCapture() {
       await this.recordWebCam.stop();
       this.calibFinished = true;
