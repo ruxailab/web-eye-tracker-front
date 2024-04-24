@@ -5,10 +5,8 @@
             <PointModal :x="Number(x)" :y="Number(y)" :precision="Number(precision)" :accuracy="Number(accuracy)"
                 :dialog="dialog" :pointNumber="pointNumber" @close="dialogCancel" @select="select" />
         </div>
-        <div>
             <ConfigModal :configDialog="configDialog" @close="configDialogCancel" @recalib="recalibrate"
                 @save="saveCalib" />
-        </div>
         <v-col>
             <DraggableFloatingButton @click="callConfigModal" :icon="'mdi-cog'" />
         </v-col>
@@ -263,4 +261,15 @@ export default {
   width: 100%; /* Set the width to whatever you need */
   overflow-x: auto; /* Enable horizontal scrolling */
 }
+.v-dialog__content{
+        flex-direction: column;
+        flex-wrap: nowrap;
+        justify-content: center;
+        align-items: unset;
+        width: 300px;
+    }
+    .v-dialog{
+        box-shadow: none;
+        overflow-y: visible;
+    }
 </style>
