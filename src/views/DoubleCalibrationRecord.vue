@@ -39,7 +39,9 @@
 </template>
 
 <script>
+
 export default {
+  
   data() {
     return {
       // camera
@@ -47,12 +49,12 @@ export default {
       recordWebCam: null,
       configWebCam: {
         audio: false,
-        video: {
-          width: 1536,
-          height: 864,
+        video: { 
+          width: document.getElementById("video-tag").videoWidth,
+          height: document.getElementById("video-tag").videoHeight,
         },
       },
-
+      
       // cablibration
       circleIrisPoints: [],
       calibPredictionPoints: [],
@@ -308,6 +310,7 @@ export default {
     // canvas related
     async startWebCamCapture() {
       // Request permission for screen capture
+
       return navigator.mediaDevices
         .getUserMedia(this.configWebCam)
         .then(async (mediaStreamObj) => {
@@ -315,6 +318,7 @@ export default {
           this.recordWebCam = new MediaRecorder(mediaStreamObj, {
             mimeType: "video/webm;",
           });
+          
           let recordingWebCam = [];
           let video = document.getElementById("video-tag");
           video.srcObject = mediaStreamObj;
@@ -325,6 +329,7 @@ export default {
           };
           // OnStop WebCam Record
           const th = this;
+          
           this.recordWebCam.onstop = () => {
             // Generate blob from the frames
             let blob = new Blob(recordingWebCam, { type: "video/webm" });
@@ -344,18 +349,20 @@ export default {
         })
         .catch((e) => {
           console.error("Error", e);
-          this.stopRecord();
         });
     },
+
     async detectFace() {
       const lastPrediction = await this.model.estimateFaces({
         input: document.getElementById("video-tag"),
       });
       return lastPrediction
     },
+
     stopRecord() {
       this.recordWebCam.state != "inactive" ? this.stopWebCamCapture() : null;
     },
+
     async stopWebCamCapture() {
       await this.recordWebCam.stop();
       this.calibFinished = true;
