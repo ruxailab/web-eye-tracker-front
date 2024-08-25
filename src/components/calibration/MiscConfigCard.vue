@@ -19,6 +19,13 @@
                         <v-color-picker v-model="pointColor" hide-inputs></v-color-picker>
                     </div>
                 </div>
+                <div class="custom-outline">
+                    Model Selection:
+                    <v-select v-model="models" :items="models" outlined clearable placeholder="Select Model"></v-select>
+                </div>
+                <div class="custom-outline">
+                    <b>Note:</b> The selected model will be used for the calibration process. The default model is Linear Regression. Some models may take longer to train than others. So please be patient.
+                </div>
             </v-card>
         </v-col>
     </v-container>
@@ -31,6 +38,7 @@ export default {
             backgroundColor: '#FFFFFFFF',
             pointColor: '#000000FF',
             customColors: false,
+            models: ['Linear Regression', 'Ridge Regression', 'Lasso Regression', 'Elastic Net', 'Bayesian Ridge', 'SGD Regressor', 'Support Vector Regressor']
         }
     },
     watch: {
@@ -43,6 +51,9 @@ export default {
         customColors(value) {
             this.updateCustomColors(value)
         },
+        models(value){
+            this.updateModels(value)
+        }
     },
     methods: {
         updateBackgroundColor(value) {
@@ -53,6 +64,9 @@ export default {
         },
         updateCustomColors(value) {
             this.$store.commit('setCustomColors', value);
+        },
+        updateModels(value){
+            this.$store.commit('setModels', value);
         }
     }
 }
