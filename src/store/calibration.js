@@ -4,18 +4,19 @@ import router from '@/router';
 export default {
     state: {
         calibName: '',
-        pointNumber: 5,
-        samplePerPoint: 20,
+        pointNumber: 8,
+        samplePerPoint: 90,
         radius: 20,
-        offset: 50,
+        offset: 100,
         backgroundColor: '#FFFFFFFF',
         pointColor: '#000000FF',
         customColors: false,
+        models: "Linear Regression",
         blinkFilter: true,
         leftEyeTreshold: 5,
         rightEyeTreshold: 5,
         index: 0,
-        msPerCapture: 10,
+        msPerCapture: 100,
         pattern: [],
         mockPattern: [],
         threshold: 200,
@@ -64,6 +65,9 @@ export default {
         setCustomColors(state, newCustomColors) {
             state.customColors = newCustomColors
         },
+        setModels(state, newModels) {
+            state.models = newModels
+        },
         setBlinkFilter(state, newBlinkFilter) {
             state.blinkFilter = newBlinkFilter
         },
@@ -87,18 +91,19 @@ export default {
         },
         resetAll(state) {
             state.calibName = ''
-            state.pointNumber = 5
-            state.samplePerPoint = 20
+            state.pointNumber = 8
+            state.samplePerPoint = 90
             state.radius = 20
-            state.offset = 50
+            state.offset = 100
             state.backgroundColor = '#FFFFFFFF'
             state.pointColor = '#000000FF'
             state.customColors = false
+            state.models = "Linear Regression"
             state.blinkFilter = true
             state.leftEyeTreshold = 5
             state.rightEyeTreshold = 5
             state.index = 0
-            state.msPerCapture = 10
+            state.msPerCapture = 100
             state.pattern = []
             state.mockPattern = []
             state.threshold = 200
@@ -133,6 +138,7 @@ export default {
             commit('setBackgroundColor', calibData.backgroundColor)
             commit('setPointColor', calibData.pointColor)
             commit('setCustomColors', calibData.customColors)
+            commit('setModels', calibData.models)
             commit('setBlinkFilter', calibData.blinkFilter)
             commit('setLeftTreshold', calibData.leftTreshold)
             commit('setRightTreshold', calibData.rightTreshold)
@@ -157,7 +163,7 @@ export default {
                     data.averageAccuracy = averageAccuracy / data.pattern.length
                     data.averagePrecision = averagePrecision / data.pattern.length
                     calibrations.push({
-                        id: doc.id, ...data
+                        id: doc.id, model: doc.data().models, ...data
                     });
                 });
 
@@ -199,6 +205,7 @@ export default {
                 JSON.stringify(data.screenWidth)
             );
             formData.append("k", JSON.stringify(data.k));
+            formData.append("model", JSON.stringify(context.state.models));
             const res = await axios.post(`/api/session/calib_validation`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
