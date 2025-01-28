@@ -32,10 +32,12 @@
 <script>
 export default {
     props: {
+        // 'dialog' controls whether the dialog is visible or not
         dialog: {
             type: Boolean,
             default: false
         },
+        // 'x' and 'y' are the coordinates of the point
         x: {
             type: Number,
             default: 0
@@ -44,51 +46,64 @@ export default {
             type: Number,
             default: 0
         },
+        // 'precision' represents the standard deviation for the point's precision
         precision: {
             type: Number,
             default: 0
         },
+        // 'accuracy' represents the accuracy of the point
         accuracy: {
             type: Number,
             default: 0
         },
+        // 'pointNumber' indicates the index or number of the current point
         pointNumber: {
             type: Number,
             default: 0
         }
     },
     computed: {
+        // Getting the 'pattern' from the Vuex store (used to get all points)
         pattern() {
             return this.$store.state.calibration.pattern
         },
+        // Getting the 'mockPattern' from the Vuex store (used to track selected points)
         mockPattern() {
             return this.$store.state.calibration.mockPattern
         },
     },
+    // Data section initializes the dialog visibility and selection state
     data() {
         return {
-            auxDialog: false,
-            selected: false
+            auxDialog: false, // Controls dialog visibility
+            selected: false // Tracks whether the point is selected
         }
     },
+    // Watchers monitor changes in props and state
     watch: {
+        // Watching for changes in the 'dialog' prop and updating 'auxDialog' accordingly
         dialog(newDialog) {
             this.auxDialog = newDialog
         },
+        // Watching for changes in 'auxDialog' and emitting 'close' event to parent
         auxDialog(newAuxDialog) {
             this.$emit('close', newAuxDialog);
         },
+        // Watching for changes in 'mockPattern' to update the selection state
         mockPattern(newMockPattern) {
             const point = this.pattern[this.pointNumber]
             this.selected = newMockPattern.includes(point)
         },
+        // Watching for changes in 'pointNumber' to update the selection state
         pointNumber(newPointNumber) {
             const point = this.pattern[newPointNumber]
             this.selected = this.mockPattern.includes(point)
         }
     },
     methods: {
+        // Method to toggle selection of the point
         select() {
+            // Emit a 'select' event to the parent with the current pointNumber
             this.$emit('select', this.pointNumber)
         },
     }

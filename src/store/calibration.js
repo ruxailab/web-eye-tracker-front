@@ -1,6 +1,74 @@
 import axios from 'axios';
 import firebase from 'firebase/app';
 import router from '@/router';
+/**
+ * Vuex store module for calibration settings and actions.
+ * 
+ * @module store/calibration
+ */
+
+/**
+ * State object for calibration settings.
+ * 
+ * @typedef {Object} State
+ * @property {string} calibName - Name of the calibration.
+ * @property {number} pointNumber - Number of points in the calibration.
+ * @property {number} samplePerPoint - Number of samples per point.
+ * @property {number} radius - Radius of the calibration points.
+ * @property {number} offset - Offset value for calibration.
+ * @property {string} backgroundColor - Background color for calibration.
+ * @property {string} pointColor - Color of the calibration points.
+ * @property {boolean} customColors - Flag to indicate if custom colors are used.
+ * @property {string} models - Model used for calibration.
+ * @property {boolean} blinkFilter - Flag to indicate if blink filter is used.
+ * @property {number} leftEyeThreshold - Threshold for left eye.
+ * @property {number} rightEyeThreshold - Threshold for right eye.
+ * @property {number} index - Index of the current calibration.
+ * @property {number} msPerCapture - Milliseconds per capture.
+ * @property {Array} pattern - Pattern data for calibration.
+ * @property {Array} mockPattern - Mock pattern data for calibration.
+ * @property {number} threshold - Threshold value for calibration.
+ * @property {Array} calibrations - List of calibrations.
+ * @property {boolean} fromDashboard - Flag to indicate if calibration is from dashboard.
+ */
+
+/**
+ * Mutations for updating the state.
+ * 
+ * @typedef {Object} Mutations
+ * @property {Function} setThreshold - Sets the threshold value.
+ * @property {Function} setCalibName - Sets the calibration name.
+ * @property {Function} setSamplePerPoint - Sets the number of samples per point.
+ * @property {Function} setRadius - Sets the radius of the calibration points.
+ * @property {Function} setOffset - Sets the offset value.
+ * @property {Function} setPointNumber - Sets the number of points in the calibration.
+ * @property {Function} setPattern - Sets the pattern data.
+ * @property {Function} setMockPatternElement - Adds or removes an element from the mock pattern.
+ * @property {Function} setMockPattern - Sets the mock pattern data.
+ * @property {Function} setBackgroundColor - Sets the background color.
+ * @property {Function} setPointColor - Sets the color of the calibration points.
+ * @property {Function} setCustomColors - Sets the custom colors flag.
+ * @property {Function} setModels - Sets the model used for calibration.
+ * @property {Function} setBlinkFilter - Sets the blink filter flag.
+ * @property {Function} setLeftThreshold - Sets the threshold for the left eye.
+ * @property {Function} setRightThreshold - Sets the threshold for the right eye.
+ * @property {Function} setIndex - Sets the index of the current calibration.
+ * @property {Function} setMsPerCapture - Sets the milliseconds per capture.
+ * @property {Function} setCalibrations - Sets the list of calibrations.
+ * @property {Function} setFromDashboard - Sets the from dashboard flag.
+ * @property {Function} resetAll - Resets all state properties to their default values.
+ */
+
+/**
+ * Actions for performing asynchronous operations.
+ * 
+ * @typedef {Object} Actions
+ * @property {Function} saveCalib - Saves the current calibration to the database.
+ * @property {Function} selectCalib - Selects a calibration and updates the state.
+ * @property {Function} getAllCalibs - Retrieves all calibrations from the database.
+ * @property {Function} deleteCalib - Deletes a calibration from the database.
+ * @property {Function} sendData - Sends calibration data to the server.
+ */
 export default {
     state: {
         calibName: '',
@@ -13,8 +81,8 @@ export default {
         customColors: false,
         models: "Linear Regression",
         blinkFilter: true,
-        leftEyeTreshold: 5,
-        rightEyeTreshold: 5,
+        leftEyeThreshold: 5,
+        rightEyeThreshold: 5,
         index: 0,
         msPerCapture: 100,
         pattern: [],
@@ -71,11 +139,11 @@ export default {
         setBlinkFilter(state, newBlinkFilter) {
             state.blinkFilter = newBlinkFilter
         },
-        setLeftTreshold(state, newLeftTreshold) {
-            state.leftEyeTreshold = newLeftTreshold
+        setLeftThreshold(state, newLeftThreshold) {
+            state.leftEyeThreshold = newLeftThreshold
         },
-        setRightTreshold(state, newRightTreshold) {
-            state.rightEyeTreshold = newRightTreshold
+        setRightThreshold(state, newRightThreshold) {
+            state.rightEyeThreshold = newRightThreshold
         },
         setIndex(state, newIndex) {
             state.index = newIndex
@@ -140,8 +208,8 @@ export default {
             commit('setCustomColors', calibData.customColors)
             commit('setModels', calibData.models)
             commit('setBlinkFilter', calibData.blinkFilter)
-            commit('setLeftTreshold', calibData.leftTreshold)
-            commit('setRightTreshold', calibData.rightTreshold)
+            commit('setLeftThreshold', calibData.leftThreshold)
+            commit('setRightThreshold', calibData.rightThreshold)
             commit('setIndex', calibData.index)
             commit('setMsPerCapture', calibData.msPerCapture)
             router.push('/postCalibration')

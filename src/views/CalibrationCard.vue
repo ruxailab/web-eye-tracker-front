@@ -1,3 +1,18 @@
+<!--
+  This Vue component represents a calibration card view for a calibration system.
+  It includes a toolbar, a card with information about the calibration process, 
+  and a button to start the calibration.
+
+  Template:
+  - A div with id "box" containing:
+    - Toolbar component.
+    - A container with a row and column layout.
+    - A card with a title, description, and a button to start the calibration.
+
+  Script:
+  - Imports the Toolbar component.
+  - Defines a method `goToCameraConfig` that navigates to the camera configuration route.
+-->
 <template>
   <div id="box">
     <Toolbar />

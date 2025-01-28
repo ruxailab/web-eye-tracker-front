@@ -8,7 +8,7 @@
         </v-col>
     </v-row>
 </template>
-  
+
 <script>
 import Slider from "@/components/general/Slider.vue";
 
@@ -18,50 +18,51 @@ export default {
     },
     computed: {
         offset() {
-            return Number(this.$store.state.calibration.offset ?? 0);
+            return Number(this.$store.state.calibration.offset ?? 0); // Retrieves the current offset from Vuex store
         },
         pointNumber() {
-            return Number(this.$store.state.calibration.pointNumber ?? 0)
+            return Number(this.$store.state.calibration.pointNumber ?? 0); // Retrieves the number of points for calibration
         },
         backgroundColor() {
-            return this.$store.state.calibration.backgroundColor
+            return this.$store.state.calibration.backgroundColor; // Retrieves the background color from Vuex store
         },
     },
     methods: {
         updateOffset(value) {
-            this.$store.commit('setOffset', value);
+            this.$store.commit('setOffset', value); // Updates the offset in Vuex store
         },
         updatePattern(value) {
-            this.$store.commit('setPattern', value);
+            this.$store.commit('setPattern', value); // Updates the pattern in Vuex store
         },
         drawOffset(offset, pointNum, backgroundColor) {
-            const canvas = document.getElementById("offCanvas");
-            const ctx = canvas.getContext("2d");
-            const xFac = canvas.width / window.innerWidth;
-            const yFac = canvas.height / window.innerHeight;
-            const trueOffsetX = offset * xFac;
-            const trueOffsetY = offset * yFac;
-            const h = canvas.height;
-            const w = canvas.width;
+            const canvas = document.getElementById("offCanvas"); // Get the canvas element
+            const ctx = canvas.getContext("2d"); // Get the drawing context of the canvas
+            const xFac = canvas.width / window.innerWidth; // Calculate scaling factor for x-axis
+            const yFac = canvas.height / window.innerHeight; // Calculate scaling factor for y-axis
+            const trueOffsetX = offset * xFac; // Apply offset to x-axis
+            const trueOffsetY = offset * yFac; // Apply offset to y-axis
+            const h = canvas.height; // Canvas height
+            const w = canvas.width; // Canvas width
 
-            const canvasCalib = this.generatePoints(trueOffsetX, trueOffsetY, w, h, pointNum);
-            const trueCalib = this.generatePoints(offset, offset, window.innerWidth, window.innerHeight, pointNum);
-            this.updatePattern(trueCalib);
+            const canvasCalib = this.generatePoints(trueOffsetX, trueOffsetY, w, h, pointNum); // Generate points for calibration
+            const trueCalib = this.generatePoints(offset, offset, window.innerWidth, window.innerHeight, pointNum); // Generate true calibration points
+            this.updatePattern(trueCalib); // Update pattern in store
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
 
-            ctx.fillStyle = backgroundColor;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = backgroundColor; // Set the background color
+            ctx.fillRect(0, 0, canvas.width, canvas.height); // Fill the background
 
-            ctx.fillStyle = "red";
+            ctx.fillStyle = "red"; // Set point color to red
             canvasCalib.forEach((point) => {
                 ctx.beginPath();
-                ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+                ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI); // Draw each point
                 ctx.fill();
                 ctx.closePath();
             });
         },
         generatePoints(offsetX, offsetY, width, height, pointNum) {
+            // Define possible patterns for calibration points
             const possiblePatterns = [
                 [
                     { x: offsetX, y: height - offsetY },
@@ -123,24 +124,24 @@ export default {
                     { x: width - offsetX, y: height / 2 },
                     { x: width - offsetX, y: height - offsetY },
                 ]
-            ]
-            const pattern = possiblePatterns.find(pattern => pattern.length === pointNum)
+            ];
+            const pattern = possiblePatterns.find(pattern => pattern.length === pointNum); // Find the pattern that matches the point count
             return pattern;
         },
     },
     watch: {
         offset(newOffset) {
-            this.drawOffset(newOffset, this.pointNumber, this.backgroundColor);
+            this.drawOffset(newOffset, this.pointNumber, this.backgroundColor); // Redraw canvas when offset changes
         },
         pointNumber(newPointNumber) {
-            this.drawOffset(this.offset, newPointNumber, this.backgroundColor);
+            this.drawOffset(this.offset, newPointNumber, this.backgroundColor); // Redraw canvas when point number changes
         },
         backgroundColor(newBackgroundColor) {
-            this.drawOffset(this.offset, this.pointNumber, newBackgroundColor)
+            this.drawOffset(this.offset, this.pointNumber, newBackgroundColor); // Redraw canvas when background color changes
         },
     },
     mounted() {
-        this.drawOffset(this.offset, this.pointNumber, this.backgroundColor)
+        this.drawOffset(this.offset, this.pointNumber, this.backgroundColor); // Initial drawing on component mount
     },
 };
 </script>
