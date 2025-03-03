@@ -22,6 +22,10 @@
                     <Radius />
                     <Offset />
                 </div>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="error" @click="resetAllValues">Reset All</v-btn>
+                </v-card-actions>
             </v-card>
         </v-col>
     </v-container>
@@ -81,6 +85,16 @@ export default {
         },
         updateMsPerCapture(value) {
             this.$store.commit('setMsPerCapture', value);
+        },
+        resetAllValues() {
+            // Reset all configuration values to default
+            this.$store.commit('resetCalibName');
+            this.$store.commit('resetPointNumber');
+            this.$store.commit('resetSamplePerPoint');
+            this.$store.commit('resetMsPerCapture');
+            this.$store.commit('resetThreshold');
+            this.$store.commit('resetRadius');
+            this.$store.commit('resetOffset');
         }
     },
 };
