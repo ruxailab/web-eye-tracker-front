@@ -12,6 +12,7 @@
   
 <script>
 export default {
+    name: "ControlSlider",
     props: {
         step: {
             type: Number,

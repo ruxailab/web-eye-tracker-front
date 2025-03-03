@@ -28,6 +28,7 @@
 import Toolbar from "@/components/general/Toolbar.vue";
 
 export default {
+  name: "UserLogin",
   components: {
     Toolbar,
   },
