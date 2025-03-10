@@ -22,6 +22,10 @@
                     <Radius />
                     <Offset />
                 </div>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="error" @click="resetAllValues">Reset All</v-btn>
+                </v-card-actions>
             </v-card>
         </v-col>
     </v-container>
@@ -81,6 +85,10 @@ export default {
         },
         updateMsPerCapture(value) {
             this.$store.commit('setMsPerCapture', value);
+        },
+        resetAllValues() {
+            // Use the existing resetAll mutation in the calibration store
+            this.$store.commit('resetAll');
         }
     },
 };
