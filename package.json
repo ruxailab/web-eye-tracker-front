@@ -5,37 +5,50 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "postinstall": "npm run fix-tensorflow",
+    "fix-tensorflow": "node ./scripts/fix-tensorflow-versions.js"
   },
   "dependencies": {
+    "@tensorflow-models/blazeface": "0.0.7",
     "@tensorflow-models/face-landmarks-detection": "0.0.3",
-    "@tensorflow/tfjs": "^3.10.0",
-    "@tensorflow/tfjs-backend-wasm": "^3.10.0",
-    "@tensorflow/tfjs-converter": "^3.10.0",
-    "@tensorflow/tfjs-core": "^3.10.0",
-    "axios": "^0.21.1",
-    "core-js": "^3.6.5",
-    "firebase": "^8.6.3",
-    "heatmap.js": "^2.0.5",
-    "vue": "^2.6.11",
-    "vue-router": "^3.2.0",
-    "vuetify": "^2.4.0",
-    "vuex": "^3.4.0"
+    "@tensorflow/tfjs": "3.21.0",
+    "@tensorflow/tfjs-backend-cpu": "3.21.0",
+    "@tensorflow/tfjs-backend-wasm": "3.21.0",
+    "@tensorflow/tfjs-backend-webgl": "3.21.0",
+    "@tensorflow/tfjs-converter": "3.21.0",
+    "@tensorflow/tfjs-core": "3.21.0",
+    "axios": "1.6.2",
+    "core-js": "3.34.0",
+    "firebase": "8.10.1",
+    "heatmap.js": "2.0.5",
+    "vue": "2.7.15",
+    "vue-router": "3.6.5",
+    "vuetify": "2.7.1",
+    "vuex": "3.6.2"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~4.5.0",
-    "@vue/cli-plugin-eslint": "~4.5.0",
-    "@vue/cli-plugin-router": "~4.5.0",
-    "@vue/cli-plugin-vuex": "~4.5.0",
-    "@vue/cli-service": "~4.5.0",
-    "babel-eslint": "^10.1.0",
-    "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^6.2.2",
-    "sass": "~1.32.6",
-    "sass-loader": "^10.0.0",
-    "vue-cli-plugin-vuetify": "~2.3.1",
-    "vue-template-compiler": "^2.6.11",
-    "vuetify-loader": "^1.7.0"
+    "@babel/eslint-parser": "7.23.3",
+    "@vue/cli-plugin-babel": "5.0.8",
+    "@vue/cli-plugin-eslint": "5.0.8",
+    "@vue/cli-plugin-router": "5.0.8",
+    "@vue/cli-plugin-vuex": "5.0.8",
+    "@vue/cli-service": "5.0.8",
+    "eslint": "8.55.0",
+    "eslint-plugin-vue": "9.19.2",
+    "sass": "1.69.5",
+    "sass-loader": "13.3.2",
+    "vue-cli-plugin-vuetify": "2.5.8",
+    "vue-template-compiler": "2.7.15",
+    "vuetify-loader": "1.9.2"
+  },
+  "resolutions": {
+    "@tensorflow/tfjs-core": "3.21.0",
+    "@tensorflow/tfjs-backend-cpu": "3.21.0",
+    "@tensorflow/tfjs-backend-wasm": "3.21.0",
+    "@tensorflow/tfjs-backend-webgl": "3.21.0",
+    "@tensorflow/tfjs-converter": "3.21.0",
+    "@tensorflow/tfjs": "3.21.0"
   },
   "eslintConfig": {
     "root": true,
@@ -43,11 +56,12 @@
       "node": true
     },
     "extends": [
-      "plugin:vue/essential",
+      "plugin:vue/recommended",
       "eslint:recommended"
     ],
     "parserOptions": {
-      "parser": "babel-eslint"
+      "parser": "@babel/eslint-parser",
+      "requireConfigFile": false
     },
     "rules": {}
   },
@@ -55,5 +69,9 @@
     "> 1%",
     "last 2 versions",
     "not dead"
-  ]
+  ],
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
 }

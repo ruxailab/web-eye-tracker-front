@@ -16,6 +16,7 @@ import CalibTable from "@/components/general/CalibTable.vue";
 import DraggableFloatingButton from '@/components/general/DraggableFloatingButton.vue';
 
 export default {
+  name: "UserDashboard",
   components: {
     Toolbar,
     CalibTable,

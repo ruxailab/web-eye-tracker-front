@@ -27,6 +27,7 @@
 import auth from '@/models/auth'
 
 export default {
+  name: "AppToolbar",
   methods: {
     async logout() {
       await auth.logout()
