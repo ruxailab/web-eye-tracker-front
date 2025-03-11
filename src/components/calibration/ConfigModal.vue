@@ -17,12 +17,11 @@
             </v-card-text>
             <Slider :value="threshold" :min="Number(0)" :step="5" :max="Number(1000)" label="Points Distance Threshold"
                 @input="updateThreshold" />
-            <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" :disabled="fromDashboard" text @click="recalibrate">recalib</v-btn>
-                <v-btn color="blue darken-1" :disabled="fromDashboard" text @click="save">save</v-btn>
-                <v-btn color="blue darken-1" text @click="aDialog = false">close</v-btn>
-                <v-spacer></v-spacer>
+            <v-card-actions class="justify-center">
+                <v-btn color="primary" text class="text-none" :disabled="fromDashboard" @click="recalibrate">RECALIB</v-btn>
+                <v-btn color="primary" text class="text-none" :disabled="fromDashboard" @click="save">SAVE</v-btn>
+                <v-btn color="primary" text class="text-none" @click="aDialog = false">CLOSE</v-btn>
+                <v-btn color="error" text class="text-none" @click="exitToDashboard">EXIT</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -125,8 +124,11 @@ export default {
         },
         closeinfo() {
             this.showInfo = false;
-        }
-
+        },
+        exitToDashboard() {
+            this.$store.commit('calibration/resetAll');
+            this.$router.push('/dashboard');
+        },
     },
 }
 </script>
