@@ -24,6 +24,20 @@
 </template>
 
 <script>
+/**
+ * Toolbar component
+ * 
+ * This component provides a method to handle user logout functionality.
+ * 
+ * Methods:
+ * - logout: Asynchronously logs out the user, commits a mutation to clear the user data in the store, 
+ *           and redirects the user to the home page.
+ * 
+ * Dependencies:
+ * - auth: Imported from '@/models/auth', used to handle the logout process.
+ * - this.$store: Vuex store instance, used to commit the 'setUser' mutation.
+ * - this.$router: Vue Router instance, used to navigate to the home page.
+ */
 import auth from '@/models/auth'
 
 export default {

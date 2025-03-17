@@ -1,3 +1,20 @@
+<!--
+This Vue component represents the Calibration Configuration view.
+It includes a toolbar, two configuration cards (GeneralConfigCard and MiscConfigCard),
+and a draggable floating button for saving changes.
+
+Components:
+    - Toolbar: A general toolbar component.
+    - GeneralConfigCard: A card component for general calibration settings.
+    - MiscConfigCard: A card component for miscellaneous calibration settings.
+    - DraggableFloatingButton: A floating button component that can be dragged around the screen.
+    
+Methods:
+    - changePage: Navigates to the camera calibration page when the floating button is clicked.
+Usage:
+    This component is used to configure various calibration settings and save them using the floating button.
+
+-->
 <template>
     <div>
         <Toolbar />

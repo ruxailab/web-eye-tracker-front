@@ -13,6 +13,17 @@
 </template>
 
 <script>
+  /**
+   * DialogConfirmSend component
+   * 
+   * Props:
+   * - dialog (Boolean): Controls the visibility of the dialog.
+   * - consent (Boolean): Indicates the user's consent status.
+   * 
+   * Methods:
+   * - yes(): Emits 'consent' event with true and 'dialog' event with false to close the dialog.
+   * - no(): Emits 'consent' event with false and 'dialog' event with false to close the dialog.
+   */
   export default {
     props:['dialog','consent'],
     methods: {
