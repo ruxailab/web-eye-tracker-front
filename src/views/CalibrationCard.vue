@@ -34,15 +34,28 @@
 
 <script>
 import Toolbar from "@/components/general/Toolbar.vue";
+import axios from "axios";
 
 export default {
   components: {
     Toolbar,
   },
   methods: {
-    goToCameraConfig() {
-      this.$router.push("/calibration/configuration");
+    async goToCameraConfig() {
+      try {
+        const res = await axios.get("/api/session/health");
+
+        if (res.status === 200 && res.data.status === "ok") {
+          this.$router.push("/calibration/configuration");
+        } else {
+          alert("API is not ready. Please try again later.");
+        }
+      } catch (err) {
+        alert("Cannot reach backend. Is the API running?");
+      }
     },
+ 
   },
 };
 </script>
+
