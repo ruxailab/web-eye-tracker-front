@@ -62,12 +62,28 @@ const router = new VueRouter({
 })
 
 router.beforeResolve(async (to, from, next) => {
-  var user = store.state.auth.user
-  user = user ?? await store.dispatch('autoSignIn')
-  if ((to.path == '/login' || to.path == '/') && user) next('/dashboard')
-  else if ((to.path == '/dashboard') && !user) next('/login')
+  try {
+    let user = store.state.auth.user
+    if (!user) {
+      user = await store.dispatch('autoSignIn')
+    }
 
-  next()
+    // Redirect authenticated users away from login or root
+    if ((to.path === '/login' || to.path === '/') && user) {
+      return next('/dashboard')
+    }
+
+    // Prevent unauthenticated access to dashboard
+    if (to.path === '/dashboard' && !user) {
+      return next('/login')
+    }
+
+    return next()
+  } catch (error) {
+    console.error('Navigation guard error:', error)
+    return next('/login')
+  }
 })
 
 export default router
+
