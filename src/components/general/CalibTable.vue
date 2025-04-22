@@ -9,8 +9,13 @@
     <v-data-table :headers="headers" :items="filteredCalibrations">
       <template v-slot:item="{ item }">
         <tr>
-          <td @click="select(item)" v-for="(header, index) in headers" :key="index">
+          <td v-for="(header, index) in headers" :key="index">
             {{ item[header.value] }}
+          </td>
+          <td>
+            <v-btn icon color="black" @click="select(item)">
+              <v-icon>mdi-eye</v-icon>
+            </v-btn>
           </td>
           <td>
             <v-btn icon color="black" @click="deleteItem(item)">
