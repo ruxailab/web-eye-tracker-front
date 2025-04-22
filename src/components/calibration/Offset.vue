@@ -13,6 +13,7 @@
 import Slider from "@/components/general/Slider.vue";
 
 export default {
+    name: "CalibrationOffset",
     components: {
         Slider,
     },
