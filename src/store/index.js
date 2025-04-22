@@ -10,10 +10,13 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
+    // State should be managed in modules
   },
   mutations: {
+    // Mutations should be managed in modules
   },
   actions: {
+    // Actions should be managed in modules
   },
   modules: {
     auth,
