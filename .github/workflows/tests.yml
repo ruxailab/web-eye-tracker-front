@@ -1,0 +1,28 @@
+name: Run Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - run: npm ci
+
+      - name: Run Unit Tests
+        run: npx vitest run
+
+      - name: Run Component Tests
+        run: npx vitest run
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run E2E Tests
+        run: npx playwright test
