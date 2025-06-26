@@ -40,6 +40,7 @@ import BlinkTresholdCard from "@/components/calibration/BlinkTresholdCard.vue";
 
 const tf = require("@tensorflow/tfjs");
 const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
+require('@tensorflow/tfjs-backend-wasm');
 
 export default {
     components: {

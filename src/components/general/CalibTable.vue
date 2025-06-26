@@ -34,11 +34,12 @@ export default {
     return {
       search: "",
       headers: [
-        { text: 'name', value: 'calibName' },
-        { text: 'id', value: 'id' },
-        { text: 'point number', value: 'pointNumber' },
-        { text: 'average accuracy', value: 'averageAccuracy' },
-        { text: 'average precision', value: 'averagePrecision' },
+        { text: 'Name', value: 'calibName' },
+        { text: 'Id', value: 'id' },
+        { text: 'Point Number', value: 'pointNumber' },
+        { text: 'Model', value: 'model' },
+        { text: 'Average Accuracy', value: 'averageAccuracy' },
+        { text: 'Average Precision', value: 'averagePrecision' },
       ],
     };
   },
