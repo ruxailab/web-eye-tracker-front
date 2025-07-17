@@ -55,7 +55,7 @@ export default {
         },
       },
       
-      // cablibration
+      // calibration
       circleIrisPoints: [],
       calibPredictionPoints: [],
       calibFinished: false,
