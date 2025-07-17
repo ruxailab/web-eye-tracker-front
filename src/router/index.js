@@ -1,8 +1,8 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import store from '@/store/index'
+// import store from '@/store/index'
 import LandingPage from '@/views/LandingPage.vue'
-import Login from '@/views/Login'
+// import Login from '@/views/Login'
 import Dashboard from '@/views/Dashboard'
 import Calibration from '@/views/CalibrationCard'
 import CameraConfig from '@/views/CameraConfiguration'
@@ -18,11 +18,11 @@ const routes = [
     name: 'LandingPage',
     component: LandingPage,
   },
-  {
-    path: '/login',
-    name: 'Login',
-    component: Login,
-  },
+  // {
+  //   path: '/login',
+  //   name: 'Login',
+  //   component: Login,
+  // },
   {
     path: '/dashboard',
     name: 'Dashboard',
@@ -61,13 +61,13 @@ const router = new VueRouter({
   routes
 })
 
-router.beforeResolve(async (to, from, next) => {
-  var user = store.state.auth.user
-  user = user ?? await store.dispatch('autoSignIn')
-  if ((to.path == '/login' || to.path == '/') && user) next('/dashboard')
-  else if ((to.path == '/dashboard') && !user) next('/login')
+// router.beforeResolve(async (to, from, next) => {
+//   var user = store.state.auth.user
+//   user = user ?? await store.dispatch('autoSignIn')
+//   if ((to.path == '/login' || to.path == '/') && user) next('/dashboard')
+//   else if ((to.path == '/dashboard') && !user) next('/login')
 
-  next()
-})
+//   next()
+// })
 
 export default router
