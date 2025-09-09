@@ -5,6 +5,11 @@
             <v-row justify="center">
                 <v-col>
                     <BlinkTresholdCard />
+                    <v-col cols="12" class="px-6">
+                        <v-select v-model="selectedMediaDevice" :items="mediaDevices" item-text="label"
+                            item-value="deviceId" label="Select webcam" outlined>
+                        </v-select>
+                    </v-col>
                 </v-col>
                 <v-col cols="12" lg="7" md="7">
                     <div id="box" style="text-align: center;">
@@ -23,6 +28,7 @@
                                 <h2 class="ml-4">Loading model...</h2>
                             </div>
                         </v-col>
+
                     </div>
                     <v-btn class="calibration-btn" outlined color="green" :disabled="!isCameraOn"
                         @click="goToCalibRecord()">
@@ -33,7 +39,7 @@
         </v-container>
     </div>
 </template>
-  
+
 <script>
 import Toolbar from "@/components/general/Toolbar.vue";
 import BlinkTresholdCard from "@/components/calibration/BlinkTresholdCard.vue";
@@ -52,6 +58,9 @@ export default {
             isCameraOn: false,
             webcamStream: null,
             video: null,
+            fromRuxailab: false,
+            mediaDevices: [],
+            selectedMediaDevice: null
         };
     },
     computed: {
@@ -64,6 +73,9 @@ export default {
         predictions() {
             return this.$store.state.detect.predictions
         },
+        calibName() {
+            return this.$store.state.calibration.calibName
+        },
         blinkFilter() {
             return this.$store.state.calibration.blinkFilter
         },
@@ -75,6 +87,9 @@ export default {
         },
     },
     watch: {
+        selectedMediaDevice(newDeviceId) {
+            this.restartCameraWithDevice(newDeviceId);
+        },
         predictions: {
             handler() {
                 this.detectFace();
@@ -84,6 +99,7 @@ export default {
     },
     mounted() {
         this.setupCamera()
+        this.verifyFromRuxailab()
     },
     methods: {
         async setupCamera() {
@@ -93,18 +109,29 @@ export default {
                 { maxFaces: 1 }
             );
 
-            this.$store.commit('setModel', model)
-            this.$store.commit('setLoaded', (model != null))
+            this.$store.commit('setModel', model);
+            this.$store.commit('setLoaded', (model != null));
 
-            this.$nextTick(() => {
+            this.$nextTick(async () => {
                 this.video = document.getElementById("video-tag");
+
+                // Fetch available media devices
+                this.mediaDevices = await navigator.mediaDevices.enumerateDevices();
+
+                // Filter video input devices
+                const videoDevices = this.mediaDevices.filter(device => device.kind === 'videoinput');
+
+                // Set default selected media device if not set
+                if (!this.selectedMediaDevice && videoDevices.length > 0) {
+                    this.selectedMediaDevice = videoDevices[0].deviceId;
+                }
 
                 navigator.mediaDevices
                     .getUserMedia({
                         audio: false,
-                        video: { width: 600, height: 500 },
+                        video: { deviceId: this.selectedMediaDevice, width: 600, height: 500 },
                     })
-                    .then(async (stream) => {
+                    .then((stream) => {
                         // stream is a MediaStream object
                         this.video.srcObject = stream;
 
@@ -118,6 +145,29 @@ export default {
                         };
                     });
             });
+        },
+        async restartCameraWithDevice(deviceId) {
+            if (this.webcamStream) {
+                this.webcamStream.getTracks().forEach(track => track.stop());
+            }
+
+            const constraints = {
+                video: { deviceId: deviceId, width: 600, height: 500 },
+                audio: false
+            };
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                this.video.srcObject = stream;
+                this.webcamStream = stream;
+
+                this.video.onloadeddata = () => {
+                    this.isCameraOn = true;
+                    this.detectFace();
+                };
+            } catch (err) {
+                console.error("Erro ao acessar dispositivo de vídeo:", err);
+            }
         },
         async detectFace() {
             let canvas = document.getElementById("canvas");
@@ -236,12 +286,21 @@ export default {
             this.webcamStream.getTracks().forEach((track) => {
                 track.stop();
             });
-            this.$router.push("/calibration/record");
+            if (this.fromRuxailab) this.$router.push(`/calibration/record?auth=${this.calibName}`);
+            else this.$router.push("/calibration/record");
+        },
+        verifyFromRuxailab() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('auth')) {
+                const auth = urlParams.get('auth');
+                this.$store.commit('setCalibName', auth);
+                this.fromRuxailab = true
+            }
         },
     },
 };
 </script>
-  
+
 <style scoped>
 .loading-container {
     text-align: center;

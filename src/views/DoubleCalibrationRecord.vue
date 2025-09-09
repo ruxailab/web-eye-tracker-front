@@ -41,7 +41,7 @@
 <script>
 
 export default {
-  
+
   data() {
     return {
       // camera
@@ -49,12 +49,12 @@ export default {
       recordWebCam: null,
       configWebCam: {
         audio: false,
-        video: { 
+        video: {
           width: document.getElementById("video-tag").videoWidth,
           height: document.getElementById("video-tag").videoHeight,
         },
       },
-      
+
       // calibration
       circleIrisPoints: [],
       calibPredictionPoints: [],
@@ -64,6 +64,7 @@ export default {
       animationFrames: 250,
       innerCircleRadius: 5,
       usedPattern: [],
+      fromRuxailab: false
     };
   },
   computed: {
@@ -113,11 +114,41 @@ export default {
   created() {
     this.$store.commit('setIndex', 0)
     this.usedPattern = (this.mockPattern.length > 0) ? this.mockPattern : this.pattern
+
+    if (this.usedPattern.length === 0) {
+      const width = window.innerWidth
+      const height = window.innerHeight
+      const offset = this.offset || 100
+
+      const cols = 3
+      const rows = 3
+
+      const usableWidth = width - 2 * offset
+      const usableHeight = height - 2 * offset
+
+      const stepX = usableWidth / (cols - 1)
+      const stepY = usableHeight / (rows - 1)
+
+      const generatedPattern = []
+
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          generatedPattern.push({
+            x: offset + j * stepX,
+            y: offset + i * stepY,
+          })
+        }
+      }
+
+      this.mockPattern = generatedPattern
+      this.usedPattern = generatedPattern
+    }
   },
   async mounted() {
     await this.startWebCamCapture();
     this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
     this.advance(this.usedPattern, this.circleIrisPoints, this.msPerCapture)
+    this.verifyFromRuxailab()
   },
   methods: {
     advance(pattern, whereToSave, timeBetweenCaptures) {
@@ -263,6 +294,7 @@ export default {
       const screenWidth = window.screen.width;
       var predictions =
         await this.$store.dispatch('sendData', {
+          fromRuxailab: this.fromRuxailab,
           circleIrisPoints: this.circleIrisPoints,
           calibPredictionPoints: this.calibPredictionPoints,
           screenHeight: screenHeight,
@@ -318,7 +350,7 @@ export default {
           this.recordWebCam = new MediaRecorder(mediaStreamObj, {
             mimeType: "video/webm;",
           });
-          
+
           let recordingWebCam = [];
           let video = document.getElementById("video-tag");
           video.srcObject = mediaStreamObj;
@@ -329,7 +361,7 @@ export default {
           };
           // OnStop WebCam Record
           const th = this;
-          
+
           this.recordWebCam.onstop = () => {
             // Generate blob from the frames
             let blob = new Blob(recordingWebCam, { type: "video/webm" });
@@ -350,6 +382,13 @@ export default {
         .catch((e) => {
           console.error("Error", e);
         });
+    },
+
+    verifyFromRuxailab() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('auth')) {
+        this.fromRuxailab = true
+      }
     },
 
     async detectFace() {

@@ -112,6 +112,28 @@ export default {
         },
     },
     actions: {
+        generateMockPattern(width, height, offset = 100) {
+            const positions = [];
+            const cols = 3;
+            const rows = 3;
+
+            const usableWidth = width - 2 * offset;
+            const usableHeight = height - 2 * offset;
+
+            const stepX = usableWidth / (cols - 1);
+            const stepY = usableHeight / (rows - 1);
+
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    positions.push({
+                        x: offset + j * stepX,
+                        y: offset + i * stepY,
+                    });
+                }
+            }
+
+            return positions;
+        },
         async saveCalib(context) {
             const state = context.state
             const db = firebase.firestore()
@@ -186,6 +208,12 @@ export default {
         },
         async sendData(context, data) {
             let formData = new FormData();
+
+            formData.append(
+                "from_ruxailab",
+                JSON.stringify(!!data.fromRuxailab)
+            )
+
             formData.append(
                 "file_name",
                 JSON.stringify(context.state.calibName)
