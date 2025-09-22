@@ -39,6 +39,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 
 export default {
 
@@ -49,10 +51,7 @@ export default {
       recordWebCam: null,
       configWebCam: {
         audio: false,
-        video: {
-          width: document.getElementById("video-tag").videoWidth,
-          height: document.getElementById("video-tag").videoHeight,
-        },
+        video: true
       },
 
       // calibration
@@ -111,7 +110,8 @@ export default {
       return this.$store.state.calibration.isControlled
     },
   },
-  created() {
+  async created() {
+    await this.verifyFromRuxailab()
     this.$store.commit('setIndex', 0)
     this.usedPattern = (this.mockPattern.length > 0) ? this.mockPattern : this.pattern
 
@@ -140,15 +140,13 @@ export default {
         }
       }
 
-      this.mockPattern = generatedPattern
+      this.$store.commit('setMockPattern', generatedPattern)
       this.usedPattern = generatedPattern
+
     }
-  },
-  async mounted() {
     await this.startWebCamCapture();
     this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
     this.advance(this.usedPattern, this.circleIrisPoints, this.msPerCapture)
-    this.verifyFromRuxailab()
   },
   methods: {
     advance(pattern, whereToSave, timeBetweenCaptures) {
@@ -384,11 +382,23 @@ export default {
         });
     },
 
-    verifyFromRuxailab() {
+    async verifyFromRuxailab() {
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has('auth')) {
+      if (urlParams.has('auth') && urlParams.has('test')) {
         this.fromRuxailab = true
+        await this.getRuxailabConfig(urlParams.get('auth'), urlParams.get('test'));
       }
+    },
+
+    async getRuxailabConfig(userId, testId) {
+      const { data } = await axios.get(
+        `${process.env.VUE_APP_RUXAILAB_URL}/getCalibrationConfig`,
+        { params: { testId } }
+      );
+
+      const calibrationConfig = data.calibrationConfig;
+
+      this.$store.commit('setCalibrationConfig', calibrationConfig);
     },
 
     async detectFace() {

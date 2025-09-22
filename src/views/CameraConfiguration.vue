@@ -1,16 +1,16 @@
 <template>
     <div id="box" style="text-align: center;">
-        <Toolbar />
+        <Toolbar v-if="!fromRuxailab" />
         <v-container class="mt-12">
             <v-row justify="center">
-                <v-col>
-                    <BlinkTresholdCard />
-                    <v-col cols="12" class="px-6">
+                <v-col  v-if="!fromRuxailab" >
+                    <BlinkTresholdCard/>
+                </v-col>
+                <v-col cols="12" class="px-6">
                         <v-select v-model="selectedMediaDevice" :items="mediaDevices" item-text="label"
                             item-value="deviceId" label="Select webcam" outlined>
                         </v-select>
                     </v-col>
-                </v-col>
                 <v-col cols="12" lg="7" md="7">
                     <div id="box" style="text-align: center;">
                         <v-col>
@@ -286,12 +286,13 @@ export default {
             this.webcamStream.getTracks().forEach((track) => {
                 track.stop();
             });
-            if (this.fromRuxailab) this.$router.push(`/calibration/record?auth=${this.calibName}`);
+            const urlParams = new URLSearchParams(window.location.search);
+            if (this.fromRuxailab) this.$router.push(`/calibration/record?auth=${this.calibName}&test=${urlParams.get('test')}`);
             else this.$router.push("/calibration/record");
         },
         verifyFromRuxailab() {
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('auth')) {
+            if (urlParams.has('auth') && urlParams.has('test')) {
                 const auth = urlParams.get('auth');
                 this.$store.commit('setCalibName', auth);
                 this.fromRuxailab = true

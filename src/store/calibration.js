@@ -24,6 +24,26 @@ export default {
         fromDashboard: false,
     },
     mutations: {
+        setCalibrationConfig(state, config) {
+            state.pointNumber = config.pointNumber ?? state.pointNumber
+            state.samplePerPoint = config.samplePerPoint ?? state.samplePerPoint
+            state.radius = config.radius ?? state.radius
+            state.offset = config.offset ?? state.offset
+            state.backgroundColor = config.backgroundColor ?? state.backgroundColor
+            state.pointColor = config.pointColor ?? state.pointColor
+            state.customColors = config.customColors ?? state.customColors
+            state.models = config.models ?? state.models
+            state.blinkFilter = config.blinkFilter ?? state.blinkFilter
+            state.leftEyeTreshold = config.leftEyeTreshold ?? state.leftEyeTreshold
+            state.rightEyeTreshold = config.rightEyeTreshold ?? state.rightEyeTreshold
+            state.index = config.index ?? state.index
+            state.msPerCapture = config.msPerCapture ?? state.msPerCapture
+            state.pattern = config.pattern ?? state.pattern
+            state.mockPattern = config.mockPattern ?? state.mockPattern
+            state.threshold = config.threshold ?? state.threshold
+            state.calibrations = config.calibrations ?? state.calibrations
+            state.fromDashboard = config.fromDashboard ?? state.fromDashboard
+        },
         setThreshold(state, newThreshold) {
             state.threshold = newThreshold;
         },
