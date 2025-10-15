@@ -39,9 +39,11 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 
 export default {
-  
+
   data() {
     return {
       // camera
@@ -49,13 +51,10 @@ export default {
       recordWebCam: null,
       configWebCam: {
         audio: false,
-        video: { 
-          width: document.getElementById("video-tag").videoWidth,
-          height: document.getElementById("video-tag").videoHeight,
-        },
+        video: true
       },
-      
-      // cablibration
+
+      // calibration
       circleIrisPoints: [],
       calibPredictionPoints: [],
       calibFinished: false,
@@ -64,6 +63,7 @@ export default {
       animationFrames: 250,
       innerCircleRadius: 5,
       usedPattern: [],
+      fromRuxailab: false
     };
   },
   computed: {
@@ -110,11 +110,40 @@ export default {
       return this.$store.state.calibration.isControlled
     },
   },
-  created() {
+  async created() {
+    await this.verifyFromRuxailab()
     this.$store.commit('setIndex', 0)
     this.usedPattern = (this.mockPattern.length > 0) ? this.mockPattern : this.pattern
-  },
-  async mounted() {
+
+    if (this.usedPattern.length === 0) {
+      const width = window.innerWidth
+      const height = window.innerHeight
+      const offset = this.offset || 100
+
+      const cols = 3
+      const rows = 3
+
+      const usableWidth = width - 2 * offset
+      const usableHeight = height - 2 * offset
+
+      const stepX = usableWidth / (cols - 1)
+      const stepY = usableHeight / (rows - 1)
+
+      const generatedPattern = []
+
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          generatedPattern.push({
+            x: offset + j * stepX,
+            y: offset + i * stepY,
+          })
+        }
+      }
+
+      this.$store.commit('setMockPattern', generatedPattern)
+      this.usedPattern = generatedPattern
+
+    }
     await this.startWebCamCapture();
     this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
     this.advance(this.usedPattern, this.circleIrisPoints, this.msPerCapture)
@@ -263,6 +292,7 @@ export default {
       const screenWidth = window.screen.width;
       var predictions =
         await this.$store.dispatch('sendData', {
+          fromRuxailab: this.fromRuxailab,
           circleIrisPoints: this.circleIrisPoints,
           calibPredictionPoints: this.calibPredictionPoints,
           screenHeight: screenHeight,
@@ -318,7 +348,7 @@ export default {
           this.recordWebCam = new MediaRecorder(mediaStreamObj, {
             mimeType: "video/webm;",
           });
-          
+
           let recordingWebCam = [];
           let video = document.getElementById("video-tag");
           video.srcObject = mediaStreamObj;
@@ -329,7 +359,7 @@ export default {
           };
           // OnStop WebCam Record
           const th = this;
-          
+
           this.recordWebCam.onstop = () => {
             // Generate blob from the frames
             let blob = new Blob(recordingWebCam, { type: "video/webm" });
@@ -350,6 +380,25 @@ export default {
         .catch((e) => {
           console.error("Error", e);
         });
+    },
+
+    async verifyFromRuxailab() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('auth') && urlParams.has('test')) {
+        this.fromRuxailab = true
+        await this.getRuxailabConfig(urlParams.get('auth'), urlParams.get('test'));
+      }
+    },
+
+    async getRuxailabConfig(userId, testId) {
+      const { data } = await axios.get(
+        `${process.env.VUE_APP_RUXAILAB_URL}/getCalibrationConfig`,
+        { params: { testId } }
+      );
+
+      const calibrationConfig = data.calibrationConfig;
+
+      this.$store.commit('setCalibrationConfig', calibrationConfig);
     },
 
     async detectFace() {

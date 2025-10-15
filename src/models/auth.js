@@ -1,17 +1,17 @@
-import auth from '@/services/auth.js'
+// import auth from '@/services/auth.js'
 
-export default {
-    signInWithGoogle: async () => {
-        var user = await auth.signInWithGoogle()
-        return user
-    },
+// export default {
+//     signInWithGoogle: async () => {
+//         var user = await auth.signInWithGoogle()
+//         return user
+//     },
 
-    logout: async () => {
-        await auth.logout()
-    },
+//     logout: async () => {
+//         await auth.logout()
+//     },
 
-    autoSignIn: async () => {
-        var user = await auth.getCurrentUser()
-        return user
-    },
-}
+//     autoSignIn: async () => {
+//         var user = await auth.getCurrentUser()
+//         return user
+//     },
+// }

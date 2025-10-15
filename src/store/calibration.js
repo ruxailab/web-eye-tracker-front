@@ -24,6 +24,26 @@ export default {
         fromDashboard: false,
     },
     mutations: {
+        setCalibrationConfig(state, config) {
+            state.pointNumber = config.pointNumber ?? state.pointNumber
+            state.samplePerPoint = config.samplePerPoint ?? state.samplePerPoint
+            state.radius = config.radius ?? state.radius
+            state.offset = config.offset ?? state.offset
+            state.backgroundColor = config.backgroundColor ?? state.backgroundColor
+            state.pointColor = config.pointColor ?? state.pointColor
+            state.customColors = config.customColors ?? state.customColors
+            state.models = config.models ?? state.models
+            state.blinkFilter = config.blinkFilter ?? state.blinkFilter
+            state.leftEyeTreshold = config.leftEyeTreshold ?? state.leftEyeTreshold
+            state.rightEyeTreshold = config.rightEyeTreshold ?? state.rightEyeTreshold
+            state.index = config.index ?? state.index
+            state.msPerCapture = config.msPerCapture ?? state.msPerCapture
+            state.pattern = config.pattern ?? state.pattern
+            state.mockPattern = config.mockPattern ?? state.mockPattern
+            state.threshold = config.threshold ?? state.threshold
+            state.calibrations = config.calibrations ?? state.calibrations
+            state.fromDashboard = config.fromDashboard ?? state.fromDashboard
+        },
         setThreshold(state, newThreshold) {
             state.threshold = newThreshold;
         },
@@ -112,6 +132,28 @@ export default {
         },
     },
     actions: {
+        generateMockPattern(width, height, offset = 100) {
+            const positions = [];
+            const cols = 3;
+            const rows = 3;
+
+            const usableWidth = width - 2 * offset;
+            const usableHeight = height - 2 * offset;
+
+            const stepX = usableWidth / (cols - 1);
+            const stepY = usableHeight / (rows - 1);
+
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    positions.push({
+                        x: offset + j * stepX,
+                        y: offset + i * stepY,
+                    });
+                }
+            }
+
+            return positions;
+        },
         async saveCalib(context) {
             const state = context.state
             const db = firebase.firestore()
@@ -186,6 +228,12 @@ export default {
         },
         async sendData(context, data) {
             let formData = new FormData();
+
+            formData.append(
+                "from_ruxailab",
+                JSON.stringify(!!data.fromRuxailab)
+            )
+
             formData.append(
                 "file_name",
                 JSON.stringify(context.state.calibName)
