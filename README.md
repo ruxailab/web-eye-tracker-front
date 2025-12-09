@@ -1,73 +1,191 @@
-# 👁️ Eye Lab: Gaze Tracker WEB
+# 👁️ Eye Lab — Web-based Gaze Tracking & Calibration
 
-Eye Lab is an open source tool to create eye tracking usability tests. It started as a final undergraduation work for Computer Engineering of student [Karine Pistili](https://www.linkedin.com/in/karine-pistili/) that created the first prototype. The idea is to evolve it to a more complete and useful tool with the help of the community.
+Eye Lab is an open-source tool for creating **browser-based eye-tracking usability tests** using **Webcam + TensorFlow.js**, without plugins or native installations.
 
-The current version of the software allows users to create their usability sessions of an website, recording the webcam, screen and mouse movements and use this information to find out where the user has been looking into the screen by using heatmaps.
+Originally created by [Karine Pistili](https://www.linkedin.com/in/karine-pistili/) as a graduation project, Eye Lab has evolved into a full calibration and gaze-tracking microservice used standalone or fully integrated into **RUXAILAB**.
 
-## 👩‍💻 Setting up project locally
+---
 
-The project consists of two parts, this repository contains the frontend of the application and the backend can be found [here](https://github.com/uramakilab/web-eye-tracker). Install it as well.
+# 🧩 Architecture Overview
 
-### Prerequisites
+Eye Lab has **two repositories**:
 
-* [Vue CLI 4x](https://www.npmjs.com/package/@vue/cli)
-* [Nodejs 14x](https://nodejs.org/en/download/)
+| Component | Description |
+|----------|-------------|
+| **Frontend** (this repo) | Calibration UI + gaze tracking client (Vue.js) |
+| **Backend** | API handling calibration uploads and optional forwarding to RUXAILAB |
 
-### 1. Install dependencies
+Backend repository:  
+https://github.com/ruxailab/eye-tracker-api
 
-We have created a vue project, do first thing is to install all the dependencies in your computer by using:
+---
 
-```
+# 👩‍💻 Local Setup
+
+### **Prerequisites**
+- Vue CLI 4.x  
+- Node.js 14.x  
+
+---
+
+### **1. Install dependencies**
+```bash
 npm install
 ```
 
-### 2. Run in Developmente Mode
-
-If you want to test the application or develop on it, you can use the dev mode of vue cli by running:
-
-```
+### **2. Run in development mode**
+```bash
 npm run serve
 ```
 
-### 3. Run for production
-
-If you want to deploy the application in production or build for some other reason use:
-
-```
+### **3. Build for production**
+```bash
 npm run build
 ```
 
-### 4. Deploy to Firebase Hosting
+---
 
-If you need to deploy to a hosting system, the project is already configured to be deployed into the Firebase Hosting. To make it work you just need to create a .env file containg the following information of your firebase project:
+# ☁️ Deploying to Firebase Hosting
 
-```
-VUE_APP_FIREBASE_API_KEY='place-your-api-key'
-VUE_APP_FIREBASE_AUTH_DOMAIN='place-your-auth-domain'
-VUE_APP_FIREBASE_PROJECT_ID='place-your-project-id'
-VUE_APP_FIREBASE_STORAGE_BUCKET='place-your-storage-bucket'
-VUE_APP_FIREBASE_MESSAGING_SENDER_ID='place-your-sender-id'
-VUE_APP_FIREBASE_APP_ID='place-your-app-id'
-VUE_APP_FIREBASE_MEASUREMENT_ID='place-your-measurement-id'
-```
-
-After creating the .env you just need to login into your firebase account via terminal and then use:
+1. Create a `.env` file with your Firebase credentials:
 
 ```
+VUE_APP_FIREBASE_API_KEY='your-api-key'
+VUE_APP_FIREBASE_AUTH_DOMAIN='your-auth-domain'
+VUE_APP_FIREBASE_PROJECT_ID='your-project-id'
+VUE_APP_FIREBASE_STORAGE_BUCKET='your-storage-bucket'
+VUE_APP_FIREBASE_MESSAGING_SENDER_ID='your-sender-id'
+VUE_APP_FIREBASE_APP_ID='your-app-id'
+VUE_APP_FIREBASE_MEASUREMENT_ID='your-measurement-id'
+```
+
+2. Login and deploy:
+```bash
 firebase deploy --only hosting
 ```
 
-### 5. GitHub CI/CD
+---
 
-This project has the Firebase Hosting Workflow from the Github Actions. If you want to use it on your on repository feel free to edit *.github/workflows* files with your settings.
+# 🔄 GitHub CI/CD
 
+This project includes a Firebase Hosting workflow.  
+You can customize the settings inside:
 
-## 🧑‍🤝‍🧑 Contributing
+```
+.github/workflows/
+```
 
-Anyone is free to contribute to this project. Just do a pull request with your code and if it is all good we will accept it. You can also help us look for bugs, if you find anything create and issue.
+---
 
-## 📃 License
+# 🚀 Eye Lab + RUXAILAB Integration
 
-This software is under the [MIT License](https://opensource.org/licenses/MIT). 
+Eye Lab is used by RUXAILAB as an **external calibration and gaze-tracking service**.  
+The workflow below explains the exact communication pipeline.
 
-Copyright 2021 Uramaki Lab
+---
+
+## 🔗 1. Redirect From RUXAILAB → Eye Lab
+
+During a usability test, RUXAILAB redirects the participant to the Eye Lab URL:
+
+```
+VUE_APP_EYE_LAB_FRONTEND_URL?auth=<userId>&test=<testId>
+```
+
+Eye Lab frontend then:
+
+- sets `fromRuxailab = true`
+- sets `calibrationName = userId`
+- loads `DoubleCalibrationRecord.vue`
+- calls `getRuxailabConfig(auth, test)`  
+  → makes a GET request to:
+
+```
+${VUE_APP_RUXAILAB_URL}/getCalibrationConfig
+```
+
+RUXAILAB returns the admin-defined calibration configuration, which is stored in the Eye Lab Vuex store.
+
+---
+
+## 🎯 2. User Performs Calibration
+
+Eye Lab shows the multi-point calibration interface, collecting:
+
+- iris positions  
+- timestamps  
+- fixed-point reference geometry  
+
+All data stays **local in the browser** until calibration is completed.
+
+---
+
+## 📡 3. Sending Calibration to Eye Lab Backend
+
+When calibration finishes, Eye Lab calls:
+
+```js
+POST /api/session/calib_validation
+```
+
+Payload includes (inside FormData):
+
+- `from_ruxailab`
+- `file_name` (userId)
+- fixed circle iris points
+- calibrated iris predictions
+- `screen_height`, `screen_width`
+- `k` (calibration factor)
+- full calibration `model`
+
+---
+
+## 🔁 4. Forwarding Calibration to RUXAILAB
+
+If `from_ruxailab = true`, the Eye Lab backend forwards the following JSON to RUXAILAB:
+
+```json
+{
+  "session_id": "<file_name>",
+  "model": { ...calibrationData },
+  "screen_height": 1080, 
+  "screen_width": 1920,
+  "k": number of points
+}
+```
+
+Sent to the endpoint:
+
+```
+POST /receiveCalibration
+```
+
+RUXAILAB then stores this calibration **inside the user object**, making it available for future eye-tracking tests.
+
+---
+
+# 📋 Integration Diagram
+
+![alt text](ruxailab-diagram.png)
+
+---
+
+# 📌 Notes
+
+- **No webcam video is transmitted or stored in this project** — only numeric gaze-related data.
+- Accuracy depends on lighting, camera quality and user stability.
+- Fully browser-based using TensorFlow.js.
+
+---
+
+# 🧑‍🤝‍🧑 Contributing
+
+Pull requests are welcome.  
+Found a bug? Open an issue.
+
+---
+
+# 📄 License
+
+MIT License  
+Copyright © Uramaki Lab
