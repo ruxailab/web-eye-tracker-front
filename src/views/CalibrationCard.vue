@@ -29,8 +29,34 @@
         </v-col>
       </v-row>
     </v-container>
+
+    <v-dialog v-model="errorDialog" max-width="400" persistent>
+      <v-card>
+        <v-card-title class="text-h6">
+          <v-icon left color="error">mdi-alert-circle</v-icon>
+          Error
+        </v-card-title>
+        <v-card-text class="pt-4">{{ errorMessage }}</v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="errorDialog = false">OK</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
+
+<style>
+.v-dialog__content {
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100vw !important;
+}
+
+.v-dialog {
+  margin: 0 !important;
+}
+</style>
 
 <script>
 import Toolbar from "@/components/general/Toolbar.vue";
@@ -40,6 +66,12 @@ export default {
   components: {
     Toolbar,
   },
+  data() {
+    return {
+      errorDialog: false,
+      errorMessage: "",
+    };
+  },
   methods: {
     async goToCameraConfig() {
       try {
@@ -48,14 +80,14 @@ export default {
         if (res.status === 200 && res.data.status === "ok") {
           this.$router.push("/calibration/configuration");
         } else {
-          alert("API is not ready. Please try again later.");
+          this.errorMessage = "API is not ready. Please try again later.";
+          this.errorDialog = true;
         }
       } catch (err) {
-        alert("Cannot reach backend. Is the API running?");
+        this.errorMessage = "Cannot reach backend. Is the API running?";
+        this.errorDialog = true;
       }
     },
- 
   },
 };
 </script>
-
