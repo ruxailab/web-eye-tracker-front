@@ -3,7 +3,8 @@
         <canvas id="canvas" />
         <div>
             <PointModal :x="Number(x)" :y="Number(y)" :precision="Number(precision)" :accuracy="Number(accuracy)"
-                :dialog="dialog" :pointNumber="pointNumber" @close="dialogCancel" @select="select" />
+                :dialog="dialog" :pointNumber="pointNumber" :predictionX="predictionX" :predictionY="predictionY"
+                @close="dialogCancel" @select="select" />
         </div>
             <ConfigModal :configDialog="configDialog" @close="configDialogCancel" @recalib="recalibrate"
                 @save="saveCalib" />
@@ -33,7 +34,9 @@ export default {
             accuracy: 0,
             dialog: false,
             configDialog: false,
-            pointNumber: 0
+            pointNumber: 0,
+            predictionX: [],
+            predictionY: []
         }
     },
     async mounted() {
@@ -130,6 +133,8 @@ export default {
             this.y = patternLike.y
             this.precision = patternLike.precision
             this.accuracy = patternLike.accuracy
+            this.predictionX = patternLike.predictionX || []
+            this.predictionY = patternLike.predictionY || []
             this.dialog = true
             this.pointNumber = pointNumber
         },
