@@ -3,11 +3,12 @@
         <v-col>
             <v-card outlined>
                 <v-card-title>
-                    general configuration
+                    General Configuration
                 </v-card-title>
                 <div class="custom-outline">
-                    calib name:
+                    <div class="config-label">Calibration Name:</div>
                     <TextField :value="calibName" @input="updateCalibName" />
+                    <p class="help-text">Give your calibration a unique identifier</p>
                 </div>
                 <div class="custom-outline">
                     <Slider :value="pointNumber" :min="Number(2)" :max="Number(9)" :step="1" label="Point Number"
@@ -16,7 +17,8 @@
                     <Slider :value="msPerCapture" :min="Number(20)" :max="Number(100)" :step="5"
                         label="Milliseconds Per Point Capture" @input="updateMsPerCapture" />
                     <Slider :value="threshold" :min="Number(0)" :step="5" :max="Number(1000)"
-                        label="Points Distance Threshold" @input="updateThreshold" />
+                        label="Distance Threshold (px)" @input="updateThreshold" />
+                    <p class="help-text">Maximum allowed distance for valid predictions</p>
                 </div>
                 <div class="custom-outline">
                     <Radius />
@@ -99,5 +101,19 @@ export default {
     padding: 10px;
     border-radius: 5px;
     margin: 10px;
+}
+
+.config-label {
+    font-weight: 600;
+    font-size: 15px;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.help-text {
+    font-size: 12px;
+    color: #666;
+    margin: -8px 0 8px 0;
+    font-style: italic;
 }
 </style>
