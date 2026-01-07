@@ -8,27 +8,63 @@
     <!-- loading case ^ -->
 
     <div v-else>
-      <v-row justify="center" align="center" class="ma-0 justify-center align-center">
-        <div v-if="index === 0" class="text-center"
-          style="z-index: 1;position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);">
-          slowly press 'S' while looking at the point to begin
-        </div>
-        <div v-if="index === usedPattern.length - 1" class="text-center"
-          style="z-index: 1;position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);"> press 'S' one
-          more time</div>
-        <div v-if="index === usedPattern.length" class="text-center" style="z-index: 1;">
-          <div v-if="currentStep === 1"
-            style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);">
-            <div>
-              you've collected {{ circleIrisPoints.length }} train points
-            </div>
-            <v-btn @click="endCalib()">End Calib</v-btn>
+      <!-- Progress indicator -->
+      <div class="calibration-header">
+        <div class="progress-container">
+          <div class="progress-text">
+            <span class="step-label">{{ currentStep === 1 ? 'Training Phase' : 'Validation Phase' }}</span>
+            <span class="point-counter">Point {{ index + 1 }} / {{ usedPattern.length }}</span>
           </div>
-          <div v-else style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);">
-            <div>
-              you've collected {{ calibPredictionPoints.length }} validation points
-            </div>
-            <v-btn @click="endCalib()">End Calib</v-btn>
+          <v-progress-linear 
+            :value="(index / usedPattern.length) * 100" 
+            color="green" 
+            height="6" 
+            rounded
+            class="mt-2"
+          ></v-progress-linear>
+        </div>
+      </div>
+
+      <!-- Collecting indicator -->
+      <div v-if="isCollecting" class="collecting-indicator">
+        <v-progress-circular indeterminate color="green" size="24" width="3" class="mr-2"></v-progress-circular>
+        <span>Recording eye position...</span>
+      </div>
+
+      <v-row justify="center" align="center" class="ma-0 justify-center align-center">
+        <!-- Initial instruction -->
+        <div v-if="index === 0" class="instruction-box">
+          <v-icon size="48" color="green" class="mb-3">mdi-eye-outline</v-icon>
+          <h2 class="instruction-title">Look at the red dot</h2>
+          <p class="instruction-text">Press <kbd>S</kbd> when ready to start recording</p>
+          <p class="instruction-subtext">Keep your head still and follow each point with your eyes</p>
+        </div>
+        
+        <!-- Last point instruction -->
+        <div v-if="index === usedPattern.length - 1 && index > 0" class="instruction-box-small">
+          <p class="instruction-text-small">Final point! Press <kbd>S</kbd> once more</p>
+        </div>
+        
+        <!-- Collection complete -->
+        <div v-if="index === usedPattern.length" class="completion-box">
+          <v-icon size="64" color="green" class="mb-4">mdi-check-circle</v-icon>
+          <div v-if="currentStep === 1">
+            <h2 class="completion-title">Training Complete!</h2>
+            <p class="completion-text">Collected {{ circleIrisPoints.length }} training samples</p>
+            <p class="completion-subtext">Now let's validate the calibration</p>
+            <v-btn large color="green" @click="nextStep()" class="mt-4">
+              <v-icon left>mdi-arrow-right</v-icon>
+              Continue to Validation
+            </v-btn>
+          </div>
+          <div v-else>
+            <h2 class="completion-title">Validation Complete!</h2>
+            <p class="completion-text">Collected {{ calibPredictionPoints.length }} validation samples</p>
+            <p class="completion-subtext">Processing your calibration data...</p>
+            <v-btn large color="green" @click="endCalib()" class="mt-4">
+              <v-icon left>mdi-check</v-icon>
+              Finish Calibration
+            </v-btn>
           </div>
         </div>
       </v-row>
@@ -63,7 +99,8 @@ export default {
       animationFrames: 250,
       innerCircleRadius: 5,
       usedPattern: [],
-      fromRuxailab: false
+      fromRuxailab: false,
+      isCollecting: false
     };
   },
   computed: {
@@ -156,7 +193,9 @@ export default {
         if ((event.key === "s" || event.key === "S")) {
           if (i <= pattern.length - 1) {
             document.removeEventListener('keydown', keydownHandler)
+            th.isCollecting = true
             await th.extract(pattern[i], timeBetweenCaptures)
+            th.isCollecting = false
 
             th.$store.commit('setIndex', i)
             i++
@@ -442,5 +481,179 @@ html {
   align-items: center;
   justify-content: center;
   height: 100vh;
+  font-size: 18px;
+  color: #333;
+}
+
+/* Calibration Header */
+.calibration-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 16px 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+
+.progress-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.progress-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.step-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.point-counter {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4caf50;
+  background: #e8f5e9;
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+/* Collecting indicator */
+.collecting-indicator {
+  position: fixed;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(76, 175, 80, 0.95);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 15px;
+  z-index: 99;
+  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
+  }
+  50% {
+    box-shadow: 0 4px 24px rgba(76, 175, 80, 0.6);
+  }
+}
+
+/* Instruction boxes */
+.instruction-box {
+  position: absolute;
+  top: 35%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.97);
+  padding: 32px 48px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  z-index: 10;
+  max-width: 500px;
+  backdrop-filter: blur(10px);
+}
+
+.instruction-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 12px;
+}
+
+.instruction-text {
+  font-size: 18px;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.instruction-subtext {
+  font-size: 14px;
+  color: #888;
+  font-style: italic;
+}
+
+.instruction-box-small {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 12px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+}
+
+.instruction-text-small {
+  font-size: 16px;
+  color: #555;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Completion box */
+.completion-box {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.98);
+  padding: 48px 64px;
+  border-radius: 20px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  z-index: 10;
+  max-width: 600px;
+  backdrop-filter: blur(10px);
+}
+
+.completion-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 12px;
+}
+
+.completion-text {
+  font-size: 18px;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.completion-subtext {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 16px;
+}
+
+/* Keyboard key styling */
+kbd {
+  background: #f4f4f4;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+  padding: 4px 8px;
+  font-family: monospace;
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
 }
 </style>

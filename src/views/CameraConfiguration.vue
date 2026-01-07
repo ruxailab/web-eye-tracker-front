@@ -3,37 +3,81 @@
         <Toolbar v-if="!fromRuxailab" />
         <v-container class="mt-12">
             <v-row justify="center">
-                <v-col  v-if="!fromRuxailab" >
+                <!-- Instructions Card -->
+                <v-col cols="12" class="text-center mb-4">
+                    <v-alert type="info" outlined prominent class="mx-auto" style="max-width: 800px;">
+                        <div class="d-flex align-center">
+                            <v-icon large left>mdi-information</v-icon>
+                            <div class="text-left">
+                                <strong>Camera Setup</strong>
+                                <p class="mb-0 mt-2">Position your face within the guide and ensure both eyes are clearly visible. 
+                                The calibration requires good lighting and a stable position.</p>
+                            </div>
+                        </div>
+                    </v-alert>
+                </v-col>
+
+                <!-- Camera Selection -->
+                <v-col cols="12" lg="8" md="10" class="px-6">
+                    <v-select 
+                        v-model="selectedMediaDevice" 
+                        :items="mediaDevices" 
+                        item-text="label"
+                        item-value="deviceId" 
+                        label="Select Camera" 
+                        outlined
+                        prepend-inner-icon="mdi-camera"
+                        hint="Choose the camera you want to use for calibration"
+                        persistent-hint
+                    >
+                    </v-select>
+                </v-col>
+
+                <!-- Blink Threshold Configuration -->
+                <v-col v-if="!fromRuxailab" cols="12" lg="8" md="10">
                     <BlinkTresholdCard/>
                 </v-col>
-                <v-col cols="12" class="px-6">
-                        <v-select v-model="selectedMediaDevice" :items="mediaDevices" item-text="label"
-                            item-value="deviceId" label="Select webcam" outlined>
-                        </v-select>
-                    </v-col>
-                <v-col cols="12" lg="7" md="7">
-                    <div id="box" style="text-align: center;">
-                        <v-col>
-                            <div v-if="isModelLoaded"
-                                style="position: relative; display: flex; justify-content: center; align-items: center;">
-                                <video autoplay id="video-tag" style="transform: scaleX(-1)" />
-                                <canvas id="canvas" width="600" height="500"
-                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1)" />
-                                <v-img v-if="isCameraOn" style="width: 100%; height: 100%; position: absolute;"
-                                    src="@/assets/mask_desktop.svg" />
-                            </div>
-                            <div v-else class="loading-container">
-                                <v-progress-circular :size="50" :width="7" color="black"
-                                    indeterminate></v-progress-circular>
-                                <h2 class="ml-4">Loading model...</h2>
-                            </div>
-                        </v-col>
 
-                    </div>
-                    <v-btn class="calibration-btn" outlined color="green" :disabled="!isCameraOn"
-                        @click="goToCalibRecord()">
-                        Start Calibration
-                    </v-btn>
+                <!-- Camera Preview -->
+                <v-col cols="12" lg="8" md="10">
+                    <v-card outlined class="camera-preview-card">
+                        <v-card-title class="justify-center">
+                            <v-icon left>mdi-camera-iris</v-icon>
+                            Camera Preview
+                        </v-card-title>
+                        <v-card-text>
+                            <div id="box" style="text-align: center;">
+                                <v-col>
+                                    <div v-if="isModelLoaded"
+                                        style="position: relative; display: flex; justify-content: center; align-items: center;">
+                                        <video autoplay id="video-tag" style="transform: scaleX(-1)" />
+                                        <canvas id="canvas" width="600" height="500"
+                                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1)" />
+                                        <v-img v-if="isCameraOn" style="width: 100%; height: 100%; position: absolute;"
+                                            src="@/assets/mask_desktop.svg" />
+                                    </div>
+                                    <div v-else class="loading-container">
+                                        <v-progress-circular :size="50" :width="7" color="green"
+                                            indeterminate></v-progress-circular>
+                                        <h3 class="ml-4 mt-3">Loading face detection model...</h3>
+                                        <p class="text-caption mt-2">This may take a few moments</p>
+                                    </div>
+                                </v-col>
+                            </div>
+                        </v-card-text>
+                        <v-card-actions class="justify-center pb-6">
+                            <v-btn 
+                                class="calibration-btn" 
+                                x-large
+                                color="green" 
+                                :disabled="!isCameraOn"
+                                @click="goToCalibRecord()"
+                            >
+                                <v-icon left>mdi-play</v-icon>
+                                Start Calibration
+                            </v-btn>
+                        </v-card-actions>
+                    </v-card>
                 </v-col>
             </v-row>
         </v-container>
@@ -315,12 +359,23 @@ export default {
 }
 
 .calibration-btn {
-    max-width: 200px;
-    height: 30px;
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: none;
+}
+
+.camera-preview-card {
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    color: #555;
 }
 
 #video-tag {

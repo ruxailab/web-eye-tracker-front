@@ -1,5 +1,33 @@
 <template>
     <div class="scroll-container">
+        <!-- Success Banner -->
+        <div class="success-banner">
+            <v-icon size="32" color="white" class="mr-3">mdi-check-circle</v-icon>
+            <div>
+                <h2 class="banner-title">Calibration Complete!</h2>
+                <p class="banner-subtitle">Review your calibration results below</p>
+            </div>
+        </div>
+
+        <!-- Instructions Card -->
+        <div class="instructions-overlay">
+            <v-card class="instruction-card" outlined>
+                <v-card-text class="pa-4">
+                    <div class="d-flex align-center">
+                        <v-icon color="info" class="mr-3">mdi-information-outline</v-icon>
+                        <div>
+                            <strong>Understanding Your Results:</strong>
+                            <p class="mb-0 mt-1 text-caption">
+                                <span style="color: green;">●</span> Green points = Good accuracy<br>
+                                <span style="color: orange;">●</span> Orange points = Needs improvement<br>
+                                <span style="color: red;">●</span> Red line = Distance from target
+                            </p>
+                        </div>
+                    </div>
+                </v-card-text>
+            </v-card>
+        </div>
+
         <canvas id="canvas" />
         <div>
             <PointModal :x="Number(x)" :y="Number(y)" :precision="Number(precision)" :accuracy="Number(accuracy)"
@@ -258,18 +286,63 @@ export default {
 
 <style>
 .scroll-container {
-  width: 100%; /* Set the width to whatever you need */
-  overflow-x: auto; /* Enable horizontal scrolling */
+  width: 100%;
+  overflow-x: auto;
+  position: relative;
 }
+
+.success-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  color: white;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.banner-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.banner-subtitle {
+  font-size: 14px;
+  margin: 4px 0 0 0;
+  opacity: 0.95;
+}
+
+.instructions-overlay {
+  position: fixed;
+  top: 90px;
+  right: 24px;
+  z-index: 999;
+  max-width: 300px;
+}
+
+.instruction-card {
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+}
+
 .v-dialog__content{
-        flex-direction: column;
-        flex-wrap: nowrap;
-        justify-content: center;
-        align-items: unset;
-        width: 300px;
-    }
-    .v-dialog{
-        box-shadow: none;
-        overflow-y: visible;
-    }
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: unset;
+  width: 300px;
+}
+
+.v-dialog{
+  box-shadow: none;
+  overflow-y: visible;
+}
 </style>
