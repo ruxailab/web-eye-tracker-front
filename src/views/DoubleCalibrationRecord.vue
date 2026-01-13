@@ -25,6 +25,12 @@
         </div>
       </div>
 
+      <!-- Face not detected warning -->
+      <div v-if="!faceDetected" class="face-warning">
+        <v-icon size="32" color="white" class="mr-2">mdi-alert-circle-outline</v-icon>
+        <span>Face not detected. Please align your face within the frame.</span>
+      </div>
+
       <!-- Collecting indicator -->
       <div v-if="isCollecting" class="collecting-indicator">
         <v-progress-circular indeterminate color="green" size="24" width="3" class="mr-2"></v-progress-circular>
@@ -100,7 +106,8 @@ export default {
       innerCircleRadius: 5,
       usedPattern: [],
       fromRuxailab: false,
-      isCollecting: false
+      isCollecting: false,
+      faceDetected: true  // Track face detection state
     };
   },
   computed: {
@@ -228,7 +235,27 @@ export default {
       point.data = [];
       for (var a = 0; a < this.predByPointCount;) {
         const prediction = await this.detectFace();
+        
+        // 🛡️ DEFENSIVE GUARD: Check if face is detected
+        // When user moves face out of frame, prediction array is empty
+        // This prevents crash: "Cannot read property 'annotations' of undefined"
+        if (!prediction || prediction.length === 0) {
+          this.faceDetected = false;
+          console.warn('Face not detected. Waiting for face to return...');
+          await new Promise(resolve => setTimeout(resolve, 500));
+          continue; // Skip this iteration and retry
+        }
+        
+        this.faceDetected = true;
         const pred = prediction[0];
+        
+        // Additional safety check for required annotations
+        if (!pred.annotations || !pred.annotations.leftEyeIris || !pred.annotations.rightEyeIris) {
+          console.warn('Incomplete face landmarks detected. Retrying...');
+          await new Promise(resolve => setTimeout(resolve, 500));
+          continue;
+        }
+        
         // left eye
         const leftIris = pred.annotations.leftEyeIris;
         const leftEyelid = pred.annotations.leftEyeUpper0.concat(pred.annotations.leftEyeLower0);
@@ -523,6 +550,37 @@ html {
   background: #e8f5e9;
   padding: 4px 12px;
   border-radius: 12px;
+}
+
+/* Face not detected warning */
+.face-warning {
+  position: fixed;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 152, 0, 0.95);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 15px;
+  z-index: 100;
+  box-shadow: 0 4px 16px rgba(255, 152, 0, 0.5);
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  25% {
+    transform: translateX(-50%) translateY(-2px);
+  }
+  75% {
+    transform: translateX(-50%) translateY(2px);
+  }
 }
 
 /* Collecting indicator */

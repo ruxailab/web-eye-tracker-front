@@ -224,7 +224,20 @@ export default {
 
             const th = this
 
+            // 🛡️ DEFENSIVE GUARD: Only process if face is detected
+            // This prevents crash when user moves face out of camera view
+            if (!this.predictions || this.predictions.length === 0) {
+                // Face not detected - continue camera loop but skip rendering
+                return;
+            }
+
             this.predictions.forEach((pred) => {
+                // Additional safety check for required annotations
+                if (!pred || !pred.annotations) {
+                    console.warn('Incomplete face data, skipping frame');
+                    return;
+                }
+                
                 // left eye
                 const leftIris = pred.annotations.leftEyeIris;
                 const leftEyelid = pred.annotations.leftEyeUpper0.concat(pred.annotations.leftEyeLower0);
