@@ -165,10 +165,9 @@ export default {
                         this.video.onloadeddata = () => {
                             const canvas = document.getElementById("canvas");
 
-                            console.log(`Canvas dimensions: ${this.video.videoWidth}x${this.video.videoHeight}`);
                             
-                            canvas.width = this.video.videoWidth;
-                            canvas.height = this.video.videoHeight;
+                            canvas.width = this.video.videoWidth || 500;
+                            canvas.height = this.video.videoHeight || 400;
 
                             this.isCameraOn = true;
                             this.detectFace();
@@ -357,8 +356,8 @@ export default {
 
 .camera-wrapper {
     position: relative;
-    width: 600px;
-    height: 500px;
+    width: 500px;
+    height: 400px;
     margin: 0 auto;
 }
 
@@ -367,8 +366,8 @@ export default {
 .mask {
     position: absolute;
     inset: 0;
-    width: 600px;
-    height: 500px;
+    width: 500px;
+    height: 400px;
     object-fit: cover;
 }
 
