@@ -205,6 +205,8 @@ export default {
                 input: this.video,
             })
             this.$store.commit('setPredictions', prediction)
+            canvas.width = this.video.videoWidth || 500;
+            canvas.height = this.video.videoHeight || 400;
             ctx.drawImage(this.video, 0, 0, canvas.width, canvas.height)
 
             const th = this
