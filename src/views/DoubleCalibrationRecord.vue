@@ -5,6 +5,21 @@
         style="margin-bottom: 16px;"></v-progress-circular>
       <div>Loading model...</div>
     </div>
+    
+    <div v-if="loadingConfig" class="center-container">
+      <v-progress-circular :size="80" :width="8" indeterminate color="black" class="loading-spinner"
+        style="margin-bottom: 16px;"></v-progress-circular>
+      <div>Loading Ruxailab calibration config...</div>
+    </div>
+
+    <div v-if="redirectingToRuxailab" class="center-container">
+      <v-progress-circular :size="80" :width="8" indeterminate color="black" class="loading-spinner"
+      style="margin-bottom: 16px;"></v-progress-circular>
+      <div>Sending calibration data to Ruxailab...</div>
+      <div style="margin-top: 16px; font-size: 14px; color: #666;">
+      This window will close automatically or you can close it manually.
+      </div>
+    </div>
     <!-- loading case ^ -->
 
     <div v-else>
@@ -15,13 +30,8 @@
             <span class="step-label">{{ currentStep === 1 ? 'Training Phase' : 'Validation Phase' }}</span>
             <span class="point-counter">Point {{ index + 1 }} / {{ usedPattern.length }}</span>
           </div>
-          <v-progress-linear 
-            :value="(index / usedPattern.length) * 100" 
-            color="green" 
-            height="6" 
-            rounded
-            class="mt-2"
-          ></v-progress-linear>
+          <v-progress-linear :value="(index / usedPattern.length) * 100" color="green" height="6" rounded
+            class="mt-2"></v-progress-linear>
         </div>
       </div>
 
@@ -39,12 +49,12 @@
           <p class="instruction-text">Press <kbd>S</kbd> when ready to start recording</p>
           <p class="instruction-subtext">Keep your head still and follow each point with your eyes</p>
         </div>
-        
+
         <!-- Last point instruction -->
         <div v-if="index === usedPattern.length - 1 && index > 0" class="instruction-box-small">
           <p class="instruction-text-small">Final point! Press <kbd>S</kbd> once more</p>
         </div>
-        
+
         <!-- Collection complete -->
         <div v-if="index === usedPattern.length" class="completion-box">
           <v-icon size="64" color="green" class="mb-4">mdi-check-circle</v-icon>
@@ -100,7 +110,10 @@ export default {
       innerCircleRadius: 5,
       usedPattern: [],
       fromRuxailab: false,
-      isCollecting: false
+      isCollecting: false,
+      faceDetected: true,
+      loadingConfig: false,
+      redirectingToRuxailab: false,
     };
   },
   computed: {
@@ -228,7 +241,27 @@ export default {
       point.data = [];
       for (var a = 0; a < this.predByPointCount;) {
         const prediction = await this.detectFace();
+
+        // 🛡️ DEFENSIVE GUARD: Check if face is detected
+        // When user moves face out of frame, prediction array is empty
+        // This prevents crash: "Cannot read property 'annotations' of undefined"
+        if (!prediction || prediction.length === 0) {
+          this.faceDetected = false;
+          console.warn('Face not detected. Waiting for face to return...');
+          await new Promise(resolve => setTimeout(resolve, 500));
+          continue; // Skip this iteration and retry
+        }
+
+        this.faceDetected = true;
         const pred = prediction[0];
+
+        // Additional safety check for required annotations
+        if (!pred.annotations || !pred.annotations.leftEyeIris || !pred.annotations.rightEyeIris) {
+          console.warn('Incomplete face landmarks detected. Retrying...');
+          await new Promise(resolve => setTimeout(resolve, 500));
+          continue;
+        }
+
         // left eye
         const leftIris = pred.annotations.leftEyeIris;
         const leftEyelid = pred.annotations.leftEyeUpper0.concat(pred.annotations.leftEyeLower0);
@@ -323,6 +356,9 @@ export default {
       ctx.stroke();
     },
     async endCalib() {
+      if(this.fromRuxailab){
+        this.redirectingToRuxailab = true;
+      }
       this.calibPredictionPoints.forEach(element => {
         delete element.point_x;
         delete element.point_y;
@@ -359,7 +395,7 @@ export default {
       this.$store.dispatch('extractXYValues', { extract: this.calibPredictionPoints, hasCalib: false })
       this.stopRecord()
       this.$store.commit('setMockPattern', [])
-      this.$router.push('/postCalibration');
+      if (!this.fromRuxailab) { this.$router.push('/postCalibration') }
     },
     savePoint(whereToSave, patternLike) {
       patternLike.forEach(point => {
@@ -430,14 +466,17 @@ export default {
     },
 
     async getRuxailabConfig(userId, testId) {
+      this.loadingConfig = true;
       const { data } = await axios.get(
         `${process.env.VUE_APP_RUXAILAB_URL}/getCalibrationConfig`,
         { params: { testId } }
       );
 
+
       const calibrationConfig = data.calibrationConfig;
 
       this.$store.commit('setCalibrationConfig', calibrationConfig);
+      this.loadingConfig = false;
     },
 
     async detectFace() {
@@ -525,6 +564,41 @@ html {
   border-radius: 12px;
 }
 
+/* Face not detected warning */
+.face-warning {
+  position: fixed;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 152, 0, 0.95);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 15px;
+  z-index: 100;
+  box-shadow: 0 4px 16px rgba(255, 152, 0, 0.5);
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  25% {
+    transform: translateX(-50%) translateY(-2px);
+  }
+
+  75% {
+    transform: translateX(-50%) translateY(2px);
+  }
+}
+
 /* Collecting indicator */
 .collecting-indicator {
   position: fixed;
@@ -545,9 +619,12 @@ html {
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
   }
+
   50% {
     box-shadow: 0 4px 24px rgba(76, 175, 80, 0.6);
   }
