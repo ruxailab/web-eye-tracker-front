@@ -1,62 +1,129 @@
 <template>
-    <div id="box" style="text-align: center;">
+    <div id="box" style="height: 100vh; overflow: hidden;">
         <Toolbar v-if="!fromRuxailab" />
-        <v-container class="mt-4" style="max-height: calc(100vh - 80px); overflow: hidden;">
-            <v-row justify="center" style="height: 100%;">
-                <!-- Instructions Card -->
-                <v-col cols="12" class="text-center">
-                    <v-alert type="info" outlined prominent class="mx-auto py-2"
-                        style="max-width: 600px; font-size: 0.85rem;">
-                        <div class="d-flex align-center">
-                            <v-icon medium left>mdi-information</v-icon>
-                            <div class="text-left">
-                                <strong>Camera Setup</strong>
-                                <p class="mb-0 mt-1" style="font-size: 0.8rem;">Position your face within the guide.
-                                    Ensure both eyes are visible.</p>
-                            </div>
-                        </div>
-                    </v-alert>
-                </v-col>
+        
+        <!-- Camera Selection Modal -->
+        <v-dialog v-model="showCameraModal" max-width="500">
+            <v-card class="blue-bg">
+                <v-card-title class="d-flex justify-center white--text pb-4 pt-6">
+                    <v-icon color="white" left size="32">mdi-camera</v-icon>
+                    <span style="font-size: 20px;">Select Camera</span>
+                </v-card-title>
+                <v-card-text class="px-6 pb-2">
+                    <p class="white--text text-center mb-4" style="font-size: 14px;">
+                        If you don't see your face correctly, please select the correct camera from the list below.
+                    </p>
+                    <v-select 
+                        v-model="selectedMediaDevice" 
+                        :items="mediaDevices" 
+                        item-text="label"
+                        item-value="deviceId" 
+                        label="Available Cameras" 
+                        outlined
+                        dark
+                        color="#FF425A"
+                        item-color="#FF425A"
+                        prepend-inner-icon="mdi-camera"
+                        background-color="rgba(255, 255, 255, 0.1)"
+                    ></v-select>
+                </v-card-text>
+                <v-card-actions class="justify-center px-6 pb-6">
+                    <v-btn color="#FF425A" dark block large @click="showCameraModal = false">
+                        <v-icon left>mdi-check</v-icon>
+                        Close
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
 
-                <!-- Camera Selection -->
-                <v-col cols="12" lg="8" md="10" class="px-6 py-1">
-                    <v-select v-model="selectedMediaDevice" :items="mediaDevices" item-text="label"
-                        item-value="deviceId" label="Select Camera" outlined dense
-                        prepend-inner-icon="mdi-camera"></v-select>
-                </v-col>
+        <v-container fluid style="height: calc(100vh - 64px); overflow-y: auto; overflow-x: hidden;">
+            <v-row justify="center" align="center" style="min-height: 100%;">
+                <v-col cols="12" md="10" lg="8" xl="6">
+                    <v-stepper v-model="setupStep" elevation="0" class="mx-auto compact-stepper">
+                        <v-stepper-header>
+                            <v-stepper-step :complete="setupStep > 1" step="1" color="#FF425A">
+                                Camera Setup
+                            </v-stepper-step>
+                            <v-divider></v-divider>
+                            <v-stepper-step :complete="setupStep > 2" step="2" color="#FF425A">
+                                Preview & Calibration
+                            </v-stepper-step>
+                        </v-stepper-header>
 
-                <!-- Blink Threshold Configuration -->
-                <v-col v-if="!fromRuxailab" cols="12" lg="8" md="10" class="py-1">
-                    <BlinkTresholdCard />
-                </v-col>
+                        <v-stepper-items>
+                            <!-- Step 1: Instructions -->
+                            <v-stepper-content step="1" class="compact-content">
+                            <v-card flat>
+                                <v-card-text class="text-center py-2">
+                                    <div class="mb-2">
+                                        <v-icon size="64" color="#FF425A">mdi-camera-iris</v-icon>
+                                    </div>
+                                    <v-alert color="#002D51" dark dense class="mb-3">
+                                        <h4 class="mb-2 text-center">What will happen:</h4>
+                                        <div class="text-left mx-auto" style="max-width: 400px; font-size: 13px;">
+                                            <ul class="compact-list">
+                                                <li>The system will request camera permission</li>
+                                                <li>Your webcam image will appear with a face guide</li>
+                                                <li>Position your face inside the mask overlay</li>
+                                                <li>Make sure both eyes are clearly visible</li>
+                                            </ul>
+                                        </div>
+                                    </v-alert>
+                                    <v-alert color="#FF425A" dark dense class="mx-auto" style="max-width: 400px; font-size: 12px;">
+                                        <strong>Important:</strong> Please allow camera access when prompted.
+                                    </v-alert>
+                                </v-card-text>
+                            </v-card>
+                            <div class="text-center pb-2">
+                                <v-btn color="#FF425A" dark @click="startCameraSetup">
+                                    <v-icon left>mdi-arrow-right</v-icon>
+                                    Continue
+                                </v-btn>
+                            </div>
+                        </v-stepper-content>
 
-                <!-- Camera Preview -->
-                <v-col cols="12" lg="8" md="10" class="py-1">
-                    <v-card outlined class="camera-preview-card" style="height: 100%;">
-                        <v-card-title class="justify-center py-2" style="font-size: 0.95rem;">
-                            <v-icon small left>mdi-camera-iris</v-icon>
-                            Camera Preview
-                        </v-card-title>
-                        <v-card-text class="pa-2">
-                            <div v-if="isModelLoaded" class="camera-wrapper">
-                                <video id="video-tag" autoplay playsinline />
-                                <canvas id="canvas" />
-                                <v-img v-if="isCameraOn" class="mask" src="@/assets/mask_desktop.svg" />
-                            </div>
-                            <div v-else class="loading-container" style="min-height: 200px;">
-                                <v-progress-circular :size="40" :width="6" color="green"
-                                    indeterminate></v-progress-circular>
-                                <h4 class="mt-2">Loading face detection model...</h4>
-                            </div>
-                        </v-card-text>
-                        <v-card-actions class="justify-center pb-2">
-                            <v-btn class="calibration-btn" large dark color="green" :disabled="!isCameraOn"
-                                @click="goToCalibRecord()">
-                                <v-icon small left>mdi-play</v-icon>
-                                Start Calibration
-                            </v-btn>
-                        </v-card-actions>
-                    </v-card>
+                        <!-- Step 2: Camera Preview -->
+                        <v-stepper-content step="2" class="compact-content">
+                            <v-card flat>
+                                <!-- Blink Threshold Configuration -->
+                                <v-card-text v-if="!fromRuxailab" class="pb-1 pt-2 text-center">
+                                    <BlinkTresholdCard />
+                                </v-card-text>
+
+                                <!-- Camera Preview -->
+                                <v-card-text class="pa-2 text-center">
+                                    <div class="d-flex justify-center mb-2">
+                                        <v-btn x-small outlined color="#002D51" @click="showCameraModal = true">
+                                            <v-icon left x-small>mdi-help-circle</v-icon>
+                                            Camera Help
+                                        </v-btn>
+                                    </div>
+                                    <div v-if="isModelLoaded" class="camera-wrapper mx-auto" style="max-height: 400px;">
+                                        <video id="video-tag" autoplay playsinline />
+                                        <canvas id="canvas" />
+                                        <v-img v-if="isCameraOn" class="mask" src="@/assets/mask_desktop.svg" />
+                                    </div>
+                                    <div v-else class="loading-container" style="min-height: 300px;">
+                                        <v-progress-circular :size="50" :width="6" color="#FF425A"
+                                            indeterminate></v-progress-circular>
+                                        <h4 class="mt-3">Loading face detection model...</h4>
+                                    </div>
+                                </v-card-text>
+
+                                <v-card-actions class="justify-center py-2">
+                                    <v-btn text @click="setupStep = 1" class="mr-2">
+                                        <v-icon left>mdi-arrow-left</v-icon>
+                                        Back
+                                    </v-btn>
+                                    <v-btn color="#FF425A" dark :disabled="!isCameraOn" @click="goToCalibRecord()">
+                                        <v-icon left>mdi-play</v-icon>
+                                        Start Calibration
+                                    </v-btn>
+                                </v-card-actions>
+                            </v-card>
+                        </v-stepper-content>
+                        </v-stepper-items>
+                    </v-stepper>
                 </v-col>
             </v-row>
         </v-container>
@@ -83,7 +150,9 @@ export default {
             video: null,
             fromRuxailab: false,
             mediaDevices: [],
-            selectedMediaDevice: null
+            selectedMediaDevice: null,
+            setupStep: 1,
+            showCameraModal: false,
         };
     },
     computed: {
@@ -121,10 +190,13 @@ export default {
         },
     },
     mounted() {
-        this.setupCamera()
         this.verifyFromRuxailab()
     },
     methods: {
+        startCameraSetup() {
+            this.setupStep = 2;
+            this.setupCamera();
+        },
         async setupCamera() {
             // Load the faceLandmarksDetection model assets.
             const model = await faceLandmarksDetection.load(
@@ -334,33 +406,55 @@ export default {
 </script>
 
 <style scoped>
+/* Ruxailab Color Palette */
+.coral-bg {
+    background-color: #FF425A !important;
+}
+
+.blue-bg {
+    background-color: #002D51 !important;
+}
+
+/* Compact Stepper Styles */
+.compact-stepper {
+    max-height: calc(100vh - 100px);
+}
+
+.compact-content {
+    padding: 8px 16px !important;
+}
+
+.compact-list {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.compact-list li {
+    margin-bottom: 4px;
+}
+
+.v-stepper__header {
+    box-shadow: none !important;
+}
+
 .loading-container {
-    text-align: center;
-    margin-top: 8rem;
-}
-
-.centered-canvas {
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.calibration-btn {
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: none;
-}
-
-.camera-preview-card {
-    border: 2px solid #e0e0e0;
-    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #555;
 }
 
 .camera-wrapper {
     position: relative;
-    width: 500px;
-    height: 400px;
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+    aspect-ratio: 5/4;
     margin: 0 auto;
+    border: 5px solid #FF425A;
+    border-radius: 12px;
+    overflow: hidden;
 }
 
 #video-tag,
@@ -368,18 +462,20 @@ export default {
 .mask {
     position: absolute;
     inset: 0;
-    width: 500px;
-    height: 400px;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
 }
 
+#video-tag {
+    transform: scaleX(-1);
+}
 
-.loading-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 400px;
-    color: #555;
+#canvas {
+    transform: scaleX(-1);
+}
+
+.mask {
+    pointer-events: none;
 }
 </style>
