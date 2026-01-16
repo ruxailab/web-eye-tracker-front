@@ -1,39 +1,62 @@
 <template>
     <div id="box" style="text-align: center;">
         <Toolbar v-if="!fromRuxailab" />
-        <v-container class="mt-12">
-            <v-row justify="center">
-                <v-col  v-if="!fromRuxailab" >
-                    <BlinkTresholdCard/>
+        <v-container class="mt-4" style="max-height: calc(100vh - 80px); overflow: hidden;">
+            <v-row justify="center" style="height: 100%;">
+                <!-- Instructions Card -->
+                <v-col cols="12" class="text-center">
+                    <v-alert type="info" outlined prominent class="mx-auto py-2"
+                        style="max-width: 600px; font-size: 0.85rem;">
+                        <div class="d-flex align-center">
+                            <v-icon medium left>mdi-information</v-icon>
+                            <div class="text-left">
+                                <strong>Camera Setup</strong>
+                                <p class="mb-0 mt-1" style="font-size: 0.8rem;">Position your face within the guide.
+                                    Ensure both eyes are visible.</p>
+                            </div>
+                        </div>
+                    </v-alert>
                 </v-col>
-                <v-col cols="12" class="px-6">
-                        <v-select v-model="selectedMediaDevice" :items="mediaDevices" item-text="label"
-                            item-value="deviceId" label="Select webcam" outlined>
-                        </v-select>
-                    </v-col>
-                <v-col cols="12" lg="7" md="7">
-                    <div id="box" style="text-align: center;">
-                        <v-col>
-                            <div v-if="isModelLoaded"
-                                style="position: relative; display: flex; justify-content: center; align-items: center;">
-                                <video autoplay id="video-tag" style="transform: scaleX(-1)" />
-                                <canvas id="canvas" width="600" height="500"
-                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1)" />
-                                <v-img v-if="isCameraOn" style="width: 100%; height: 100%; position: absolute;"
-                                    src="@/assets/mask_desktop.svg" />
-                            </div>
-                            <div v-else class="loading-container">
-                                <v-progress-circular :size="50" :width="7" color="black"
-                                    indeterminate></v-progress-circular>
-                                <h2 class="ml-4">Loading model...</h2>
-                            </div>
-                        </v-col>
 
-                    </div>
-                    <v-btn class="calibration-btn" outlined color="green" :disabled="!isCameraOn"
-                        @click="goToCalibRecord()">
-                        Start Calibration
-                    </v-btn>
+                <!-- Camera Selection -->
+                <v-col cols="12" lg="8" md="10" class="px-6 py-1">
+                    <v-select v-model="selectedMediaDevice" :items="mediaDevices" item-text="label"
+                        item-value="deviceId" label="Select Camera" outlined dense
+                        prepend-inner-icon="mdi-camera"></v-select>
+                </v-col>
+
+                <!-- Blink Threshold Configuration -->
+                <v-col v-if="!fromRuxailab" cols="12" lg="8" md="10" class="py-1">
+                    <BlinkTresholdCard />
+                </v-col>
+
+                <!-- Camera Preview -->
+                <v-col cols="12" lg="8" md="10" class="py-1">
+                    <v-card outlined class="camera-preview-card" style="height: 100%;">
+                        <v-card-title class="justify-center py-2" style="font-size: 0.95rem;">
+                            <v-icon small left>mdi-camera-iris</v-icon>
+                            Camera Preview
+                        </v-card-title>
+                        <v-card-text class="pa-2">
+                            <div v-if="isModelLoaded" class="camera-wrapper">
+                                <video id="video-tag" autoplay playsinline />
+                                <canvas id="canvas" />
+                                <v-img v-if="isCameraOn" class="mask" src="@/assets/mask_desktop.svg" />
+                            </div>
+                            <div v-else class="loading-container" style="min-height: 200px;">
+                                <v-progress-circular :size="40" :width="6" color="green"
+                                    indeterminate></v-progress-circular>
+                                <h4 class="mt-2">Loading face detection model...</h4>
+                            </div>
+                        </v-card-text>
+                        <v-card-actions class="justify-center pb-2">
+                            <v-btn class="calibration-btn" large dark color="green" :disabled="!isCameraOn"
+                                @click="goToCalibRecord()">
+                                <v-icon small left>mdi-play</v-icon>
+                                Start Calibration
+                            </v-btn>
+                        </v-card-actions>
+                    </v-card>
                 </v-col>
             </v-row>
         </v-container>
@@ -140,6 +163,12 @@ export default {
                         tf.getBackend();
 
                         this.video.onloadeddata = () => {
+                            const canvas = document.getElementById("canvas");
+
+                            
+                            canvas.width = this.video.videoWidth || 500;
+                            canvas.height = this.video.videoHeight || 400;
+
                             this.isCameraOn = true;
                             this.detectFace();
                         };
@@ -176,7 +205,9 @@ export default {
                 input: this.video,
             })
             this.$store.commit('setPredictions', prediction)
-            ctx.drawImage(this.video, 0, 0, 600, 500);
+            canvas.width = this.video.videoWidth || 500;
+            canvas.height = this.video.videoHeight || 400;
+            ctx.drawImage(this.video, 0, 0, canvas.width, canvas.height)
 
             const th = this
 
@@ -315,16 +346,40 @@ export default {
 }
 
 .calibration-btn {
-    max-width: 200px;
-    height: 30px;
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: none;
 }
 
-#video-tag {
-    width: 100%;
-    height: 100%;
+.camera-preview-card {
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+}
+
+.camera-wrapper {
+    position: relative;
+    width: 500px;
+    height: 400px;
+    margin: 0 auto;
+}
+
+#video-tag,
+#canvas,
+.mask {
+    position: absolute;
+    inset: 0;
+    width: 500px;
+    height: 400px;
+    object-fit: cover;
+}
+
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    color: #555;
 }
 </style>
