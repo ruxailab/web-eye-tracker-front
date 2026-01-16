@@ -5,21 +5,21 @@
         style="margin-bottom: 16px;"></v-progress-circular>
       <div>Loading model...</div>
     </div>
-    
+
     <div v-if="loadingConfig" class="center-container">
       <v-progress-circular :size="80" :width="8" indeterminate color="black" class="loading-spinner"
         style="margin-bottom: 16px;"></v-progress-circular>
       <div>Loading Ruxailab calibration config...</div>
     </div>
 
-    <div v-if="redirectingToRuxailab" class="center-container">
+    <!-- <div v-if="redirectingToRuxailab" class="center-container">
       <v-progress-circular :size="80" :width="8" indeterminate color="black" class="loading-spinner"
-      style="margin-bottom: 16px;"></v-progress-circular>
+        style="margin-bottom: 16px;"></v-progress-circular>
       <div>Sending calibration data to Ruxailab...</div>
       <div style="margin-top: 16px; font-size: 14px; color: #666;">
-      This window will close automatically or you can close it manually.
+        This window will close automatically or you can close it manually.
       </div>
-    </div>
+    </div> -->
     <!-- loading case ^ -->
 
     <!-- Calibration Stepper -->
@@ -229,11 +229,11 @@ export default {
       fromRuxailab: false,
       isCollecting: false,
       faceDetected: true,
-      loadingConfig: false,
       redirectingToRuxailab: false,
       stepperStep: 1,
       showStepper: true,
       calibrationStarted: false,
+      loadingConfig: false
     };
   },
   computed: {
@@ -500,25 +500,25 @@ export default {
       ctx.stroke();
     },
     async endCalib() {
-      if(this.fromRuxailab){
-        this.redirectingToRuxailab = true;
-      }
+      console.log('[Calibration] endCalib')
+
       this.calibPredictionPoints.forEach(element => {
         delete element.point_x;
         delete element.point_y;
       })
-      const screenHeight = window.screen.height;
-      const screenWidth = window.screen.width;
-      var predictions =
-        await this.$store.dispatch('sendData', {
-          fromRuxailab: this.fromRuxailab,
-          circleIrisPoints: this.circleIrisPoints,
-          calibPredictionPoints: this.calibPredictionPoints,
-          screenHeight: screenHeight,
-          screenWidth: screenWidth,
-          k: this.$store.state.calibration.pointNumber,
+      const screenHeight = window.screen.height
+      const screenWidth = window.screen.width
+
+      // 🔥 PRECISA DISSO AQUI
+      let predictions = await this.$store.dispatch('sendData', {
+        fromRuxailab: false, // NÃO dispara hookcelebe
+        circleIrisPoints: this.circleIrisPoints,
+        calibPredictionPoints: this.calibPredictionPoints,
+        screenHeight,
+        screenWidth,
+        k: this.$store.state.calibration.pointNumber,
           threshold: this.$store.state.calibration.threshold
-        })
+      })
 
       if (typeof predictions === 'string') {
         predictions = predictions.replace(/NaN/g, '1');
@@ -537,9 +537,19 @@ export default {
       }
       this.$store.dispatch('extractXYValues', { extract: this.circleIrisPoints, hasCalib: true })
       this.$store.dispatch('extractXYValues', { extract: this.calibPredictionPoints, hasCalib: false })
+
+      this.$store.commit('setRuntimeData', {
+        usedPattern: this.usedPattern,
+        circleIrisPoints: this.circleIrisPoints,
+        calibPredictionPoints: this.calibPredictionPoints,
+        fromRuxailab: this.fromRuxailab,
+      })
+
       this.stopRecord()
-      this.$store.commit('setMockPattern', [])
-      if (!this.fromRuxailab) { this.$router.push('/postCalibration') }
+
+      this.$router.push(
+        `/postCalibration?redirectingToRuxailab=${this.fromRuxailab}`
+      )
     },
     savePoint(whereToSave, patternLike) {
       patternLike.forEach(point => {
