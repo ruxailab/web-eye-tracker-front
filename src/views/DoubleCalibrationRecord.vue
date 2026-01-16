@@ -500,8 +500,6 @@ export default {
       ctx.stroke();
     },
     async endCalib() {
-      console.log('[Calibration] endCalib')
-
       this.calibPredictionPoints.forEach(element => {
         delete element.point_x;
         delete element.point_y;
@@ -509,9 +507,8 @@ export default {
       const screenHeight = window.screen.height
       const screenWidth = window.screen.width
 
-      // 🔥 PRECISA DISSO AQUI
       let predictions = await this.$store.dispatch('sendData', {
-        fromRuxailab: false, // NÃO dispara hookcelebe
+        fromRuxailab: false,
         circleIrisPoints: this.circleIrisPoints,
         calibPredictionPoints: this.calibPredictionPoints,
         screenHeight,
