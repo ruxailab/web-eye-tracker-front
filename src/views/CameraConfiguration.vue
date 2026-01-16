@@ -58,9 +58,9 @@
                                     <div class="mb-2">
                                         <v-icon size="64" color="#FF425A">mdi-camera-iris</v-icon>
                                     </div>
-                                    <v-alert color="#002D51" dark dense class="mb-3">
+                                    <v-alert color="#fff"  dense class="mb-3">
                                         <h4 class="mb-2 text-center">What will happen:</h4>
-                                        <div class="text-left mx-auto" style="max-width: 400px; font-size: 13px;">
+                                        <div class="text-left mx-auto" style="max-width: 400px; font-size: 16px;">
                                             <ul class="compact-list">
                                                 <li>The system will request camera permission</li>
                                                 <li>Your webcam image will appear with a face guide</li>
@@ -69,7 +69,7 @@
                                             </ul>
                                         </div>
                                     </v-alert>
-                                    <v-alert color="#FF425A" dark dense class="mx-auto" style="max-width: 400px; font-size: 12px;">
+                                    <v-alert outlined color="#FF425A" dense class="mx-auto" style="max-width: 400px; font-size: 14px;">
                                         <strong>Important:</strong> Please allow camera access when prompted.
                                     </v-alert>
                                 </v-card-text>
@@ -435,6 +435,46 @@ export default {
 
 .v-stepper__header {
     box-shadow: none !important;
+    background-color: #002D51 !important;
+    border-radius: 50px !important;
+    padding: 0px !important;
+}
+
+.compact-stepper {
+    border-radius: 12px !important;
+    overflow: hidden !important;
+}
+
+.compact-stepper .v-stepper__step__step {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+}
+
+.compact-stepper .v-stepper__step--active .v-stepper__step__step {
+    background-color: #FF425A !important;
+    color: white !important;
+}
+
+.compact-stepper .v-stepper__step--complete .v-stepper__step__step {
+    background-color: #FF425A !important;
+    color: white !important;
+}
+
+.compact-stepper .v-stepper__step .v-stepper__label {
+    color: white !important;
+    text-shadow: none !important;
+}
+
+.compact-stepper .v-stepper__step--active .v-stepper__label {
+    color: white !important;
+}
+
+.compact-stepper .v-stepper__step--complete .v-stepper__label {
+    color: white !important;
+}
+
+.compact-stepper .v-divider {
+    border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
 .loading-container {
@@ -477,5 +517,14 @@ export default {
 
 .mask {
     pointer-events: none;
+}
+</style>
+
+<style>
+/* Global stepper label styling - without scoped */
+.v-stepper__label {
+    color: white !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
 }
 </style>

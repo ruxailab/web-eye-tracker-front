@@ -22,63 +22,180 @@
     </div>
     <!-- loading case ^ -->
 
-    <div v-else>
-      <!-- Progress indicator -->
-      <div class="calibration-header">
-        <div class="progress-container">
-          <div class="progress-text">
-            <span class="step-label">{{ currentStep === 1 ? 'Training Phase' : 'Validation Phase' }}</span>
-            <span class="point-counter">Point {{ index + 1 }} / {{ usedPattern.length }}</span>
-          </div>
-          <v-progress-linear :value="(index / usedPattern.length) * 100" color="green" height="6" rounded
-            class="mt-2"></v-progress-linear>
-        </div>
-      </div>
+    <!-- Calibration Stepper -->
+    <v-dialog v-model="showStepper" persistent max-width="800" :fullscreen="$vuetify.breakpoint.xs">
+      <v-card>
+        <v-stepper v-model="stepperStep" elevation="0" class="calibration-stepper">
+          <v-stepper-header>
+            <v-stepper-step :complete="stepperStep > 1" step="1" color="#FF425A">
+              Overview
+            </v-stepper-step>
+            <v-divider></v-divider>
+            <v-stepper-step :complete="stepperStep > 2" step="2" color="#FF425A">
+              Training
+            </v-stepper-step>
+            <v-divider></v-divider>
+            <v-stepper-step :complete="stepperStep > 3" step="3" color="#FF425A">
+              Validation
+            </v-stepper-step>
+            <v-divider></v-divider>
+            <v-stepper-step :complete="stepperStep > 4" step="4" color="#FF425A">
+              Complete
+            </v-stepper-step>
+          </v-stepper-header>
 
-      <!-- Collecting indicator -->
-      <div v-if="isCollecting" class="collecting-indicator">
-        <v-progress-circular indeterminate color="green" size="24" width="3" class="mr-2"></v-progress-circular>
-        <span>Recording eye position...</span>
-      </div>
+          <v-stepper-items>
+            <!-- Step 1: Overview -->
+            <v-stepper-content step="1">
+              <v-card flat>
+                <v-card-text class="text-center px-6 py-6">
+                  <v-icon size="50" color="#FF425A" class="mb-4">mdi-eye-settings</v-icon>
+                  <h2 class="text-h4 font-weight-bold mb-4">Eye Tracking Calibration</h2>
+                  
+                  <v-alert color="#002D51" dark class="mb-4 text-left">
+                    <div class="text-body-1">
+                      <p class="font-weight-bold mb-2">This calibration consists of two phases:</p>
+                      <ol class="pl-4">
+                        <li class="mb-1"><strong>Training Phase:</strong> The system learns your eye movement patterns</li>
+                        <li><strong>Validation Phase:</strong> The system verifies the calibration accuracy</li>
+                      </ol>
+                    </div>
+                  </v-alert>
+                  
+                  <v-row class="mb-4">
+                    <v-col cols="6">
+                      <v-alert color="#FF425A" dark dense>
+                        <div class="d-flex align-center">
+                          <v-icon left>mdi-check-circle</v-icon>
+                          <span><strong>Success:</strong> You can use the tool</span>
+                        </div>
+                      </v-alert>
+                    </v-col>
+                    <v-col cols="6">
+                      <v-alert color="#002D51" dark dense>
+                        <div class="d-flex align-center">
+                          <v-icon left>mdi-alert-circle</v-icon>
+                          <span><strong>Failure:</strong> Repeat calibration</span>
+                        </div>
+                      </v-alert>
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+                <v-card-actions class="justify-center pb-6">
+                  <v-btn x-large color="#FF425A" dark @click="stepperStep = 2" class="px-8">
+                    <v-icon left>mdi-arrow-right</v-icon>
+                    Continue
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-stepper-content>
 
-      <v-row justify="center" align="center" class="ma-0 justify-center align-center">
-        <!-- Initial instruction -->
-        <div v-if="index === 0" class="instruction-box">
-          <v-icon size="48" color="green" class="mb-3">mdi-eye-outline</v-icon>
-          <h2 class="instruction-title">Look at the red dot</h2>
-          <p class="instruction-text">Press <kbd>S</kbd> when ready to start recording</p>
-          <p class="instruction-subtext">Keep your head still and follow each point with your eyes</p>
-        </div>
+            <!-- Step 2: Training Instructions -->
+            <v-stepper-content step="2">
+              <v-card flat>
+                <v-card-text class="text-center px-6 py-6">
+                  <v-icon size="50" color="#FF425A" class="mb-4">mdi-school</v-icon>
+                  <h2 class="text-h4 font-weight-bold mb-4">Training Phase</h2>
+                  
+                  <v-card outlined class="pa-4 mb-4 text-left">
+                    <h3 class="text-h6 font-weight-bold mb-3 text-center">Instructions</h3>
+                    <div class="text-body-1">
+                      <p class="mb-2"><v-icon small color="#FF425A">mdi-eye</v-icon> <strong>Look at the red dot</strong> that appears on screen</p>
+                      <p class="mb-2"><v-icon small color="#FF425A">mdi-keyboard</v-icon> <strong>Press S</strong> when ready to record each point</p>
+                      <p class="mb-2"><v-icon small color="#FF425A">mdi-head</v-icon> <strong>Keep your head still</strong> during the entire process</p>
+                      <p class="mb-0"><v-icon small color="#FF425A">mdi-target</v-icon> <strong>Follow the points</strong> with your eyes only</p>
+                    </div>
+                  </v-card>
 
-        <!-- Last point instruction -->
-        <div v-if="index === usedPattern.length - 1 && index > 0" class="instruction-box-small">
-          <p class="instruction-text-small">Final point! Press <kbd>S</kbd> once more</p>
-        </div>
+                  <v-alert color="#FF425A" dark dense class="text-center">
+                    <strong>Total points to calibrate:</strong> {{ usedPattern.length }}
+                  </v-alert>
+                </v-card-text>
+                <v-card-actions class="justify-space-between px-6 pb-6">
+                  <v-btn text @click="stepperStep = 1">
+                    <v-icon left>mdi-arrow-left</v-icon>
+                    Back
+                  </v-btn>
+                  <v-btn x-large color="#FF425A" dark @click="startTraining" class="px-8">
+                    <v-icon left size="28">mdi-play-circle</v-icon>
+                    <span class="text-h6">Start Training</span>
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-stepper-content>
 
-        <!-- Collection complete -->
-        <div v-if="index === usedPattern.length" class="completion-box">
-          <v-icon size="64" color="green" class="mb-4">mdi-check-circle</v-icon>
-          <div v-if="currentStep === 1">
-            <h2 class="completion-title">Training Complete!</h2>
-            <p class="completion-text">Collected {{ circleIrisPoints.length }} training samples</p>
-            <p class="completion-subtext">Now let's validate the calibration</p>
-            <v-btn large color="green" @click="nextStep()" class="mt-4">
-              <v-icon left>mdi-arrow-right</v-icon>
-              Continue to Validation
-            </v-btn>
-          </div>
-          <div v-else>
-            <h2 class="completion-title">Validation Complete!</h2>
-            <p class="completion-text">Collected {{ calibPredictionPoints.length }} validation samples</p>
-            <p class="completion-subtext">Processing your calibration data...</p>
-            <v-btn large color="green" @click="endCalib()" class="mt-4">
-              <v-icon left>mdi-check</v-icon>
-              Finish Calibration
-            </v-btn>
-          </div>
-        </div>
-      </v-row>
-    </div>
+            <!-- Step 3: Validation Instructions -->
+            <v-stepper-content step="3">
+              <v-card flat>
+                <v-card-text class="text-center px-6 py-6">
+                  <v-icon size="50" color="#FF425A" class="mb-4">mdi-check-decagram</v-icon>
+                  <h2 class="text-h4 font-weight-bold mb-4">Validation Phase</h2>
+                  
+                  <v-alert color="#FF425A" dark class="mb-4">
+                    <div class="text-center">
+                      <p class="font-weight-bold mb-1">Training Complete!</p>
+                      <p class="mb-0">Successfully collected {{ circleIrisPoints.length }} training samples</p>
+                    </div>
+                  </v-alert>
+                  
+                  <v-card outlined class="pa-4 mb-4 text-left">
+                    <h3 class="text-h6 font-weight-bold mb-3 text-center">Validation Instructions</h3>
+                    <div class="text-body-1">
+                      <p class="mb-2"><v-icon small color="#FF425A">mdi-eye</v-icon> <strong>Look at the red dot</strong> that appears on screen</p>
+                      <p class="mb-2"><v-icon small color="#FF425A">mdi-keyboard</v-icon> <strong>Press S</strong> when ready to record each point</p>
+                      <p class="mb-2"><v-icon small color="#FF425A">mdi-head</v-icon> <strong>Keep your head still</strong> during the entire process</p>
+                      <p class="mb-0"><v-icon small color="#FF425A">mdi-target</v-icon> <strong>Follow the points</strong> with your eyes only</p>
+                    </div>
+                  </v-card>
+
+                  <v-alert color="#002D51" dark dense class="text-center">
+                    <strong>This phase verifies the calibration accuracy</strong>
+                  </v-alert>
+                </v-card-text>
+                <v-card-actions class="justify-center pb-6">
+                  <v-btn x-large color="#FF425A" dark @click="startValidation" class="px-8">
+                    <v-icon left size="28">mdi-play-circle</v-icon>
+                    <span class="text-h6">Start Validation</span>
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-stepper-content>
+
+            <!-- Step 4: Completion -->
+            <v-stepper-content step="4">
+              <v-card flat>
+                <v-card-text class="text-center px-6 py-8">
+                  <v-icon size="50" color="#FF425A" class="mb-4">mdi-check-circle</v-icon>
+                  <h2 class="text-h3 font-weight-bold mb-4">Calibration Complete!</h2>
+                  
+                  <v-alert color="#FF425A" dark class="mb-3">
+                    <div class="text-center">
+                      <p class="font-weight-bold mb-1">Training: {{ circleIrisPoints.length }} samples collected</p>
+                      <p class="mb-0">Validation: {{ calibPredictionPoints.length }} samples collected</p>
+                    </div>
+                  </v-alert>
+                  
+                  <v-alert color="#002D51" dark class="mb-4">
+                    <div class="text-center">
+                      <v-icon left>mdi-check-circle</v-icon>
+                      <span class="font-weight-bold">Your eye tracking calibration was successful!</span>
+                    </div>
+                  </v-alert>
+                  
+                  <p class="text-h6 grey--text mb-4">Processing your calibration data...</p>
+                </v-card-text>
+                <v-card-actions class="justify-center pb-8">
+                  <v-btn x-large color="#FF425A" dark @click="endCalib()" class="px-12">
+                    <v-icon left size="32">mdi-check-bold</v-icon>
+                    <span class="text-h5">Finish</span>
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-stepper-content>
+          </v-stepper-items>
+        </v-stepper>
+      </v-card>
+    </v-dialog>
     <canvas id="canvas" style="z-index: 0;" />
     <video autoplay id="video-tag" style="display: none;"></video>
   </div>
@@ -114,6 +231,9 @@ export default {
       faceDetected: true,
       loadingConfig: false,
       redirectingToRuxailab: false,
+      stepperStep: 1,
+      showStepper: true,
+      calibrationStarted: false,
     };
   },
   computed: {
@@ -199,12 +319,25 @@ export default {
     this.advance(this.usedPattern, this.circleIrisPoints, this.msPerCapture)
   },
   methods: {
+    startTraining() {
+      this.showStepper = false;
+      this.calibrationStarted = true;
+    },
+    startValidation() {
+      this.showStepper = false;
+      this.calibrationStarted = true;
+    },
     advance(pattern, whereToSave, timeBetweenCaptures) {
       const th = this
       var i = 0
       async function keydownHandler(event) {
+        // Block key press if stepper is shown
+        if (th.showStepper) {
+          return;
+        }
+        
         if ((event.key === "s" || event.key === "S")) {
-          if (i <= pattern.length - 1) {
+          if (i < pattern.length) {
             document.removeEventListener('keydown', keydownHandler)
             th.isCollecting = true
             await th.extract(pattern[i], timeBetweenCaptures)
@@ -212,17 +345,25 @@ export default {
 
             th.$store.commit('setIndex', i)
             i++
-            if (i != pattern.length) {
+            
+            if (i < pattern.length) {
               await th.triggerAnimation(pattern[i - 1], pattern[i], this.animationRefreshRate)
+              document.addEventListener('keydown', keydownHandler)
+            } else {
+              // Completed all points - finalize
+              th.$store.commit('setIndex', i)
+              th.savePoint(whereToSave, th.usedPattern)
+              const canvas = document.getElementById('canvas');
+              const ctx = canvas.getContext('2d');
+              ctx.clearRect(0, 0, canvas.width, canvas.height)
+              // Show stepper at step 3 (validation) or step 4 (completion)
+              if (th.currentStep === 1) {
+                th.nextStep();
+              } else {
+                th.stepperStep = 4;
+                th.showStepper = true;
+              }
             }
-            document.addEventListener('keydown', keydownHandler)
-          } else {
-            th.$store.commit('setIndex', i)
-            document.removeEventListener('keydown', keydownHandler)
-            th.savePoint(whereToSave, th.usedPattern)
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height)
           }
         }
       }
@@ -234,6 +375,9 @@ export default {
       });
       this.$store.commit('setIndex', 0)
       this.currentStep = 2
+      this.stepperStep = 3;
+      this.showStepper = true;
+      this.calibrationStarted = false;
       this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
       this.advance(this.usedPattern, this.calibPredictionPoints, this.msPerCapture)
     },
@@ -732,5 +876,62 @@ kbd {
   font-weight: 600;
   font-size: 16px;
   color: #333;
+}
+
+/* Calibration Stepper */
+.calibration-stepper .v-stepper__header {
+  box-shadow: none !important;
+  background-color: #002D51 !important;
+  border-radius: 0px !important;
+  padding: 0px !important;
+}
+
+.calibration-stepper {
+  box-shadow: none !important;
+  border-radius: 0px !important;
+  overflow: hidden !important;
+}
+
+.calibration-stepper .v-stepper__step__step {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+}
+
+.calibration-stepper .v-stepper__step--active .v-stepper__step__step {
+  background-color: #FF425A !important;
+  color: white !important;
+}
+
+.calibration-stepper .v-stepper__step--complete .v-stepper__step__step {
+  background-color: #FF425A !important;
+  color: white !important;
+}
+
+.calibration-stepper .v-stepper__step .v-stepper__label {
+  color: white !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+}
+
+.calibration-stepper .v-stepper__step--active .v-stepper__label {
+  color: white !important;
+}
+
+.calibration-stepper .v-stepper__step--complete .v-stepper__label {
+  color: white !important;
+}
+
+.calibration-stepper .v-divider {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+</style>
+
+<style>
+/* Fix dialog centering - without scoped */
+.v-dialog__content {
+  width: 100% !important;
+  align-items:  center !important;
+  justify-content: center !important;
 }
 </style>
