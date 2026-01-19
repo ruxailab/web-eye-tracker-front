@@ -1,16 +1,40 @@
 <template>
     <div class="scroll-container">
-        <canvas id="canvas" />
+        <!-- Instructions Card -->
+        <div class="instructions-overlay">
+            <v-card class="instruction-card" outlined>
+                <v-card-text class="pa-4">
+                    <div class="d-flex align-center">
+                        <v-icon color="info" class="mr-3">mdi-information-outline</v-icon>
+                        <div>
+                            <strong>Understanding Your Results:</strong>
+                            <p class="mb-0 mt-1 text-caption">
+                                <span style="color: green;">●</span> Green points = Good accuracy<br>
+                                <span style="color: orange;">●</span> Orange points = Needs improvement<br>
+                                <span style="color: red;">●</span> Red line = Distance from target
+                            </p>
+                        </div>
+                    </div>
+                </v-card-text>
+            </v-card>
+        </div>
+
+        <canvas style="width: 100%; height: 100%;" id="canvas" />
         <div>
             <PointModal :x="Number(x)" :y="Number(y)" :precision="Number(precision)" :accuracy="Number(accuracy)"
                 :dialog="dialog" :pointNumber="pointNumber" :predictionX="predictionX" :predictionY="predictionY"
                 @close="dialogCancel" @select="select" />
         </div>
-            <ConfigModal :configDialog="configDialog" @close="configDialogCancel" @recalib="recalibrate"
-                @save="saveCalib" />
-        <v-col>
+        <ConfigModal :configDialog="configDialog" @close="configDialogCancel" @recalib="recalibrate"
+            @save="saveCalib" />
+        <v-col class="pa-0">
             <DraggableFloatingButton @click="callConfigModal" :icon="'mdi-cog'" />
         </v-col>
+
+        <div v-if="redirectingToRuxailab" class="button-overlay">
+            <v-btn @click="recalibrate" color="primary">Recalibrate</v-btn>
+            <v-btn @click="sendCalibToRuxailab" color="success">Send this calib to Ruxailab</v-btn>
+        </div>
     </div>
 </template>
 
@@ -40,6 +64,7 @@ export default {
         }
     },
     async mounted() {
+        await this.verifyFromRuxailab()
         this.initCanvas()
         this.drawCalibPoints()
     },
@@ -71,6 +96,12 @@ export default {
         predictTrainData() {
             return this.$store.state.predict.predictTrainData;
         },
+        circleIrisPoints() {
+            return this.$store.state.calibration.runtime.circleIrisPoints;
+        },
+        calibPredictionPoints() {
+            return this.$store.state.calibration.runtime.calibPredictionPoints;
+        },
     },
     watch: {
         mockPattern() {
@@ -83,6 +114,29 @@ export default {
     methods: {
         callConfigModal() {
             this.configDialog = true
+        },
+        async verifyFromRuxailab() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('redirectingToRuxailab')) {
+                this.redirectingToRuxailab = true
+            }
+        },
+        recalibrate() {
+            this.$router.back()
+        },
+        async sendCalibToRuxailab() {
+            const screenHeight = window.screen.height
+            const screenWidth = window.screen.width
+
+            await this.$store.dispatch('sendData', {
+                fromRuxailab: true,
+                circleIrisPoints: this.circleIrisPoints,
+                calibPredictionPoints: this.calibPredictionPoints,
+                screenHeight,
+                screenWidth,
+                k: this.$store.state.calibration.pointNumber,
+                threshold: this.$store.state.calibration.threshold
+            })
         },
         select(pointNumber) {
             this.$store.commit('setMockPatternElement', this.pattern[pointNumber])
@@ -120,9 +174,6 @@ export default {
                 this.drawDash(centroidX, centroidY, this.pattern[i].x, this.pattern[i].y, dashColor)
                 this.drawCentroid(centroidX, centroidY, 1 + this.pattern[i].precision * 25.4, centroidColor)
             }
-        },
-        recalibrate() {
-            this.$router.push('/calibration/record')
         },
         async saveCalib() {
             await this.$store.dispatch('saveCalib')
@@ -263,18 +314,58 @@ export default {
 
 <style>
 .scroll-container {
-  width: 100%; /* Set the width to whatever you need */
-  overflow-x: auto; /* Enable horizontal scrolling */
+    width: 100%;
+    overflow-x: auto;
+    position: relative;
 }
-.v-dialog__content{
-        flex-direction: column;
-        flex-wrap: nowrap;
-        justify-content: center;
-        align-items: unset;
-        width: 300px;
-    }
-    .v-dialog{
-        box-shadow: none;
-        overflow-y: visible;
-    }
+
+.banner-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.banner-subtitle {
+    font-size: 14px;
+    margin: 4px 0 0 0;
+    opacity: 0.95;
+}
+
+.instructions-overlay {
+    position: fixed;
+    top: 90px;
+    right: 24px;
+    z-index: 999;
+    max-width: 300px;
+}
+
+.button-overlay {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999;
+    display: flex;
+    gap: 12px;
+}
+
+.instruction-card {
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+}
+
+.v-dialog__content {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: unset;
+    width: 300px;
+}
+
+.v-dialog {
+    box-shadow: none;
+    overflow-y: visible;
+}
 </style>
