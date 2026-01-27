@@ -341,7 +341,7 @@ export default {
           patterns.push({ x: width - offset, y: height - offset });
           break;
           
-        case 6:
+        case 6: {
           // 3x2 rectangle pattern
           const stepX6 = (width - 2 * offset) / 2;
           const stepY6 = (height - 2 * offset) / 1;
@@ -354,6 +354,7 @@ export default {
             }
           }
           break;
+        }
           
         case 7:
           // Partial 3x3 grid (strategic selection)
@@ -379,7 +380,7 @@ export default {
           break;
           
         case 9:
-        default:
+        default: {
           // Full 3x3 grid (current working pattern)
           const cols = 3;
           const rows = 3;
@@ -397,6 +398,7 @@ export default {
             }
           }
           break;
+        }
       }
       
       return patterns;
