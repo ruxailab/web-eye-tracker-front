@@ -202,7 +202,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import axios from "axios"; 
 
 
 export default {
@@ -233,7 +233,12 @@ export default {
       stepperStep: 1,
       showStepper: true,
       calibrationStarted: false,
-      loadingConfig: false
+      loadingConfig: false,
+
+      // streaming
+      lastStreamTime: 0,
+      streamInterval: 100,
+      sessionId: "test-session",
     };
   },
   computed: {
@@ -320,6 +325,8 @@ export default {
   },
   methods: {
     startTraining() {
+      // this.sessionId = `calib-${Date.now()}`;
+      this.sessionId = "test-session";
       this.showStepper = false;
       this.calibrationStarted = true;
     },
@@ -457,48 +464,56 @@ export default {
       return distance;
     },
     drawPoint(x, y, radius) {
-      const canvas = document.getElementById('canvas');
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      ctx.fillStyle = this.backgroundColor;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      //circle 
-      ctx.beginPath();
-      ctx.strokeStyle = this.pointColor;
-      ctx.fillStyle = this.pointColor;
-      ctx.arc(
-        x,
-        y,
-        radius,
-        0,
-        Math.PI * 2,
-        false
-      );
-      ctx.stroke();
-      ctx.fill();
-      // inner circle
-      ctx.beginPath();
-      ctx.strokeStyle = "red";
-      ctx.fillStyle = "red";
-      ctx.arc(
-        x,
-        y,
-        this.innerCircleRadius,
-        0,
-        Math.PI * 2,
-        false
-      );
-      ctx.stroke();
-      ctx.fill();
-      // hollow circumference
-      ctx.strokeStyle = this.pointColor;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(x, y, this.radius, 0, 2 * Math.PI, false);
-      ctx.stroke();
-    },
+    const canvas = document.getElementById('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = this.backgroundColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // outer animated circle
+    ctx.beginPath();
+    ctx.strokeStyle = this.pointColor;
+    ctx.fillStyle = this.pointColor;
+    ctx.arc(x, y, radius, 0, Math.PI * 2, false);
+    ctx.stroke();
+    ctx.fill();
+
+    // inner red dot (actual gaze target)
+    ctx.beginPath();
+    ctx.strokeStyle = "red";
+    ctx.fillStyle = "red";
+    ctx.arc(x, y, this.innerCircleRadius, 0, Math.PI * 2, false);
+    ctx.stroke();
+    ctx.fill();
+
+    // hollow circumference
+    ctx.strokeStyle = this.pointColor;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(x, y, this.radius, 0, 2 * Math.PI, false);
+    ctx.stroke();
+
+    // REAL-TIME GAZE STREAMING
+    const now = Date.now();
+    if (now - this.lastStreamTime > this.streamInterval) {
+      this.lastStreamTime = now;
+
+    axios.post("/api/session/gaze", {
+      session_id: this.sessionId,
+      x: Math.round(x),
+      y: Math.round(y),
+      phase: this.currentStep === 1 ? "training" : "validation",
+      timestamp: now,
+    }).catch(err => {
+      console.error("gaze stream failed", err);
+    });
+  }
+},
+
     async endCalib() {
       this.calibPredictionPoints.forEach(element => {
         delete element.point_x;
