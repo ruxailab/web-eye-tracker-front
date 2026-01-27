@@ -51,17 +51,18 @@
                 <v-card-text class="text-center px-6 py-6">
                   <v-icon size="50" color="#FF425A" class="mb-4">mdi-eye-settings</v-icon>
                   <h2 class="text-h4 font-weight-bold mb-4">Eye Tracking Calibration</h2>
-                  
+
                   <v-alert color="#002D51" dark class="mb-4 text-left">
                     <div class="text-body-1">
                       <p class="font-weight-bold mb-2">This calibration consists of two phases:</p>
                       <ol class="pl-4">
-                        <li class="mb-1"><strong>Training Phase:</strong> The system learns your eye movement patterns</li>
+                        <li class="mb-1"><strong>Training Phase:</strong> The system learns your eye movement patterns
+                        </li>
                         <li><strong>Validation Phase:</strong> The system verifies the calibration accuracy</li>
                       </ol>
                     </div>
                   </v-alert>
-                  
+
                   <v-row class="mb-4">
                     <v-col cols="6">
                       <v-alert color="#FF425A" dark dense>
@@ -96,14 +97,18 @@
                 <v-card-text class="text-center px-6 py-6">
                   <v-icon size="50" color="#FF425A" class="mb-4">mdi-school</v-icon>
                   <h2 class="text-h4 font-weight-bold mb-4">Training Phase</h2>
-                  
+
                   <v-card outlined class="pa-4 mb-4 text-left">
                     <h3 class="text-h6 font-weight-bold mb-3 text-center">Instructions</h3>
                     <div class="text-body-1">
-                      <p class="mb-2"><v-icon small color="#FF425A">mdi-eye</v-icon> <strong>Look at the red dot</strong> that appears on screen</p>
-                      <p class="mb-2"><v-icon small color="#FF425A">mdi-keyboard</v-icon> <strong>Press S</strong> when ready to record each point</p>
-                      <p class="mb-2"><v-icon small color="#FF425A">mdi-head</v-icon> <strong>Keep your head still</strong> during the entire process</p>
-                      <p class="mb-0"><v-icon small color="#FF425A">mdi-target</v-icon> <strong>Follow the points</strong> with your eyes only</p>
+                      <p class="mb-2"><v-icon small color="#FF425A">mdi-eye</v-icon> <strong>Look at the red
+                          dot</strong> that appears on screen</p>
+                      <p class="mb-2"><v-icon small color="#FF425A">mdi-keyboard</v-icon> <strong>Press S</strong> when
+                        ready to record each point</p>
+                      <p class="mb-2"><v-icon small color="#FF425A">mdi-head</v-icon> <strong>Keep your head
+                          still</strong> during the entire process</p>
+                      <p class="mb-0"><v-icon small color="#FF425A">mdi-target</v-icon> <strong>Follow the
+                          points</strong> with your eyes only</p>
                     </div>
                   </v-card>
 
@@ -130,21 +135,25 @@
                 <v-card-text class="text-center px-6 py-6">
                   <v-icon size="50" color="#FF425A" class="mb-4">mdi-check-decagram</v-icon>
                   <h2 class="text-h4 font-weight-bold mb-4">Validation Phase</h2>
-                  
+
                   <v-alert color="#FF425A" dark class="mb-4">
                     <div class="text-center">
                       <p class="font-weight-bold mb-1">Training Complete!</p>
                       <p class="mb-0">Successfully collected {{ circleIrisPoints.length }} training samples</p>
                     </div>
                   </v-alert>
-                  
+
                   <v-card outlined class="pa-4 mb-4 text-left">
                     <h3 class="text-h6 font-weight-bold mb-3 text-center">Validation Instructions</h3>
                     <div class="text-body-1">
-                      <p class="mb-2"><v-icon small color="#FF425A">mdi-eye</v-icon> <strong>Look at the red dot</strong> that appears on screen</p>
-                      <p class="mb-2"><v-icon small color="#FF425A">mdi-keyboard</v-icon> <strong>Press S</strong> when ready to record each point</p>
-                      <p class="mb-2"><v-icon small color="#FF425A">mdi-head</v-icon> <strong>Keep your head still</strong> during the entire process</p>
-                      <p class="mb-0"><v-icon small color="#FF425A">mdi-target</v-icon> <strong>Follow the points</strong> with your eyes only</p>
+                      <p class="mb-2"><v-icon small color="#FF425A">mdi-eye</v-icon> <strong>Look at the red
+                          dot</strong> that appears on screen</p>
+                      <p class="mb-2"><v-icon small color="#FF425A">mdi-keyboard</v-icon> <strong>Press S</strong> when
+                        ready to record each point</p>
+                      <p class="mb-2"><v-icon small color="#FF425A">mdi-head</v-icon> <strong>Keep your head
+                          still</strong> during the entire process</p>
+                      <p class="mb-0"><v-icon small color="#FF425A">mdi-target</v-icon> <strong>Follow the
+                          points</strong> with your eyes only</p>
                     </div>
                   </v-card>
 
@@ -167,21 +176,21 @@
                 <v-card-text class="text-center px-6 py-8">
                   <v-icon size="50" color="#FF425A" class="mb-4">mdi-check-circle</v-icon>
                   <h2 class="text-h3 font-weight-bold mb-4">Calibration Complete!</h2>
-                  
+
                   <v-alert color="#FF425A" dark class="mb-3">
                     <div class="text-center">
                       <p class="font-weight-bold mb-1">Training: {{ circleIrisPoints.length }} samples collected</p>
                       <p class="mb-0">Validation: {{ calibPredictionPoints.length }} samples collected</p>
                     </div>
                   </v-alert>
-                  
+
                   <v-alert color="#002D51" dark class="mb-4">
                     <div class="text-center">
                       <v-icon left>mdi-check-circle</v-icon>
                       <span class="font-weight-bold">Your eye tracking calibration was successful!</span>
                     </div>
                   </v-alert>
-                  
+
                   <p class="text-h6 grey--text mb-4">Processing your calibration data...</p>
                 </v-card-text>
                 <v-card-actions class="justify-center pb-8">
@@ -246,9 +255,6 @@ export default {
     predByPointCount() {
       return this.$store.state.calibration.samplePerPoint
     },
-    pattern() {
-      return this.$store.state.calibration.pattern
-    },
     mockPattern() {
       return this.$store.state.calibration.mockPattern
     },
@@ -281,42 +287,17 @@ export default {
     },
   },
   async created() {
+    console.log("rodou created");
     await this.verifyFromRuxailab()
     this.$store.commit('setIndex', 0)
-    this.usedPattern = (this.mockPattern.length > 0) ? this.mockPattern : this.pattern
+    this.usedPattern = this.generateRuntimePattern()
 
-    if (this.usedPattern.length === 0) {
-      const width = window.innerWidth
-      const height = window.innerHeight
-      const offset = this.offset || 100
-
-      const cols = 3
-      const rows = 3
-
-      const usableWidth = width - 2 * offset
-      const usableHeight = height - 2 * offset
-
-      const stepX = usableWidth / (cols - 1)
-      const stepY = usableHeight / (rows - 1)
-
-      const generatedPattern = []
-
-      for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < cols; j++) {
-          generatedPattern.push({
-            x: offset + j * stepX,
-            y: offset + i * stepY,
-          })
-        }
-      }
-
-      this.$store.commit('setMockPattern', generatedPattern)
-      this.usedPattern = generatedPattern
-
-    }
     await this.startWebCamCapture();
+    console.log("chamou drawPoint no created com os valores:", this.usedPattern[0].x, this.usedPattern[0].y);
     this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
     this.advance(this.usedPattern, this.circleIrisPoints, this.msPerCapture)
+    console.log("UsedPattern inteiro", this.usedPattern);
+
   },
   methods: {
     startTraining() {
@@ -335,8 +316,8 @@ export default {
         if (th.showStepper) {
           return;
         }
-        
-        if ((event.key === "s" || event.key === "S")) {
+
+        if ((event.key === "s" || event.key === "S" || event.key === "Enter")) {
           if (i < pattern.length) {
             document.removeEventListener('keydown', keydownHandler)
             th.isCollecting = true
@@ -345,7 +326,7 @@ export default {
 
             th.$store.commit('setIndex', i)
             i++
-            
+
             if (i < pattern.length) {
               await th.triggerAnimation(pattern[i - 1], pattern[i], this.animationRefreshRate)
               document.addEventListener('keydown', keydownHandler)
@@ -378,6 +359,9 @@ export default {
       this.stepperStep = 3;
       this.showStepper = true;
       this.calibrationStarted = false;
+
+      console.log("nextStep rodou drawPoint com os valores:", this.usedPattern[0].x, this.usedPattern[0].y);
+
       this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
       this.advance(this.usedPattern, this.calibPredictionPoints, this.msPerCapture)
     },
@@ -458,6 +442,9 @@ export default {
     },
     drawPoint(x, y, radius) {
       const canvas = document.getElementById('canvas');
+
+      console.log('Window size:', window.innerWidth, 'x', window.innerHeight);
+
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight
       const ctx = canvas.getContext('2d');
@@ -504,8 +491,8 @@ export default {
         delete element.point_x;
         delete element.point_y;
       })
-      const screenHeight = window.screen.height
-      const screenWidth = window.screen.width
+      const screenHeight = window.innerHeight
+      const screenWidth = window.innerWidth
 
       let predictions = await this.$store.dispatch('sendData', {
         fromRuxailab: false,
@@ -514,7 +501,7 @@ export default {
         screenHeight,
         screenWidth,
         k: this.$store.state.calibration.pointNumber,
-          threshold: this.$store.state.calibration.threshold
+        threshold: this.$store.state.calibration.threshold
       })
 
       if (typeof predictions === 'string') {
@@ -527,6 +514,7 @@ export default {
       }
       for (var a = 0; a < this.usedPattern.length; a++) {
         const element = predictions[this.usedPattern[a].x.toString().split('.')[0]][this.usedPattern[a].y.toString().split('.')[0]]
+
         this.usedPattern[a].precision = element.PrecisionSD.toFixed(2)
         this.usedPattern[a].accuracy = element.Accuracy.toFixed(2)
         this.usedPattern[a].predictionX = element.predicted_x
@@ -645,6 +633,39 @@ export default {
       await this.recordWebCam.stop();
       this.calibFinished = true;
     },
+
+    generateRuntimePattern() {
+      const width = window.innerWidth
+      const height = window.innerHeight
+      const offset = this.offset || 100
+      const points = this.$store.state.calibration.pointNumber || 9
+
+      const minCols = 3
+      const cols = Math.max(minCols, Math.round(Math.sqrt(points)))
+      const rows = Math.ceil(points / cols)
+
+
+      const usableWidth = width - 2 * offset
+      const usableHeight = height - 2 * offset
+
+      const stepX = usableWidth / (cols - 1)
+      const stepY = usableHeight / (rows - 1)
+
+      const pattern = []
+
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          if (pattern.length < points) {
+            pattern.push({
+              x: offset + j * stepX,
+              y: offset + i * stepY
+            })
+          }
+        }
+      }
+
+      return pattern
+    }
   },
 };
 </script>
@@ -938,7 +959,7 @@ kbd {
 /* Fix dialog centering - without scoped */
 .v-dialog__content {
   width: 100% !important;
-  align-items:  center !important;
+  align-items: center !important;
   justify-content: center !important;
 }
 </style>
