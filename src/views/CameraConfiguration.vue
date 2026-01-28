@@ -1,5 +1,5 @@
 <template>
-    <div id="box" style="height: 100vh; overflow: hidden;">
+    <div id="box" style="min-height: 100vh; overflow-y: auto;">
         <Toolbar v-if="!fromRuxailab" />
         
         <!-- Camera Selection Modal -->
@@ -36,8 +36,8 @@
             </v-card>
         </v-dialog>
 
-        <v-container fluid style="height: calc(100vh - 64px); overflow-y: auto; overflow-x: hidden;">
-            <v-row justify="center" align="center" style="min-height: 100%;">
+        <v-container fluid>
+            <v-row justify="center" align="center">
                 <v-col cols="12" md="10" lg="8" xl="6">
                     <v-stepper v-model="setupStep" elevation="0" class="mx-auto compact-stepper">
                         <v-stepper-header>
@@ -98,8 +98,14 @@
                                             Camera Help
                                         </v-btn>
                                     </div>
-                                    <div v-if="isModelLoaded" class="camera-wrapper mx-auto" style="max-height: 400px;">
-                                        <video id="video-tag" autoplay playsinline />
+                                    <div v-if="isModelLoaded" class="camera-wrapper mx-auto">
+                                        <!-- Simple video test -->
+                                        <video 
+                                            id="video-tag" 
+                                            autoplay 
+                                            playsinline 
+                                            style="width: 100%; height: auto; transform: scaleX(-1); display: block;"
+                                        />
                                         <canvas id="canvas" />
                                         <v-img v-if="isCameraOn" class="mask" src="@/assets/mask_desktop.svg" />
                                     </div>
@@ -224,7 +230,9 @@ export default {
                 navigator.mediaDevices
                     .getUserMedia({
                         audio: false,
-                        video: { deviceId: this.selectedMediaDevice, width: 600, height: 500 },
+                        video: {
+                            deviceId: this.selectedMediaDevice
+                        },
                     })
                     .then((stream) => {
                         // stream is a MediaStream object
@@ -236,10 +244,18 @@ export default {
 
                         this.video.onloadeddata = () => {
                             const canvas = document.getElementById("canvas");
-
                             
-                            canvas.width = this.video.videoWidth || 500;
-                            canvas.height = this.video.videoHeight || 400;
+                            // Debug: Log video dimensions
+                            console.log('Video loaded:', {
+                                videoWidth: this.video.videoWidth,
+                                videoHeight: this.video.videoHeight,
+                                clientWidth: this.video.clientWidth,
+                                clientHeight: this.video.clientHeight
+                            });
+                            
+                            // Set canvas size to match video dimensions
+                            canvas.width = this.video.videoWidth || 640;
+                            canvas.height = this.video.videoHeight || 480;
 
                             this.isCameraOn = true;
                             this.detectFace();
@@ -253,7 +269,9 @@ export default {
             }
 
             const constraints = {
-                video: { deviceId: deviceId, width: 600, height: 500 },
+                video: {
+                    deviceId: deviceId
+                },
                 audio: false
             };
 
@@ -277,9 +295,21 @@ export default {
                 input: this.video,
             })
             this.$store.commit('setPredictions', prediction)
-            canvas.width = this.video.videoWidth || 500;
-            canvas.height = this.video.videoHeight || 400;
-            ctx.drawImage(this.video, 0, 0, canvas.width, canvas.height)
+            
+            // Debug: Log canvas and video dimensions
+            console.log('DetectFace - Dimensions:', {
+                canvasWidth: canvas.width,
+                canvasHeight: canvas.height,
+                videoWidth: this.video.videoWidth,
+                videoHeight: this.video.videoHeight
+            });
+            
+            // Set canvas size to match video dimensions
+            canvas.width = this.video.videoWidth || 640;
+            canvas.height = this.video.videoHeight || 480;
+            
+            // Clear the canvas to make it transparent
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             const th = this
 
@@ -417,7 +447,8 @@ export default {
 
 /* Compact Stepper Styles */
 .compact-stepper {
-    max-height: calc(100vh - 100px);
+    /* Allow content to expand; page scrolls if needed */
+    max-height: none;
 }
 
 .compact-content {
@@ -442,7 +473,13 @@ export default {
 
 .compact-stepper {
     border-radius: 12px !important;
-    overflow: hidden !important;
+    /* Do not clip content (prevents scrolling) */
+    overflow: visible !important;
+}
+
+/* Ensure stepper content isn't clipped */
+.v-stepper__content {
+    overflow: visible !important;
 }
 
 .compact-stepper .v-stepper__step__step {
@@ -488,31 +525,43 @@ export default {
 .camera-wrapper {
     position: relative;
     width: 100%;
-    max-width: 500px;
-    height: auto;
-    aspect-ratio: 5/4;
+    max-width: 800px;
     margin: 0 auto;
     border: 5px solid #FF425A;
     border-radius: 12px;
     overflow: hidden;
-}
-
-#video-tag,
-#canvas,
-.mask {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    background: #000;
 }
 
 #video-tag {
+    width: 100%;
+    height: auto;
     transform: scaleX(-1);
+    z-index: 1;
+    display: block;
+    max-height: none; /* Remove any height constraints */
 }
 
 #canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     transform: scaleX(-1);
+    z-index: 2;
+    background: transparent;
+    pointer-events: none;
+}
+
+.mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 3;
 }
 
 .mask {
