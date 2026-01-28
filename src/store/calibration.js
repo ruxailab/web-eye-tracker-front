@@ -180,20 +180,18 @@ export default {
 
       return positions;
     },
-    async saveCalib(context) {
-      const state = context.state;
-      const db = firebase.firestore();
-      const calibrationData = { ...state };
-      delete calibrationData.calibrations;
+    async saveCalib({ state, dispatch }) {
       try {
-        const calibrationsCollection = db.collection("calibrations");
-        await calibrationsCollection.add(calibrationData);
-        console.log("Data successfully saved to calibrations collection!");
-        context.dispatch("getAllCalibs");
-      } catch (error) {
-        console.error("Error saving data to calibrations collection:", error);
+        const data = { ...state };
+        delete data.calibrations;
+
+        await firebase.firestore().collection("calibrations").add(data);
+        dispatch("getAllCalibs");
+      } catch (e) {
+        console.error("Save failed:", e);
       }
     },
+
     async finishCalibration({ state, dispatch }) {
       console.log("[Calibration] finishCalibration started");
 
@@ -217,7 +215,7 @@ export default {
       state.runtime.usedPattern.forEach((p) => {
         const data =
           predictions[p.x.toString().split(".")[0]][
-            p.y.toString().split(".")[0]
+          p.y.toString().split(".")[0]
           ];
 
         p.precision = Number(data.PrecisionSD).toFixed(2);
@@ -252,44 +250,59 @@ export default {
     },
     async getAllCalibs({ commit }) {
       try {
-        const db = firebase.firestore();
-        const calibrationsCollection = await db
+        const snapshot = await firebase
+          .firestore()
           .collection("calibrations")
           .get();
 
         const calibrations = [];
-        calibrationsCollection.forEach((doc) => {
-          var averageAccuracy = 0;
-          var averagePrecision = 0;
-          var data = doc.data();
-          data.pattern.forEach((element) => {
-            averageAccuracy += Number(element.accuracy);
-            averagePrecision += Number(element.precision);
-          });
-          data.averageAccuracy = averageAccuracy / data.pattern.length;
-          data.averagePrecision = averagePrecision / data.pattern.length;
+
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+
+          let averageAccuracy = 0;
+          let averagePrecision = 0;
+
+          if (data.runtime?.usedPattern?.length) {
+            const total = data.runtime.usedPattern.length;
+
+            averageAccuracy =
+              data.runtime.usedPattern.reduce(
+                (sum, p) => sum + Number(p.accuracy || 0),
+                0
+              ) / total;
+
+            averagePrecision =
+              data.runtime.usedPattern.reduce(
+                (sum, p) => sum + Number(p.precision || 0),
+                0
+              ) / total;
+          }
+
           calibrations.push({
             id: doc.id,
-            model: doc.data().models,
             ...data,
+            averageAccuracy: Number(averageAccuracy.toFixed(2)),
+            averagePrecision: Number(averagePrecision.toFixed(2)),
           });
         });
 
         commit("setCalibrations", calibrations);
-      } catch (error) {
-        console.error("Error getting calibrations:", error);
-        throw error;
+      } catch (err) {
+        console.error("Error getting calibrations:", err);
       }
     },
     async deleteCalib({ dispatch }, calib) {
       try {
-        const db = firebase.firestore();
-        const calibrationsCollection = db.collection("calibrations");
-        await calibrationsCollection.doc(calib.id).delete();
+        await firebase
+          .firestore()
+          .collection("calibrations")
+          .doc(calib.id)
+          .delete();
+
         dispatch("getAllCalibs");
-      } catch (error) {
-        console.error("Error deleting calibration:", error);
-        return { success: false, message: "Failed to delete calibration" };
+      } catch (e) {
+        console.error("Delete failed:", e);
       }
     },
     async sendData(context, data) {

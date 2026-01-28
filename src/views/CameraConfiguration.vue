@@ -536,7 +536,12 @@ export default {
 
 /* Compact Stepper Styles */
 .compact-stepper {
+<<<<<<< HEAD
   margin-bottom: 24px;
+=======
+    /* Allow content to expand; page scrolls if needed */
+    max-height: none;
+>>>>>>> 2b1bb29 (feat(calibration): fullscreen mode and camera preview fix)
 }
 
 .compact-content {
@@ -560,8 +565,19 @@ export default {
 }
 
 .compact-stepper {
+<<<<<<< HEAD
   border-radius: 12px !important;
   overflow: hidden !important;
+=======
+    border-radius: 12px !important;
+    /* Do not clip content (prevents scrolling) */
+    overflow: visible !important;
+}
+
+/* Ensure stepper content isn't clipped */
+.v-stepper__content {
+    overflow: visible !important;
+>>>>>>> 2b1bb29 (feat(calibration): fullscreen mode and camera preview fix)
 }
 
 .compact-stepper .v-stepper__step__step {
@@ -605,6 +621,7 @@ export default {
 }
 
 .camera-wrapper {
+<<<<<<< HEAD
   position: relative;
   width: 100%;
   max-width: 500px;
@@ -632,6 +649,47 @@ export default {
 
 #canvas {
   transform: scaleX(-1);
+=======
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    border: 5px solid #FF425A;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+}
+
+#video-tag {
+    width: 100%;
+    height: auto;
+    transform: scaleX(-1);
+    z-index: 1;
+    display: block;
+    max-height: none; /* Remove any height constraints */
+}
+
+#canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform: scaleX(-1);
+    z-index: 2;
+    background: transparent;
+    pointer-events: none;
+}
+
+.mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 3;
+>>>>>>> 2b1bb29 (feat(calibration): fullscreen mode and camera preview fix)
 }
 
 .mask {
