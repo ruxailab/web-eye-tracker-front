@@ -292,6 +292,18 @@ export default {
     this.$store.commit('setIndex', 0)
     this.usedPattern = this.generateRuntimePattern()
 
+    if (this.usedPattern.length === 0) {
+      const width = window.innerWidth
+      const height = window.innerHeight
+      const offset = this.offset || 100
+      const pointCount = this.$store.state.calibration.pointNumber
+
+      const generatedPattern = this.generateCalibrationPattern(pointCount, width, height, offset)
+
+      this.$store.commit('setMockPattern', generatedPattern)
+      this.usedPattern = generatedPattern
+
+    }
     await this.startWebCamCapture();
     console.log("chamou drawPoint no created com os valores:", this.usedPattern[0].x, this.usedPattern[0].y);
     this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
@@ -300,6 +312,108 @@ export default {
 
   },
   methods: {
+    generateCalibrationPattern(pointCount, width, height, offset) {
+      const patterns = [];
+      
+      switch(pointCount) {
+        case 1:
+          // Center point only
+          patterns.push({ x: width/2, y: height/2 });
+          break;
+          
+        case 2:
+          // Left and right edges (horizontal coverage)
+          patterns.push({ x: offset, y: height/2 });
+          patterns.push({ x: width - offset, y: height/2 });
+          break;
+          
+        case 3:
+          // Horizontal line: left, center, right
+          patterns.push({ x: offset, y: height/2 });
+          patterns.push({ x: width/2, y: height/2 });
+          patterns.push({ x: width - offset, y: height/2 });
+          break;
+          
+        case 4:
+          // Four corners (optimal for 4-point calibration)
+          patterns.push({ x: offset, y: offset });
+          patterns.push({ x: width - offset, y: offset });
+          patterns.push({ x: offset, y: height - offset });
+          patterns.push({ x: width - offset, y: height - offset });
+          break;
+          
+        case 5:
+          // Four corners + center (cross pattern)
+          patterns.push({ x: offset, y: offset });
+          patterns.push({ x: width - offset, y: offset });
+          patterns.push({ x: width/2, y: height/2 });
+          patterns.push({ x: offset, y: height - offset });
+          patterns.push({ x: width - offset, y: height - offset });
+          break;
+          
+        case 6: {
+          // 3x2 rectangle pattern
+          const stepX6 = (width - 2 * offset) / 2;
+          const stepY6 = (height - 2 * offset) / 1;
+          for (let i = 0; i < 2; i++) {
+            for (let j = 0; j < 3; j++) {
+              patterns.push({
+                x: offset + j * stepX6,
+                y: offset + i * stepY6,
+              });
+            }
+          }
+          break;
+        }
+          
+        case 7:
+          // Partial 3x3 grid (strategic selection)
+          patterns.push({ x: offset, y: offset });
+          patterns.push({ x: width/2, y: offset });
+          patterns.push({ x: width - offset, y: offset });
+          patterns.push({ x: offset, y: height/2 });
+          patterns.push({ x: width - offset, y: height/2 });
+          patterns.push({ x: offset, y: height - offset });
+          patterns.push({ x: width - offset, y: height - offset });
+          break;
+          
+        case 8:
+          // Partial 3x3 grid (without center)
+          patterns.push({ x: offset, y: offset });
+          patterns.push({ x: width/2, y: offset });
+          patterns.push({ x: width - offset, y: offset });
+          patterns.push({ x: offset, y: height/2 });
+          patterns.push({ x: width - offset, y: height/2 });
+          patterns.push({ x: offset, y: height - offset });
+          patterns.push({ x: width/2, y: height - offset });
+          patterns.push({ x: width - offset, y: height - offset });
+          break;
+          
+        case 9:
+        default: {
+          // Full 3x3 grid (current working pattern)
+          const cols = 3;
+          const rows = 3;
+          const usableWidth = width - 2 * offset;
+          const usableHeight = height - 2 * offset;
+          const stepX = usableWidth / (cols - 1);
+          const stepY = usableHeight / (rows - 1);
+          
+          for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+              patterns.push({
+                x: offset + j * stepX,
+                y: offset + i * stepY,
+              });
+            }
+          }
+          break;
+        }
+      }
+      
+      return patterns;
+    },
+    
     startTraining() {
       this.showStepper = false;
       this.calibrationStarted = true;
@@ -520,6 +634,10 @@ export default {
         this.usedPattern[a].predictionX = element.predicted_x
         this.usedPattern[a].predictionY = element.predicted_y
       }
+      
+      // Update the store's pattern with the prediction data
+      this.$store.commit('setPattern', this.usedPattern)
+      
       this.$store.dispatch('extractXYValues', { extract: this.circleIrisPoints, hasCalib: true })
       this.$store.dispatch('extractXYValues', { extract: this.calibPredictionPoints, hasCalib: false })
 
