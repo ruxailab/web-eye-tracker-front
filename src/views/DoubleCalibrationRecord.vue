@@ -287,30 +287,26 @@ export default {
     },
   },
   async created() {
-    console.log("rodou created");
-    await this.verifyFromRuxailab()
-    this.$store.commit('setIndex', 0)
-    this.usedPattern = this.generateRuntimePattern()
-
-    if (this.usedPattern.length === 0) {
-      const width = window.innerWidth
-      const height = window.innerHeight
-      const offset = this.offset || 100
-      const pointCount = this.$store.state.calibration.pointNumber
-
-      const generatedPattern = this.generateCalibrationPattern(pointCount, width, height, offset)
-
-      this.$store.commit('setMockPattern', generatedPattern)
-      this.usedPattern = generatedPattern
-
-    }
-    await this.startWebCamCapture();
-    console.log("chamou drawPoint no created com os valores:", this.usedPattern[0].x, this.usedPattern[0].y);
-    this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
-    this.advance(this.usedPattern, this.circleIrisPoints, this.msPerCapture)
-    console.log("UsedPattern inteiro", this.usedPattern);
-
-  },
+  console.log("rodou created");
+  await this.verifyFromRuxailab()
+  this.$store.commit('setIndex', 0)
+  
+  // ✅ USE THE WORKING METHOD
+  const pointCount = this.$store.state.calibration.pointNumber || 9;
+  this.usedPattern = this.generateCalibrationPattern(
+    pointCount,
+    window.innerWidth,
+    window.innerHeight,
+    this.offset || 100
+  );
+  
+  await this.startWebCamCapture();
+  console.log("chamou drawPoint no created com os valores:", this.usedPattern[0].x, this.usedPattern[0].y);
+  this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
+  this.advance(this.usedPattern, this.circleIrisPoints, this.msPerCapture)
+  console.log("UsedPattern inteiro", this.usedPattern);
+}
+,
   methods: {
     generateCalibrationPattern(pointCount, width, height, offset) {
       const patterns = [];
