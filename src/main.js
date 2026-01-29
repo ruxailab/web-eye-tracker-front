@@ -5,6 +5,7 @@ import store from './store'
 import vuetify from './plugins/vuetify';
 import './services/axios'
 import firebase from 'firebase/app'
+import 'firebase/firestore'  // ← ADD THIS LINE
 
 Vue.config.productionTip = false
 
@@ -20,6 +21,12 @@ const firebaseConfig = {
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
+
+// Connect to Firestore emulator if in development
+if (process.env.VUE_APP_USE_EMULATORS === 'true') {
+  const db = firebase.firestore();
+  db.useEmulator('localhost', 8081);
+}
 
 new Vue({
   router,
