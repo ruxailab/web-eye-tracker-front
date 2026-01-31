@@ -1,0 +1,46 @@
+# Auto-label PRs when opened/edited (bug, enhancement, documentation, etc.)
+name: Auto-label PRs
+
+on:
+  pull_request:
+    types: [opened, edited]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const title = (pr.title || '').toLowerCase();
+            const body = (pr.body || '').toLowerCase();
+            const text = title + ' ' + body;
+
+            const labelsToAdd = [];
+
+            if (/\b(bug|fix|fixes|broken)\b/.test(text)) {
+              labelsToAdd.push('bug');
+            }
+            if (/\b(feature|enhancement|improvement)\b/.test(text)) {
+              labelsToAdd.push('enhancement');
+            }
+            if (/\b(doc|readme|documentation)\b/.test(text)) {
+              labelsToAdd.push('documentation');
+            }
+
+            const existing = (pr.labels || []).map(l => l.name);
+            const toAdd = labelsToAdd.filter(l => !existing.includes(l));
+            if (toAdd.length === 0) return;
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: toAdd
+            });
