@@ -1,5 +1,5 @@
 <template>
-  <div style="height: 100%;">
+  <div class="page-root">
     <div v-if="!model" class="center-container">
       <v-progress-circular :size="80" :width="8" indeterminate color="black" class="loading-spinner"
         style="margin-bottom: 16px;"></v-progress-circular>
@@ -205,9 +205,18 @@
         </v-stepper>
       </v-card>
     </v-dialog>
+    <video
+     id="video-preview"
+     autoplay
+     playsinline
+     muted
+     :style="videoPreviewStyle"
+     ></video>
+
     <canvas id="canvas" style="z-index: 0;" />
     <video autoplay id="video-tag" style="display: none;"></video>
   </div>
+  
 </template>
 
 <script>
@@ -219,11 +228,17 @@ export default {
   data() {
     return {
       // camera
+      keydownHandlerRef: null,
       webcamfile: null,
       recordWebCam: null,
       configWebCam: {
         audio: false,
-        video: true
+        video: {
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
+          aspectRatio: { ideal: 16/9 },
+          facingMode: 'user'
+        }
       },
 
       // calibration
@@ -242,10 +257,33 @@ export default {
       stepperStep: 1,
       showStepper: true,
       calibrationStarted: false,
-      loadingConfig: false
+      loadingConfig: false,
+      isFullscreen: false,
+      beforeUnloadHandlerRef: null,
     };
   },
   computed: {
+    videoPreviewStyle() {
+      if (this.calibrationStarted && !this.showStepper) {
+        // During calibration - hide the preview
+        return {
+          display: 'none'
+        };
+      } else {
+        // Normal preview mode - ensure proper aspect ratio and sizing
+        return {
+          width: '100%',
+          height: 'auto',
+          maxWidth: '600px',
+          maxHeight: '400px',
+          objectFit: 'contain', // Changed from 'cover' to 'contain' to show full video
+          borderRadius: '12px',
+          marginBottom: '16px',
+          display: 'block',
+          margin: '0 auto 16px auto' // Center the video
+        };
+      }
+    },
     radius() {
       return this.$store.state.calibration.radius
     },
@@ -287,138 +325,176 @@ export default {
     },
   },
   async created() {
-    console.log("rodou created");
-    await this.verifyFromRuxailab()
-    this.$store.commit('setIndex', 0)
-    this.usedPattern = this.generateRuntimePattern()
+    try {
+      await this.verifyFromRuxailab()
+      this.$store.commit('setIndex', 0)
+      this.usedPattern = this.generateRuntimePattern()
 
-    if (this.usedPattern.length === 0) {
-      const width = window.innerWidth
-      const height = window.innerHeight
-      const offset = this.offset || 100
-      const pointCount = this.$store.state.calibration.pointNumber
-
-      const generatedPattern = this.generateCalibrationPattern(pointCount, width, height, offset)
-
-      this.$store.commit('setMockPattern', generatedPattern)
-      this.usedPattern = generatedPattern
-
-    }
-    await this.startWebCamCapture();
-    console.log("chamou drawPoint no created com os valores:", this.usedPattern[0].x, this.usedPattern[0].y);
-    this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
-    this.advance(this.usedPattern, this.circleIrisPoints, this.msPerCapture)
-    console.log("UsedPattern inteiro", this.usedPattern);
-
-  },
-  methods: {
-    generateCalibrationPattern(pointCount, width, height, offset) {
-      const patterns = [];
+      await this.startWebCamCapture();
       
-      switch(pointCount) {
-        case 1:
-          // Center point only
-          patterns.push({ x: width/2, y: height/2 });
-          break;
-          
-        case 2:
-          // Left and right edges (horizontal coverage)
-          patterns.push({ x: offset, y: height/2 });
-          patterns.push({ x: width - offset, y: height/2 });
-          break;
-          
-        case 3:
-          // Horizontal line: left, center, right
-          patterns.push({ x: offset, y: height/2 });
-          patterns.push({ x: width/2, y: height/2 });
-          patterns.push({ x: width - offset, y: height/2 });
-          break;
-          
-        case 4:
-          // Four corners (optimal for 4-point calibration)
-          patterns.push({ x: offset, y: offset });
-          patterns.push({ x: width - offset, y: offset });
-          patterns.push({ x: offset, y: height - offset });
-          patterns.push({ x: width - offset, y: height - offset });
-          break;
-          
-        case 5:
-          // Four corners + center (cross pattern)
-          patterns.push({ x: offset, y: offset });
-          patterns.push({ x: width - offset, y: offset });
-          patterns.push({ x: width/2, y: height/2 });
-          patterns.push({ x: offset, y: height - offset });
-          patterns.push({ x: width - offset, y: height - offset });
-          break;
-          
-        case 6: {
-          // 3x2 rectangle pattern
-          const stepX6 = (width - 2 * offset) / 2;
-          const stepY6 = (height - 2 * offset) / 1;
-          for (let i = 0; i < 2; i++) {
-            for (let j = 0; j < 3; j++) {
-              patterns.push({
-                x: offset + j * stepX6,
-                y: offset + i * stepY6,
-              });
-            }
-          }
-          break;
-        }
-          
-        case 7:
-          // Partial 3x3 grid (strategic selection)
-          patterns.push({ x: offset, y: offset });
-          patterns.push({ x: width/2, y: offset });
-          patterns.push({ x: width - offset, y: offset });
-          patterns.push({ x: offset, y: height/2 });
-          patterns.push({ x: width - offset, y: height/2 });
-          patterns.push({ x: offset, y: height - offset });
-          patterns.push({ x: width - offset, y: height - offset });
-          break;
-          
-        case 8:
-          // Partial 3x3 grid (without center)
-          patterns.push({ x: offset, y: offset });
-          patterns.push({ x: width/2, y: offset });
-          patterns.push({ x: width - offset, y: offset });
-          patterns.push({ x: offset, y: height/2 });
-          patterns.push({ x: width - offset, y: height/2 });
-          patterns.push({ x: offset, y: height - offset });
-          patterns.push({ x: width/2, y: height - offset });
-          patterns.push({ x: width - offset, y: height - offset });
-          break;
-          
-        case 9:
-        default: {
-          // Full 3x3 grid (current working pattern)
-          const cols = 3;
-          const rows = 3;
-          const usableWidth = width - 2 * offset;
-          const usableHeight = height - 2 * offset;
-          const stepX = usableWidth / (cols - 1);
-          const stepY = usableHeight / (rows - 1);
-          
-          for (let i = 0; i < rows; i++) {
-            for (let j = 0; j < cols; j++) {
-              patterns.push({
-                x: offset + j * stepX,
-                y: offset + i * stepY,
-              });
-            }
-          }
-          break;
-        }
+      // Wait for model to be loaded before drawing
+      if (!this.model) {
+        console.warn('Model not loaded yet, waiting...');
+        // You might want to add a watcher for model loading
+        return;
       }
       
-      return patterns;
+      console.log("chamou drawPoint no created com os valores:", this.usedPattern[0].x, this.usedPattern[0].y);
+      this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
+      this.advance(this.usedPattern, this.circleIrisPoints, this.msPerCapture)
+    } catch (error) {
+      console.error('Error during component initialization:', error);
+    }
+  },
+
+  mounted() {
+    // Handle window resize events
+    window.addEventListener('resize', this.handleResize);
+    // Track fullscreen changes so we can react if the user exits fullscreen mid-calibration
+    document.addEventListener('fullscreenchange', this.handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', this.handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', this.handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', this.handleFullscreenChange);
+  },
+
+  beforeDestroy() {
+    // Clean up event listeners
+    window.removeEventListener('resize', this.handleResize);
+    if (this.keydownHandlerRef) {
+      document.removeEventListener('keydown', this.keydownHandlerRef);
+    }
+    document.removeEventListener('fullscreenchange', this.handleFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', this.handleFullscreenChange);
+    document.removeEventListener('mozfullscreenchange', this.handleFullscreenChange);
+    document.removeEventListener('MSFullscreenChange', this.handleFullscreenChange);
+    if (this.beforeUnloadHandlerRef) {
+      window.removeEventListener('beforeunload', this.beforeUnloadHandlerRef);
+    }
+  },
+
+  beforeRouteLeave(to, from, next) {
+  this.exitFullscreen();
+  if (this.keydownHandlerRef) {
+    document.removeEventListener('keydown', this.keydownHandlerRef);
+  }
+  next();
+  },
+
+  methods: {
+    handleFullscreenChange() {
+      const isNowFullscreen =
+        !!document.fullscreenElement ||
+        !!document.webkitFullscreenElement ||
+        !!document.mozFullScreenElement ||
+        !!document.msFullscreenElement;
+
+      this.isFullscreen = isNowFullscreen;
+
+      // If user exits fullscreen in the middle of calibration, pause and return to instructions
+      if (!isNowFullscreen && this.calibrationStarted && !this.showStepper) {
+        this.calibrationStarted = false;
+        this.showStepper = true;
+        // Keep the current stepper step (training or validation) so user can resume explicitly
+        this.exitFullscreen();
+        // Optional lightweight notice – avoid blocking alerts during calibration
+        // eslint-disable-next-line no-console
+        console.warn('Calibration left fullscreen; showing instructions again.');
+      }
+    },
+
+    handleResize() {
+      // Regenerate pattern for new screen size if needed
+      if (this.calibrationStarted) {
+        const canvas = document.getElementById('canvas');
+        if (canvas) {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+        }
+      }
     },
     
+    // Note: Fullscreen may be blocked on some mobile browsers (iOS Safari).
+    // Failure is safely ignored.
+    enterFullscreen() {
+      const canvas = document.getElementById('canvas');
+      const el = canvas || document.documentElement;
+
+      // Guard: fullscreen not supported
+      const requestFullscreen =
+        el.requestFullscreen ||
+        el.webkitRequestFullscreen ||
+        el.mozRequestFullScreen ||
+        el.msRequestFullscreen;
+
+      if (!requestFullscreen) {
+        // eslint-disable-next-line no-console
+        console.warn('Fullscreen API not supported in this browser');
+        return;
+      }
+
+      if (
+        !document.fullscreenElement &&
+        !document.webkitFullscreenElement &&
+        !document.mozFullScreenElement &&
+        !document.msFullscreenElement
+      ) {
+        try {
+          requestFullscreen.call(el);
+          // While in fullscreen, capture pointer events on the canvas to avoid clicking underlying UI
+          if (canvas) {
+            canvas.style.pointerEvents = 'auto';
+          }
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn('Fullscreen request failed:', err);
+        }
+      }
+    },
+
+    exitFullscreen() {
+      const exitFullscreenFn =
+        document.exitFullscreen ||
+        document.webkitExitFullscreen ||
+        document.mozCancelFullScreen ||
+        document.msExitFullscreen;
+
+      const canvas = document.getElementById('canvas');
+      if (canvas) {
+        canvas.style.pointerEvents = 'none';
+      }
+
+      if (
+        (document.fullscreenElement ||
+          document.webkitFullscreenElement ||
+          document.mozFullScreenElement ||
+          document.msFullscreenElement) &&
+        exitFullscreenFn
+      ) {
+        try {
+          exitFullscreenFn.call(document);
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn('Exit fullscreen failed:', err);
+        }
+      }
+    },
+
     startTraining() {
+      this.enterFullscreen();
       this.showStepper = false;
       this.calibrationStarted = true;
+      // Warn user if they try to refresh/close tab mid-calibration
+      if (!this.beforeUnloadHandlerRef) {
+        this.beforeUnloadHandlerRef = (e) => {
+          if (!this.calibrationStarted) return;
+          e.preventDefault();
+          e.returnValue = '';
+        };
+        window.addEventListener('beforeunload', this.beforeUnloadHandlerRef);
+      }
     },
     startValidation() {
+      this.enterFullscreen();
       this.showStepper = false;
       this.calibrationStarted = true;
     },
@@ -462,9 +538,11 @@ export default {
           }
         }
       }
-      document.addEventListener('keydown', keydownHandler)
+      this.keydownHandlerRef = keydownHandler;
+      document.addEventListener('keydown', keydownHandler);
     },
     nextStep() {
+      this.exitFullscreen();
       this.usedPattern.forEach(element => {
         delete element.data;
       });
@@ -473,6 +551,11 @@ export default {
       this.stepperStep = 3;
       this.showStepper = true;
       this.calibrationStarted = false;
+      // Allow tab close/refresh again when calibration is paused
+      if (this.beforeUnloadHandlerRef) {
+        window.removeEventListener('beforeunload', this.beforeUnloadHandlerRef);
+        this.beforeUnloadHandlerRef = null;
+      }
 
       console.log("nextStep rodou drawPoint com os valores:", this.usedPattern[0].x, this.usedPattern[0].y);
 
@@ -556,15 +639,25 @@ export default {
     },
     drawPoint(x, y, radius) {
       const canvas = document.getElementById('canvas');
+      if (!canvas) {
+        console.error('Canvas element not found');
+        return;
+      }
 
-      console.log('Window size:', window.innerWidth, 'x', window.innerHeight);
-
+      // Set canvas size to current window/screen size
       canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight
+      canvas.height = window.innerHeight;
+      
       const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      if (!ctx) {
+        console.error('Canvas context not available');
+        return;
+      }
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = this.backgroundColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
       //circle 
       ctx.beginPath();
       ctx.strokeStyle = this.pointColor;
@@ -579,6 +672,7 @@ export default {
       );
       ctx.stroke();
       ctx.fill();
+      
       // inner circle
       ctx.beginPath();
       ctx.strokeStyle = "red";
@@ -593,6 +687,7 @@ export default {
       );
       ctx.stroke();
       ctx.fill();
+      
       // hollow circumference
       ctx.strokeStyle = this.pointColor;
       ctx.lineWidth = 1;
@@ -601,6 +696,7 @@ export default {
       ctx.stroke();
     },
     async endCalib() {
+      this.exitFullscreen();
       this.calibPredictionPoints.forEach(element => {
         delete element.point_x;
         delete element.point_y;
@@ -634,10 +730,6 @@ export default {
         this.usedPattern[a].predictionX = element.predicted_x
         this.usedPattern[a].predictionY = element.predicted_y
       }
-      
-      // Update the store's pattern with the prediction data
-      this.$store.commit('setPattern', this.usedPattern)
-      
       this.$store.dispatch('extractXYValues', { extract: this.circleIrisPoints, hasCalib: true })
       this.$store.dispatch('extractXYValues', { extract: this.calibPredictionPoints, hasCalib: false })
 
@@ -653,6 +745,11 @@ export default {
       this.$router.push(
         `/postCalibration?redirectingToRuxailab=${this.fromRuxailab}`
       )
+      // Calibration is fully finished; remove beforeunload guard
+      if (this.beforeUnloadHandlerRef) {
+        window.removeEventListener('beforeunload', this.beforeUnloadHandlerRef);
+        this.beforeUnloadHandlerRef = null;
+      }
     },
     savePoint(whereToSave, patternLike) {
       patternLike.forEach(point => {
@@ -672,46 +769,76 @@ export default {
     // canvas related
     async startWebCamCapture() {
       // Request permission for screen capture
-
-      return navigator.mediaDevices
-        .getUserMedia(this.configWebCam)
-        .then(async (mediaStreamObj) => {
-          // Create media recorder object
-          this.recordWebCam = new MediaRecorder(mediaStreamObj, {
-            mimeType: "video/webm;",
+      try {
+        let mediaStreamObj;
+        
+        try {
+          // Try with ideal constraints first
+          mediaStreamObj = await navigator.mediaDevices.getUserMedia(this.configWebCam);
+        } catch (error) {
+          console.warn('Failed with ideal constraints, trying basic video:', error);
+          // Fallback to basic video if constraints fail
+          mediaStreamObj = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: true
           });
-
-          let recordingWebCam = [];
-          let video = document.getElementById("video-tag");
-          video.srcObject = mediaStreamObj;
-          // Define screen capture events
-          // Save frames to recordingWebCam array
-          this.recordWebCam.ondataavailable = (ev) => {
-            recordingWebCam.push(ev.data);
-          };
-          // OnStop WebCam Record
-          const th = this;
-
-          this.recordWebCam.onstop = () => {
-            // Generate blob from the frames
-            let blob = new Blob(recordingWebCam, { type: "video/webm" });
-            recordingWebCam = [];
-            const uploadMediaWebCam = { blob: blob, name: mediaStreamObj.id };
-            th.webcamfile = uploadMediaWebCam;
-            // End webcam capture
-            mediaStreamObj.getTracks().forEach((track) => track.stop());
-            th.stopRecord();
-          };
-
-          // Init record webcam
-          this.recordWebCam.start();
-          video.onloadeddata = () => {
-            this.detectFace();
-          }
-        })
-        .catch((e) => {
-          console.error("Error", e);
+        }
+        
+        // Create media recorder object
+        this.recordWebCam = new MediaRecorder(mediaStreamObj, {
+          mimeType: "video/webm;",
         });
+
+        let recordingWebCam = [];
+        const video = document.getElementById("video-tag");      // ML
+        const preview = document.getElementById("video-preview"); // UI
+
+        if (!video || !preview) {
+          console.error('Video elements not found');
+          return;
+        }
+
+        video.srcObject = mediaStreamObj;
+        preview.srcObject = mediaStreamObj;
+        
+        // Define screen capture events
+        // Save frames to recordingWebCam array
+        this.recordWebCam.ondataavailable = (ev) => {
+          recordingWebCam.push(ev.data);
+        };
+        
+        // OnStop WebCam Record
+        const th = this;
+
+        this.recordWebCam.onstop = () => {
+          // Generate blob from the frames
+          let blob = new Blob(recordingWebCam, { type: "video/webm" });
+          recordingWebCam = [];
+          const uploadMediaWebCam = { blob: blob, name: mediaStreamObj.id };
+          th.webcamfile = uploadMediaWebCam;
+          // End webcam capture
+          mediaStreamObj.getTracks().forEach((track) => track.stop());
+          th.stopRecord();
+        };
+
+        // Init record webcam
+        this.recordWebCam.start();
+        
+        // Wait for video to load before detecting face
+        return new Promise((resolve) => {
+          video.onloadeddata = () => {
+            console.log('Video loaded with dimensions:', video.videoWidth, 'x', video.videoHeight);
+            this.detectFace();
+            resolve();
+          };
+        });
+        
+      } catch (e) {
+        console.error("Error accessing webcam:", e);
+        // Handle webcam access denied or not available
+        alert("Camera access is required for eye tracking. Please allow camera permissions and refresh the page.");
+        throw e;
+      }
     },
 
     async verifyFromRuxailab() {
@@ -789,19 +916,24 @@ export default {
 </script>
 
 <style scoped>
-body,
-html {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
 
 #canvas {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1000;
+  background-color: transparent;
+}
+
+/* When in fullscreen, ensure canvas covers entire screen */
+:fullscreen #canvas,
+:-webkit-full-screen #canvas,
+:-moz-full-screen #canvas {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .center-container {
@@ -1070,6 +1202,22 @@ kbd {
 
 .calibration-stepper .v-divider {
   border-color: rgba(255, 255, 255, 0.3) !important;
+}
+.page-root {
+  min-height: 100vh;
+  overflow-y: auto;
+  position: relative;
+  z-index: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Video preview container */
+#video-preview {
+  max-width: 90vw; /* Ensure it doesn't exceed viewport width */
+  max-height: 60vh; /* Limit height to 60% of viewport */
 }
 </style>
 
