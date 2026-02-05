@@ -198,6 +198,7 @@
                       <v-icon left>mdi-arrow-left</v-icon>
                       Back
                     </v-btn>
+<<<<<<< HEAD
                     <v-btn
                       color="#FF425A"
                       dark
@@ -216,6 +217,152 @@
       </v-row>
     </v-container>
   </div>
+=======
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
+        <v-container fluid>
+            <v-row justify="center" align="center">
+                <v-col cols="12" md="10" lg="8" xl="6">
+                    <v-stepper v-model="setupStep" elevation="0" class="mx-auto compact-stepper">
+                        <v-stepper-header>
+                            <v-stepper-step :complete="setupStep > 1" step="1" color="#FF425A">
+                                Camera Setup
+                            </v-stepper-step>
+                            <v-divider></v-divider>
+                            <v-stepper-step :complete="setupStep > 2" step="2" color="#FF425A">
+                                Preview & Calibration
+                            </v-stepper-step>
+                        </v-stepper-header>
+
+                        <v-stepper-items>
+                            <!-- Step 1: Instructions -->
+                            <v-stepper-content step="1" class="compact-content">
+                            <v-card flat>
+                                <v-card-text class="text-center py-2">
+                                    <div class="mb-2">
+                                        <v-icon size="64" color="#FF425A">mdi-camera-iris</v-icon>
+                                    </div>
+                                    <v-alert color="#fff"  dense class="mb-3">
+                                        <h4 class="mb-2 text-center">What will happen:</h4>
+                                        <div class="text-left mx-auto" style="max-width: 400px; font-size: 16px;">
+                                            <ul class="compact-list">
+                                                <li>The system will request camera permission</li>
+                                                <li>Your webcam image will appear with a face guide</li>
+                                                <li>Position your face inside the mask overlay</li>
+                                                <li>Make sure both eyes are clearly visible</li>
+                                            </ul>
+                                        </div>
+                                    </v-alert>
+                                    <v-alert outlined color="#FF425A" dense class="mx-auto" style="max-width: 400px; font-size: 14px;">
+                                        <strong>Important:</strong> Please allow camera access when prompted.
+                                    </v-alert>
+                                </v-card-text>
+                            </v-card>
+                            <div class="text-center pb-2">
+                                <v-btn color="#FF425A" dark @click="startCameraSetup">
+                                    <v-icon left>mdi-arrow-right</v-icon>
+                                    Continue
+                                </v-btn>
+                            </div>
+                        </v-stepper-content>
+
+                        <!-- Step 2: Camera Preview -->
+                        <v-stepper-content step="2" class="compact-content">
+                            <v-card flat>
+                                <!-- Calibration Mode Selection -->
+                                <v-card-text v-if="!fromRuxailab" class="pb-2 pt-2">
+                                    <v-card outlined class="pa-3 mb-3">
+                                        <v-card-title class="text-h6 pa-2">
+                                            <v-icon left color="#FF425A">mdi-target</v-icon>
+                                            Calibration Mode
+                                        </v-card-title>
+                                        <v-card-text class="pa-2">
+                                            <v-radio-group v-model="calibrationMode" @change="updateCalibrationMode">
+                                                <v-radio 
+                                                    label="Multi-point (High Accuracy)" 
+                                                    value="multi-point"
+                                                    color="#FF425A"
+                                                >
+                                                    <template v-slot:label>
+                                                        <div>
+                                                            <strong>Multi-point (High Accuracy)</strong>
+                                                            <div class="text-caption text--secondary">
+                                                                9 points across screen - Best accuracy for precise tracking
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </v-radio>
+                                                <v-radio 
+                                                    label="Single-point (Quick Setup)" 
+                                                    value="single-point"
+                                                    color="#FF425A"
+                                                >
+                                                    <template v-slot:label>
+                                                        <div>
+                                                            <strong>Single-point (Quick Setup)</strong>
+                                                            <div class="text-caption text--secondary">
+                                                                Center point only - Faster setup, lower accuracy
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </v-radio>
+                                            </v-radio-group>
+                                        </v-card-text>
+                                    </v-card>
+                                </v-card-text>
+
+                                <!-- Blink Threshold Configuration -->
+                                <v-card-text v-if="!fromRuxailab" class="pb-1 pt-2 text-center">
+                                    <BlinkTresholdCard />
+                                </v-card-text>
+
+                                <!-- Camera Preview -->
+                                <v-card-text class="pa-2 text-center">
+                                    <div class="d-flex justify-center mb-2">
+                                        <v-btn x-small outlined color="#002D51" @click="showCameraModal = true">
+                                            <v-icon left x-small>mdi-help-circle</v-icon>
+                                            Camera Help
+                                        </v-btn>
+                                    </div>
+                                    <div v-if="isModelLoaded" class="camera-wrapper mx-auto">
+                                        <!-- Simple video test -->
+                                        <video 
+                                            id="video-tag" 
+                                            autoplay 
+                                            playsinline 
+                                            style="width: 100%; height: auto; transform: scaleX(-1); display: block;"
+                                        />
+                                        <canvas id="canvas" />
+                                        <v-img v-if="isCameraOn" class="mask" src="@/assets/mask_desktop.svg" />
+                                    </div>
+                                    <div v-else class="loading-container" style="min-height: 300px;">
+                                        <v-progress-circular :size="50" :width="6" color="#FF425A"
+                                            indeterminate></v-progress-circular>
+                                        <h4 class="mt-3">Loading face detection model...</h4>
+                                    </div>
+                                </v-card-text>
+
+                                <v-card-actions class="justify-center py-2">
+                                    <v-btn text @click="setupStep = 1" class="mr-2">
+                                        <v-icon left>mdi-arrow-left</v-icon>
+                                        Back
+                                    </v-btn>
+                                    <v-btn color="#FF425A" dark :disabled="!isCameraOn" @click="goToCalibRecord()">
+                                        <v-icon left>mdi-play</v-icon>
+                                        Start Calibration
+                                    </v-btn>
+                                </v-card-actions>
+                            </v-card>
+                        </v-stepper-content>
+                        </v-stepper-items>
+                    </v-stepper>
+                </v-col>
+            </v-row>
+        </v-container>
+    </div>
+>>>>>>> 5886ed7 (feat: implement single-point calibration mode (#99))
 </template>
 
 <script>
@@ -249,8 +396,23 @@ export default {
     model() {
       return this.$store.state.detect.model;
     },
+<<<<<<< HEAD
     isModelLoaded() {
       return this.$store.state.detect.loaded;
+=======
+    data() {
+        return {
+            isCameraOn: false,
+            webcamStream: null,
+            video: null,
+            fromRuxailab: false,
+            mediaDevices: [],
+            selectedMediaDevice: null,
+            setupStep: 1,
+            showCameraModal: false,
+            calibrationMode: 'multi-point', // Default to multi-point
+        };
+>>>>>>> 5886ed7 (feat: implement single-point calibration mode (#99))
     },
     predictions() {
       return this.$store.state.detect.predictions;
@@ -359,10 +521,34 @@ export default {
               width: 600,
               height: 500,
             },
+<<<<<<< HEAD
           })
           .then((stream) => {
             // stream is a MediaStream object
             this.video.srcObject = stream;
+=======
+            deep: true,
+        },
+    },
+    mounted() {
+        this.verifyFromRuxailab()
+    },
+    methods: {
+        updateCalibrationMode(mode) {
+            this.$store.commit('setCalibrationMode', mode);
+        },
+        
+        startCameraSetup() {
+            this.setupStep = 2;
+            this.setupCamera();
+        },
+        async setupCamera() {
+            // Load the faceLandmarksDetection model assets.
+            const model = await faceLandmarksDetection.load(
+                faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
+                { maxFaces: 1 }
+            );
+>>>>>>> 5886ed7 (feat: implement single-point calibration mode (#99))
 
             this.webcamStream = stream;
 
