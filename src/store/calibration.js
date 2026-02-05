@@ -22,6 +22,9 @@ export default {
     threshold: 200,
     calibrations: [],
     fromDashboard: false,
+    // New single-point calibration features
+    calibrationMode: 'multi-point', // 'multi-point' | 'single-point'
+    singlePointPosition: null, // Will be calculated as screen center
     runtime: {
       circleIrisPoints: [],
       calibPredictionPoints: [],
@@ -116,6 +119,22 @@ export default {
     setFromDashboard(state, newFromDashboard) {
       state.fromDashboard = newFromDashboard;
     },
+    
+    // New single-point calibration mutations
+    setCalibrationMode(state, mode) {
+      state.calibrationMode = mode;
+      // If switching to single-point, set pointNumber to 1
+      if (mode === 'single-point') {
+        state.pointNumber = 1;
+      } else {
+        state.pointNumber = 9; // Default multi-point
+      }
+    },
+    
+    setSinglePointPosition(state, position) {
+      state.singlePointPosition = position;
+    },
+    
     setRuntimeData(state, payload) {
       state.runtime.circleIrisPoints = payload.circleIrisPoints;
       state.runtime.calibPredictionPoints = payload.calibPredictionPoints;
@@ -152,6 +171,9 @@ export default {
       state.threshold = 200;
       state.calibrations = [];
       state.fromDashboard = false;
+      // Reset single-point calibration properties
+      state.calibrationMode = 'multi-point';
+      state.singlePointPosition = null;
     },
   },
   actions: {
@@ -176,6 +198,17 @@ export default {
       }
 
       return positions;
+    },
+
+    // Generate single-point calibration pattern (center of screen)
+    generateSinglePointPattern({ commit }, { width, height }) {
+      const centerPoint = {
+        x: width / 2,
+        y: height / 2,
+      };
+      
+      commit('setSinglePointPosition', centerPoint);
+      return [centerPoint];
     },
  async saveCalib({ state, dispatch }) {
   try {

@@ -50,16 +50,26 @@
               <v-card flat>
                 <v-card-text class="text-center px-6 py-6">
                   <v-icon size="50" color="#FF425A" class="mb-4">mdi-eye-settings</v-icon>
-                  <h2 class="text-h4 font-weight-bold mb-4">Eye Tracking Calibration</h2>
+                  <h2 class="text-h4 font-weight-bold mb-4">{{ calibrationTitle }}</h2>
 
                   <v-alert color="#002D51" dark class="mb-4 text-left">
                     <div class="text-body-1">
-                      <p class="font-weight-bold mb-2">This calibration consists of two phases:</p>
-                      <ol class="pl-4">
-                        <li class="mb-1"><strong>Training Phase:</strong> The system learns your eye movement patterns
-                        </li>
-                        <li><strong>Validation Phase:</strong> The system verifies the calibration accuracy</li>
-                      </ol>
+                      <p class="font-weight-bold mb-2">{{ calibrationDescription }}</p>
+                      <div v-if="isSinglePointMode">
+                        <p class="mb-1"><strong>Single-Point Mode:</strong></p>
+                        <ul class="pl-4">
+                          <li>Quick setup with center screen point only</li>
+                          <li>Lower accuracy but faster calibration</li>
+                          <li>Good for quick testing or demos</li>
+                        </ul>
+                      </div>
+                      <div v-else>
+                        <p class="font-weight-bold mb-2">This calibration consists of two phases:</p>
+                        <ol class="pl-4">
+                          <li class="mb-1"><strong>Training Phase:</strong> The system learns your eye movement patterns</li>
+                          <li><strong>Validation Phase:</strong> The system verifies the calibration accuracy</li>
+                        </ol>
+                      </div>
                     </div>
                   </v-alert>
 
@@ -114,6 +124,7 @@
 
                   <v-alert color="#FF425A" dark dense class="text-center">
                     <strong>Total points to calibrate:</strong> {{ usedPattern.length }}
+                    <span v-if="isSinglePointMode"> (Center point only)</span>
                   </v-alert>
                 </v-card-text>
                 <v-card-actions class="justify-space-between px-6 pb-6">
@@ -322,6 +333,22 @@ export default {
     },
     isControlled() {
       return this.$store.state.calibration.isControlled
+    },
+    
+    // New single-point calibration computed properties
+    calibrationMode() {
+      return this.$store.state.calibration.calibrationMode;
+    },
+    isSinglePointMode() {
+      return this.calibrationMode === 'single-point';
+    },
+    calibrationTitle() {
+      return this.isSinglePointMode ? 'Single-Point Calibration' : 'Multi-Point Calibration';
+    },
+    calibrationDescription() {
+      return this.isSinglePointMode 
+        ? 'Quick calibration using center point only. Lower accuracy but faster setup.'
+        : 'High accuracy calibration using multiple points across the screen.';
     },
   },
   async created() {
@@ -882,13 +909,22 @@ export default {
     generateRuntimePattern() {
       const width = window.innerWidth
       const height = window.innerHeight
+      
+      // Check if single-point mode is enabled
+      if (this.isSinglePointMode) {
+        return [{
+          x: width / 2,
+          y: height / 2
+        }];
+      }
+      
+      // Multi-point calibration (existing logic)
       const offset = this.offset || 100
       const points = this.$store.state.calibration.pointNumber || 9
 
       const minCols = 3
       const cols = Math.max(minCols, Math.round(Math.sqrt(points)))
       const rows = Math.ceil(points / cols)
-
 
       const usableWidth = width - 2 * offset
       const usableHeight = height - 2 * offset
