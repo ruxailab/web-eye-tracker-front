@@ -294,6 +294,48 @@
                         <!-- Step 2: Camera Preview -->
                         <v-stepper-content step="2" class="compact-content">
                             <v-card flat>
+                                <!-- Calibration Mode Selection -->
+                                <v-card-text v-if="!fromRuxailab" class="pb-2 pt-2">
+                                    <v-card outlined class="pa-3 mb-3">
+                                        <v-card-title class="text-h6 pa-2">
+                                            <v-icon left color="#FF425A">mdi-target</v-icon>
+                                            Calibration Mode
+                                        </v-card-title>
+                                        <v-card-text class="pa-2">
+                                            <v-radio-group v-model="calibrationMode" @change="updateCalibrationMode">
+                                                <v-radio 
+                                                    label="Multi-point (High Accuracy)" 
+                                                    value="multi-point"
+                                                    color="#FF425A"
+                                                >
+                                                    <template v-slot:label>
+                                                        <div>
+                                                            <strong>Multi-point (High Accuracy)</strong>
+                                                            <div class="text-caption text--secondary">
+                                                                9 points across screen - Best accuracy for precise tracking
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </v-radio>
+                                                <v-radio 
+                                                    label="Single-point (Quick Setup)" 
+                                                    value="single-point"
+                                                    color="#FF425A"
+                                                >
+                                                    <template v-slot:label>
+                                                        <div>
+                                                            <strong>Single-point (Quick Setup)</strong>
+                                                            <div class="text-caption text--secondary">
+                                                                Center point only - Faster setup, lower accuracy
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </v-radio>
+                                            </v-radio-group>
+                                        </v-card-text>
+                                    </v-card>
+                                </v-card-text>
+
                                 <!-- Blink Threshold Configuration -->
                                 <v-card-text v-if="!fromRuxailab" class="pb-1 pt-2 text-center">
                                     <BlinkTresholdCard />
@@ -377,8 +419,23 @@ export default {
     model() {
       return this.$store.state.detect.model;
     },
+<<<<<<< HEAD
     isModelLoaded() {
       return this.$store.state.detect.loaded;
+=======
+    data() {
+        return {
+            isCameraOn: false,
+            webcamStream: null,
+            video: null,
+            fromRuxailab: false,
+            mediaDevices: [],
+            selectedMediaDevice: null,
+            setupStep: 1,
+            showCameraModal: false,
+            calibrationMode: 'multi-point', // Default to multi-point
+        };
+>>>>>>> 5886ed7 (feat: implement single-point calibration mode (#99))
     },
     predictions() {
       return this.$store.state.detect.predictions;
@@ -487,10 +544,34 @@ export default {
               width: 600,
               height: 500,
             },
+<<<<<<< HEAD
           })
           .then((stream) => {
             // stream is a MediaStream object
             this.video.srcObject = stream;
+=======
+            deep: true,
+        },
+    },
+    mounted() {
+        this.verifyFromRuxailab()
+    },
+    methods: {
+        updateCalibrationMode(mode) {
+            this.$store.commit('setCalibrationMode', mode);
+        },
+        
+        startCameraSetup() {
+            this.setupStep = 2;
+            this.setupCamera();
+        },
+        async setupCamera() {
+            // Load the faceLandmarksDetection model assets.
+            const model = await faceLandmarksDetection.load(
+                faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
+                { maxFaces: 1 }
+            );
+>>>>>>> 5886ed7 (feat: implement single-point calibration mode (#99))
 
             this.webcamStream = stream;
 
