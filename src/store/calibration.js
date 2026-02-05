@@ -1,5 +1,5 @@
 import axios from "axios";
-import firebase from "firebase/app";
+import firebase from "@/firebase";
 import router from "@/router";
 export default {
   state: {
@@ -22,6 +22,9 @@ export default {
     threshold: 200,
     calibrations: [],
     fromDashboard: false,
+    // New single-point calibration features
+    calibrationMode: 'multi-point', // 'multi-point' | 'single-point'
+    singlePointPosition: null, // Will be calculated as screen center
     runtime: {
       circleIrisPoints: [],
       calibPredictionPoints: [],
@@ -116,6 +119,22 @@ export default {
     setFromDashboard(state, newFromDashboard) {
       state.fromDashboard = newFromDashboard;
     },
+    
+    // New single-point calibration mutations
+    setCalibrationMode(state, mode) {
+      state.calibrationMode = mode;
+      // If switching to single-point, set pointNumber to 1
+      if (mode === 'single-point') {
+        state.pointNumber = 1;
+      } else {
+        state.pointNumber = 9; // Default multi-point
+      }
+    },
+    
+    setSinglePointPosition(state, position) {
+      state.singlePointPosition = position;
+    },
+    
     setRuntimeData(state, payload) {
       state.runtime.circleIrisPoints = payload.circleIrisPoints;
       state.runtime.calibPredictionPoints = payload.calibPredictionPoints;
@@ -152,6 +171,9 @@ export default {
       state.threshold = 200;
       state.calibrations = [];
       state.fromDashboard = false;
+      // Reset single-point calibration properties
+      state.calibrationMode = 'multi-point';
+      state.singlePointPosition = null;
     },
   },
   actions: {
@@ -177,20 +199,29 @@ export default {
 
       return positions;
     },
-    async saveCalib(context) {
-      const state = context.state;
-      const db = firebase.firestore();
-      const calibrationData = { ...state };
-      delete calibrationData.calibrations;
-      try {
-        const calibrationsCollection = db.collection("calibrations");
-        await calibrationsCollection.add(calibrationData);
-        console.log("Data successfully saved to calibrations collection!");
-        context.dispatch("getAllCalibs");
-      } catch (error) {
-        console.error("Error saving data to calibrations collection:", error);
-      }
+
+    // Generate single-point calibration pattern (center of screen)
+    generateSinglePointPattern({ commit }, { width, height }) {
+      const centerPoint = {
+        x: width / 2,
+        y: height / 2,
+      };
+      
+      commit('setSinglePointPosition', centerPoint);
+      return [centerPoint];
     },
+ async saveCalib({ state, dispatch }) {
+  try {
+    const data = { ...state };
+    delete data.calibrations;
+
+    await firebase.firestore().collection("calibrations").add(data);
+    dispatch("getAllCalibs");
+  } catch (e) {
+    console.error("Save failed:", e);
+  }
+  },
+
     async finishCalibration({ state, dispatch }) {
       console.log("[Calibration] finishCalibration started");
 
@@ -247,48 +278,63 @@ export default {
       commit("setMsPerCapture", calibData.msPerCapture);
       router.push("/postCalibration");
     },
-    async getAllCalibs({ commit }) {
-      try {
-        const db = firebase.firestore();
-        const calibrationsCollection = await db
-          .collection("calibrations")
-          .get();
+  async getAllCalibs({ commit }) {
+  try {
+    const snapshot = await firebase
+      .firestore()
+      .collection("calibrations")
+      .get();
 
-        const calibrations = [];
-        calibrationsCollection.forEach((doc) => {
-          var averageAccuracy = 0;
-          var averagePrecision = 0;
-          var data = doc.data();
-          data.pattern.forEach((element) => {
-            averageAccuracy += Number(element.accuracy);
-            averagePrecision += Number(element.precision);
-          });
-          data.averageAccuracy = averageAccuracy / data.pattern.length;
-          data.averagePrecision = averagePrecision / data.pattern.length;
-          calibrations.push({
-            id: doc.id,
-            model: doc.data().models,
-            ...data,
-          });
-        });
+    const calibrations = [];
 
-        commit("setCalibrations", calibrations);
-      } catch (error) {
-        console.error("Error getting calibrations:", error);
-        throw error;
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+
+      let averageAccuracy = 0;
+      let averagePrecision = 0;
+
+      if (data.runtime?.usedPattern?.length) {
+        const total = data.runtime.usedPattern.length;
+
+        averageAccuracy =
+          data.runtime.usedPattern.reduce(
+            (sum, p) => sum + Number(p.accuracy || 0),
+            0
+          ) / total;
+
+        averagePrecision =
+          data.runtime.usedPattern.reduce(
+            (sum, p) => sum + Number(p.precision || 0),
+            0
+          ) / total;
       }
-    },
-    async deleteCalib({ dispatch }, calib) {
-      try {
-        const db = firebase.firestore();
-        const calibrationsCollection = db.collection("calibrations");
-        await calibrationsCollection.doc(calib.id).delete();
-        dispatch("getAllCalibs");
-      } catch (error) {
-        console.error("Error deleting calibration:", error);
-        return { success: false, message: "Failed to delete calibration" };
-      }
-    },
+
+      calibrations.push({
+        id: doc.id,
+        ...data,
+        averageAccuracy: Number(averageAccuracy.toFixed(2)),
+        averagePrecision: Number(averagePrecision.toFixed(2)),
+      });
+    });
+
+    commit("setCalibrations", calibrations);
+  } catch (err) {
+    console.error("Error getting calibrations:", err);
+  }
+  },
+  async deleteCalib({ dispatch }, calib) {
+  try {
+    await firebase
+      .firestore()
+      .collection("calibrations")
+      .doc(calib.id)
+      .delete();
+
+    dispatch("getAllCalibs");
+  } catch (e) {
+    console.error("Delete failed:", e);
+  }
+  },
     async sendData(context, data) {
       let formData = new FormData();
 
