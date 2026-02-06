@@ -74,10 +74,12 @@ export default {
       state.pattern = newPattern;
     },
     setMockPatternElement(state, newPatternLike) {
-      if (!state.mockPattern.includes(newPatternLike)) {
+      const index = state.mockPattern.findIndex(
+        (p) => p.x === newPatternLike.x && p.y === newPatternLike.y
+      );
+      if (index === -1) {
         state.mockPattern.push(newPatternLike);
       } else {
-        const index = state.mockPattern.indexOf(newPatternLike);
         state.mockPattern.splice(index, 1);
       }
     },
