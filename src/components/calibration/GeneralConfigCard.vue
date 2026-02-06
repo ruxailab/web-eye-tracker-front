@@ -11,9 +11,9 @@
                     <p class="help-text">Give your calibration a unique identifier</p>
                 </div>
                 <div class="custom-outline">
-                    <Slider :value="pointNumber" :min="Number(8)" :max="Number(8)" label="Calibration Points"
+                    <Slider :value="pointNumber" :min="Number(2)" :max="Number(9)" label="Calibration Points"
                         @input="updatePointNumber" />
-                    <p class="help-text">Number of points to calibrate (9 points recommended)</p>
+                    <p class="help-text">Number of points to calibrate (4-9 points recommended)</p>
                     
                     <Slider :value="samplePerPoint" :min="Number(90)" :max="Number(90)" label="Samples Per Point" @input="updateSamplePerPoint" />
                     <p class="help-text">More samples = better accuracy but longer calibration</p>

@@ -1,23 +1,24 @@
 <template>
     <div class="scroll-container">
-        <!-- Instructions Card -->
-        <div class="instructions-overlay">
-            <v-card class="instruction-card" outlined>
-                <v-card-text class="pa-4">
-                    <div class="d-flex align-center">
-                        <v-icon color="info" class="mr-3">mdi-information-outline</v-icon>
-                        <div>
-                            <strong>Understanding Your Results:</strong>
-                            <p class="mb-0 mt-1 text-caption">
-                                <span style="color: green;">●</span> Green points = Good accuracy<br>
-                                <span style="color: orange;">●</span> Orange points = Needs improvement<br>
-                                <span style="color: red;">●</span> Red line = Distance from target
-                            </p>
-                        </div>
-                    </div>
-                </v-card-text>
-            </v-card>
-        </div>
+        <canvas id="canvas" style="width: 100%; height: 100%;" />
+
+        <PointModal
+            :x="Number(x)"
+            :y="Number(y)"
+            :precision="Number(precision)"
+            :accuracy="Number(accuracy)"
+            :dialog="dialog"
+            :pointNumber="pointNumber"
+            @close="dialogCancel"
+            @select="select"
+        />
+
+        <ConfigModal
+            :configDialog="configDialog"
+            @close="configDialogCancel"
+            @recalib="recalibrate"
+            @save="saveCalib"
+        />
 
         <canvas style="width: 100%; height: 100%;" id="canvas" />
         <div>
@@ -28,20 +29,25 @@
         <ConfigModal :configDialog="configDialog" @close="configDialogCancel" @recalib="recalibrate"
             @save="saveCalib" />
         <v-col class="pa-0">
-            <DraggableFloatingButton @click="callConfigModal" :icon="'mdi-cog'" />
+            <DraggableFloatingButton
+                @click="callConfigModal"
+                icon="mdi-cog"
+            />
         </v-col>
 
         <div v-if="redirectingToRuxailab" class="button-overlay">
             <v-btn @click="recalibrate" color="primary">Recalibrate</v-btn>
-            <v-btn @click="sendCalibToRuxailab" color="success">Send this calib to Ruxailab</v-btn>
+            <v-btn @click="sendCalibToRuxailab" color="success">
+                Send this calib to Ruxailab
+            </v-btn>
         </div>
     </div>
 </template>
 
 <script>
-import PointModal from '@/components/calibration/PointModal.vue';
-import DraggableFloatingButton from '@/components/general/DraggableFloatingButton.vue';
-import ConfigModal from '@/components/calibration/ConfigModal.vue';
+import PointModal from '@/components/calibration/PointModal.vue'
+import DraggableFloatingButton from '@/components/general/DraggableFloatingButton.vue'
+import ConfigModal from '@/components/calibration/ConfigModal.vue'
 
 export default {
     components: {
@@ -49,9 +55,9 @@ export default {
         DraggableFloatingButton,
         ConfigModal
     },
+
     data() {
         return {
-            innerCircleRadius: 5,
             x: 0,
             y: 0,
             precision: 0,
@@ -63,11 +69,14 @@ export default {
             predictionY: []
         }
     },
+
     async mounted() {
         await this.verifyFromRuxailab()
+        this.applyCalibResult()
         this.initCanvas()
         this.drawCalibPoints()
     },
+
     computed: {
         radius() {
             return this.$store.state.calibration.radius
@@ -75,55 +84,92 @@ export default {
         backgroundColor() {
             return this.$store.state.calibration.backgroundColor
         },
-        pointColor() {
-            return this.$store.state.calibration.pointColor
-        },
         pattern() {
-            return this.$store.state.calibration.pattern;
+            return this.$store.state.calibration.runtime.usedPattern
         },
         mockPattern() {
-            return this.$store.state.calibration.mockPattern;
+            return this.$store.state.calibration.mockPattern
         },
         threshold() {
-            return this.$store.state.calibration.threshold;
+            return this.$store.state.calibration.threshold
         },
         fromDashboard() {
-            return this.$store.state.calibration.fromDashboard;
+            return this.$store.state.calibration.fromDashboard
         },
-        fixedTrainData() {
-            return this.$store.state.predict.fixedTrainData;
-        },
-        predictTrainData() {
-            return this.$store.state.predict.predictTrainData;
+        calibValidationResult() {
+            return this.$store.state.predict.calibValidationResult
         },
         circleIrisPoints() {
-            return this.$store.state.calibration.runtime.circleIrisPoints;
+            return this.$store.state.calibration.runtime.circleIrisPoints
         },
         calibPredictionPoints() {
-            return this.$store.state.calibration.runtime.calibPredictionPoints;
-        },
+            return this.$store.state.calibration.runtime.calibPredictionPoints
+        }
     },
+
     watch: {
-        mockPattern() {
-            this.drawCalibPoints()
-        },
         threshold() {
             this.drawCalibPoints()
         },
+        mockPattern() {
+            this.drawCalibPoints()
+        }
     },
+
     methods: {
+        applyCalibResult() {
+            if (!this.calibValidationResult) {
+                console.warn('❌ calibValidationResult é null/undefined')
+                return
+            }
+
+            console.log('✅ calibValidationResult encontrado:', this.calibValidationResult)
+
+            const adapted = this.pattern.map((p, idx) => {
+                const xKey = Math.round(p.x).toString()
+                const yKey = Math.round(p.y).toString()
+
+                console.log(`📍 Ponto ${idx}: x=${p.x}, y=${p.y} -> keys: ${xKey}, ${yKey}`)
+
+                const data = this.calibValidationResult?.[xKey]?.[yKey]
+
+                if (!data) {
+                    console.warn(`⚠️ Nenhum dado para ponto ${idx} (${xKey}, ${yKey})`)
+                    return {
+                        ...p,
+                        predictionX: [],
+                        predictionY: [],
+                        precision: null,
+                        accuracy: null
+                    }
+                }
+
+                console.log(`✅ Dados encontrados para ponto ${idx}:`, data)
+                return {
+                    ...p,
+                    predictionX: data.predicted_x || [],
+                    predictionY: data.predicted_y || [],
+                    precision: data.PrecisionSD,
+                    accuracy: data.Accuracy
+                }
+            })
+
+            this.$store.commit('setCalibrationPattern', adapted)
+        },
+
+        async verifyFromRuxailab() {
+            const params = new URLSearchParams(window.location.search)
+            this.redirectingToRuxailab = params.has('redirectingToRuxailab')
+        },
+
         callConfigModal() {
             this.configDialog = true
         },
-        async verifyFromRuxailab() {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('redirectingToRuxailab')) {
-                this.redirectingToRuxailab = true
-            }
-        },
+
         recalibrate() {
             this.$router.back()
         },
+
         async sendCalibToRuxailab() {
             const screenHeight = window.screen.height
             const screenWidth = window.screen.width
@@ -135,39 +181,59 @@ export default {
                 screenHeight,
                 screenWidth,
                 k: this.$store.state.calibration.pointNumber,
-                threshold: this.$store.state.calibration.threshold
+                threshold: this.threshold
             })
         },
-        select(pointNumber) {
-            this.$store.commit('setMockPatternElement', this.pattern[pointNumber])
-        },
-        drawCalibPoints() {
-            const pointSize = 3.5
-            this.initCanvas()
-            for (var i = 0; i < this.pattern.length; i++) {
-                // calib points
-                const isSelected = this.mockPattern.includes(this.pattern[i])
-                const crossColor = isSelected ? 'black' : 'grey'
-                const dashColor = isSelected ? 'green' : 'red'
-                const pointsColor = isSelected ? 'green' : 'orange'
-                const centroidColor = isSelected ? 'rgba(0, 0, 255, 0.3)' : 'rgba(128, 128, 128, 0.3)'
-                const deniedPointColor = isSelected ? 'blue' : 'grey'
 
-                this.drawCalibMarks(this.pattern[i].x, this.pattern[i].y, 30, crossColor)
-                var sumX = 0;
-                var sumY = 0;
-                var count = 0;
-                for (var a = 0; a < this.pattern[i].predictionX.length; a++) {
-                    // predicted points
-                    const distance = this.euclidianDistance(this.pattern[i].x, this.pattern[i].predictionX[a], this.pattern[i].y, this.pattern[i].predictionY[a])
-                    if (distance <= this.threshold) {
-                        this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], pointSize, pointsColor)
-                        sumX += this.pattern[i].predictionX[a];
-                        sumY += this.pattern[i].predictionY[a];
+        select(pointNumber) {
+            this.$store.commit(
+                'setMockPatternElement',
+                this.pattern[pointNumber]
+            )
+        },
+
+        drawCalibPoints() {
+            console.log('🎨 Iniciando drawCalibPoints')
+            console.log('📊 Pattern:', this.pattern)
+            console.log('📈 Threshold:', this.threshold)
+
+            this.initCanvas()
+            const pointSize = 3.5
+
+            this.pattern.forEach((p, idx) => {
+                console.log(`\n🔵 Desenhando ponto ${idx} em (${p.x}, ${p.y})`)
+                console.log(`   predictionX: ${p.predictionX?.length || 0} valores`)
+                console.log(`   predictionY: ${p.predictionY?.length || 0} valores`)
+
+                this.drawCalibMarks(p.x, p.y, 30, 'grey')
+
+                let sumX = 0
+                let sumY = 0
+                let count = 0
+
+                p.predictionX?.forEach((px, i) => {
+                    const py = p.predictionY[i]
+                    const dist = this.euclidianDistance(p.x, px, p.y, py)
+
+                    console.log(`   [${i}] px=${px}, py=${py}, dist=${dist.toFixed(2)}, threshold=${this.threshold}, pass=${dist <= this.threshold}`)
+
+                    this.drawPoints(px, py, pointSize, dist <= this.threshold ? 'green' : 'grey')
+
+                    if (dist <= this.threshold) {
+                        sumX += px
+                        sumY += py
                         count++
-                    } else {
-                        this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], pointSize, deniedPointColor)
                     }
+                })
+
+                console.log(`   ✏️ Total pontos dentro threshold: ${count}`)
+
+                if (count > 0) {
+                    const cx = sumX / count
+                    const cy = sumY / count
+                    console.log(`   🎯 Centróide em (${cx.toFixed(2)}, ${cy.toFixed(2)})`)
+                    this.drawDash(cx, cy, p.x, p.y, 'red')
+                    this.drawCentroid(cx, cy, 1 + (p.precision || 0) * 25, 'rgba(0,0,255,0.3)')
                 }
                 var centroidX = sumX / count;
                 var centroidY = sumY / count;
@@ -189,147 +255,85 @@ export default {
             this.dialog = true
             this.pointNumber = pointNumber
         },
+
         euclidianDistance(x0, x1, y0, y1) {
-            const dx = x1 - x0;
-            const dy = y1 - y0;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            return distance;
+            return Math.hypot(x1 - x0, y1 - y0)
         },
-        configDialogCancel(newDialog) {
-            this.configDialog = newDialog
-        },
-        dialogCancel(newDialog) {
-            this.dialog = newDialog
-        },
+
         initCanvas() {
-            const canvas = document.getElementById('canvas');
-            canvas.width = window.innerWidth;
+            const canvas = document.getElementById('canvas')
+            console.log('🖼️ Canvas:', canvas)
+            canvas.width = window.innerWidth
             canvas.height = window.innerHeight
-            if (this.fromDashboard) {
-                const dimension = this.getLargerDistancePoint()
-                const offset = 25
-                canvas.width = dimension.x + offset;
-                canvas.height = dimension.y + offset;
-            }
-            const ctx = canvas.getContext('2d');
+
+            const ctx = canvas.getContext('2d')
             ctx.clearRect(0, 0, canvas.width, canvas.height)
-            ctx.fillStyle = this.backgroundColor;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            const th = this;
-            canvas.addEventListener('click', function (event) {
-                const rect = canvas.getBoundingClientRect();
-                const mouseX = event.clientX - rect.left;
-                const mouseY = event.clientY - rect.top;
-
-                for (let i = 0; i < th.pattern.length; i++) {
-                    const point = th.pattern[i];
-                    const distanceFromCenter = Math.sqrt(
-                        Math.pow(mouseX - point.x, 2) + Math.pow(mouseY - point.y, 2)
-                    );
-
-                    if (distanceFromCenter <= th.radius) {
-                        const patternEquivalent = th.pattern[i]
-                        th.callModal(patternEquivalent, i)
-                    }
-                }
-            });
+            ctx.fillStyle = this.backgroundColor
+            ctx.fillRect(0, 0, canvas.width, canvas.height)
         },
-        getLargerDistancePoint() {
-            var lX = 0
-            var lY = 0
-            for (var i = 0; i < this.pattern.length; i++) {
-                for (var a = 0; a < this.pattern[i].predictionX.length; a++) {
-                    const x = this.pattern[i].predictionX[a]
-                    const y = this.pattern[i].predictionY[a]
-                    if (x > lX) {
-                        lX = x
-                    }
-                    if (y > lY) {
-                        lY = y
-                    }
-                }
-            }
-            return { x: lX, y: lY }
-        },
-        drawCentroid(x, y, radius, color) {
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.closePath();
 
-            ctx.fill();
+        drawCentroid(x, y, r, color) {
+            const ctx = document.getElementById('canvas').getContext('2d')
+            ctx.fillStyle = color
+            ctx.beginPath()
+            ctx.arc(x, y, r, 0, Math.PI * 2)
+            ctx.fill()
         },
-        drawPoints(x, y, radius, color) {
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-            // inner circle
-            ctx.beginPath();
-            ctx.strokeStyle = color;
-            ctx.fillStyle = color;
-            ctx.arc(
-                x,
-                y,
-                radius,
-                0,
-                Math.PI * 2,
-                false
-            );
-            ctx.stroke();
-            ctx.fill();
-        },
-        drawCalibMarks(x, y, crossSize, color) {
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
 
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 1;
-
-            ctx.beginPath();
-            ctx.moveTo(x - crossSize, y);
-            ctx.lineTo(x + crossSize, y);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(x, y - crossSize);
-            ctx.lineTo(x, y + crossSize);
-            ctx.stroke();
+        drawPoints(x, y, r, color) {
+            const ctx = document.getElementById('canvas').getContext('2d')
+            ctx.fillStyle = color
+            ctx.beginPath()
+            ctx.arc(x, y, r, 0, Math.PI * 2)
+            ctx.fill()
         },
-        drawDash(fromX, fromY, toX, toY, color) {
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.strokeStyle = color;
-            ctx.setLineDash([5, 5]);
-            ctx.beginPath();
-            ctx.moveTo(fromX, fromY);
-            ctx.lineTo(toX, toY);
-            ctx.stroke();
-            ctx.closePath();
-            ctx.setLineDash([]);
+
+        drawCalibMarks(x, y, s, color) {
+            const ctx = document.getElementById('canvas').getContext('2d')
+            ctx.strokeStyle = color
+
+            ctx.beginPath()
+            ctx.moveTo(x - s, y)
+            ctx.lineTo(x + s, y)
+            ctx.stroke()
+
+            ctx.beginPath()
+            ctx.moveTo(x, y - s)
+            ctx.lineTo(x, y + s)
+            ctx.stroke()
+        },
+
+        drawDash(fx, fy, tx, ty, color) {
+            const ctx = document.getElementById('canvas').getContext('2d')
+            ctx.strokeStyle = color
+            ctx.setLineDash([5, 5])
+            ctx.beginPath()
+            ctx.moveTo(fx, fy)
+            ctx.lineTo(tx, ty)
+            ctx.stroke()
+            ctx.setLineDash([])
+        },
+
+        dialogCancel(v) {
+            this.dialog = v
+        },
+
+        configDialogCancel(v) {
+            this.configDialog = v
+        },
+
+        async saveCalib() {
+            await this.$store.dispatch('saveCalib')
+            this.$router.push('/dashboard')
         }
-    },
-};
+    }
+}
 </script>
-
 
 <style>
 .scroll-container {
     width: 100%;
-    overflow-x: auto;
     position: relative;
-}
-
-.banner-title {
-    font-size: 24px;
-    font-weight: 600;
-    margin: 0;
-    line-height: 1.2;
-}
-
-.banner-subtitle {
-    font-size: 14px;
-    margin: 4px 0 0 0;
-    opacity: 0.95;
 }
 
 .instructions-overlay {
@@ -345,27 +349,7 @@ export default {
     bottom: 24px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 999;
     display: flex;
     gap: 12px;
-}
-
-.instruction-card {
-    background: rgba(255, 255, 255, 0.97);
-    backdrop-filter: blur(10px);
-    border-radius: 12px;
-}
-
-.v-dialog__content {
-    flex-direction: column;
-    flex-wrap: nowrap;
-    justify-content: center;
-    align-items: unset;
-    width: 300px;
-}
-
-.v-dialog {
-    box-shadow: none;
-    overflow-y: visible;
 }
 </style>
