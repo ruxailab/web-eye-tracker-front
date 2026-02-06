@@ -5,7 +5,7 @@ import router from '@/router';
 export default {
   state: {
     calibName: "",
-    pointNumber: 8,
+    pointNumber: 9,
     samplePerPoint: 90,
     radius: 20,
     offset: 100,
@@ -135,7 +135,7 @@ export default {
     },
     resetAll(state) {
       state.calibName = "";
-      state.pointNumber = 8;
+      state.pointNumber = 9;
       state.samplePerPoint = 90;
       state.radius = 20;
       state.offset = 100;
