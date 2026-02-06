@@ -2,6 +2,34 @@
   <div id="box">
     <Toolbar v-if="!fromRuxailab" />
 
+    <!-- Fullscreen Required Modal -->
+    <v-dialog v-model="showFullscreenModal" max-width="520">
+      <v-card class="blue-bg">
+        <v-card-title class="d-flex justify-center white--text pb-4 pt-6">
+          <v-icon color="white" left size="32">mdi-fullscreen</v-icon>
+          <span style="font-size: 20px">Go fullscreen</span>
+        </v-card-title>
+        <v-card-text class="px-6 pb-2">
+          <p class="white--text mb-3" style="font-size: 14px">
+            Please run calibration in fullscreen so the app can measure screen borders correctly.
+          </p>
+          <p
+            v-if="fullscreenError"
+            class="white--text mb-0"
+            style="font-size: 13px; opacity: 0.9"
+          >
+            {{ fullscreenError }}
+          </p>
+        </v-card-text>
+        <v-card-actions class="justify-center px-6 pb-6">
+          <v-btn color="#FF425A" dark block large @click="tryEnterFullscreen">
+            <v-icon left>mdi-fullscreen</v-icon>
+            Enter Fullscreen
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Camera Selection Modal -->
     <v-dialog v-model="showCameraModal" max-width="500">
       <v-card class="blue-bg">
@@ -174,7 +202,7 @@
                       color="#FF425A"
                       dark
                       :disabled="!isCameraOn"
-                      @click="goToCalibRecord()"
+                      @click="startCalibration"
                     >
                       <v-icon left>mdi-play</v-icon>
                       Start Calibration
@@ -213,6 +241,8 @@ export default {
       selectedMediaDevice: null,
       setupStep: 1,
       showCameraModal: false,
+      showFullscreenModal: false,
+      fullscreenError: "",
     };
   },
   computed: {
@@ -253,6 +283,44 @@ export default {
     }
   },
   methods: {
+    isFullscreen() {
+      return !!(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+      );
+    },
+    requestFullscreen(element) {
+      const el = element || document.documentElement;
+      if (el.requestFullscreen) return el.requestFullscreen();
+      if (el.mozRequestFullScreen) return el.mozRequestFullScreen();
+      if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
+      if (el.msRequestFullscreen) return el.msRequestFullscreen();
+      return Promise.reject(new Error("Fullscreen API not supported"));
+    },
+    async tryEnterFullscreen() {
+      this.fullscreenError = "";
+      try {
+        if (!this.isFullscreen()) {
+          await this.requestFullscreen(document.documentElement);
+        }
+      } catch (e) {
+        this.fullscreenError =
+          "Your browser blocked fullscreen. Please allow fullscreen and try again.";
+      }
+      if (this.isFullscreen()) {
+        this.showFullscreenModal = false;
+      }
+    },
+    async startCalibration() {
+      await this.tryEnterFullscreen();
+      if (!this.isFullscreen()) {
+        this.showFullscreenModal = true;
+        return;
+      }
+      this.goToCalibRecord();
+    },
     startCameraSetup() {
       this.setupStep = 2;
       this.setupCamera();
@@ -432,45 +500,6 @@ export default {
         pred.boundingBox.bottomRight[1] - pred.boundingBox.topLeft[1],
       );
       ctx.stroke();
-    },
-    fullScreen() {
-      var element = document.documentElement;
-      if (element.requestFullscreen) {
-        if (!document.fullscreenElement) {
-          element.requestFullscreen().catch((err) => {
-            console.error("Erro ao entrar em tela cheia:", err);
-          });
-        } else {
-          document.exitFullscreen();
-        }
-      } else if (element.mozRequestFullScreen) {
-        // Para o Firefox
-        if (!document.mozFullScreenElement) {
-          element.mozRequestFullScreen().catch((err) => {
-            console.error("Erro ao entrar em tela cheia:", err);
-          });
-        } else {
-          document.mozCancelFullScreen();
-        }
-      } else if (element.webkitRequestFullscreen) {
-        // Para o Chrome, Safari e Opera
-        if (!document.webkitFullscreenElement) {
-          element.webkitRequestFullscreen().catch((err) => {
-            console.error("Erro ao entrar em tela cheia:", err);
-          });
-        } else {
-          document.webkitExitFullscreen();
-        }
-      } else if (element.msRequestFullscreen) {
-        // Para o Internet Explorer e Microsoft Edge
-        if (!document.msFullscreenElement) {
-          element.msRequestFullscreen().catch((err) => {
-            console.error("Erro ao entrar em tela cheia:", err);
-          });
-        } else {
-          document.msExitFullscreen();
-        }
-      }
     },
     goToCalibRecord() {
       this.webcamStream.getTracks().forEach((track) => {
