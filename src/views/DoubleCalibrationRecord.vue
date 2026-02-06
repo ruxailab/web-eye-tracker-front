@@ -231,7 +231,15 @@
                   <p class="text-h6 grey--text mb-4">Processing your calibration data...</p>
                 </v-card-text>
                 <v-card-actions class="justify-center pb-8">
-                  <v-btn x-large color="#FF425A" dark @click="endCalib()" class="px-12">
+                  <v-btn
+                    x-large
+                    color="#FF425A"
+                    dark
+                    :disabled="finishingCalibration || isCollecting"
+                    :loading="finishingCalibration"
+                    @click="endCalib()"
+                    class="px-12"
+                  >
                     <v-icon left size="32">mdi-check-bold</v-icon>
                     <span class="text-h5">Finish</span>
                   </v-btn>
@@ -283,6 +291,7 @@ export default {
 
       fullscreenRequiredDialog: false,
       navigationBlockedDialog: false,
+      finishingCalibration: false,
     };
   },
   computed: {
@@ -370,7 +379,7 @@ export default {
     this.removeCalibrationScrollLock();
   },
   beforeRouteLeave(to, from, next) {
-    if (this.calibrationStarted && !this.calibFinished) {
+    if (this.calibrationStarted && !this.calibFinished && !this.finishingCalibration) {
       this.navigationBlockedDialog = true;
       next(false);
       return;
@@ -752,6 +761,10 @@ export default {
       ctx.stroke();
     },
     async endCalib() {
+      if (this.finishingCalibration) return;
+      this.finishingCalibration = true;
+      this.calibrationStarted = false;
+
       this.calibPredictionPoints.forEach(element => {
         delete element.point_x;
         delete element.point_y;
@@ -799,7 +812,8 @@ export default {
         fromRuxailab: this.fromRuxailab,
       })
 
-      this.stopRecord()
+      await this.stopRecord()
+      this.calibFinished = true
 
       this.$router.push(
         `/postCalibration?redirectingToRuxailab=${this.fromRuxailab}`
@@ -910,8 +924,11 @@ export default {
       return lastPrediction
     },
 
-    stopRecord() {
-      this.recordWebCam.state != "inactive" ? this.stopWebCamCapture() : null;
+    async stopRecord() {
+      if (!this.recordWebCam) return;
+      if (this.recordWebCam.state != "inactive") {
+        await this.stopWebCamCapture();
+      }
     },
 
     async stopWebCamCapture() {
