@@ -705,14 +705,8 @@ export default {
 
           // Init record webcam
           this.recordWebCam.start();
-          
-          // Wait for video to be fully ready with proper dimensions
-          video.onloadedmetadata = async () =>{
-            // Additional wait to ensure video renders properly
-            await new Promise(resolve => setTimeout(resolve, 200));
-            if (video.videoWidth > 0 && video.videoHeight > 0) {
-              this.detectFace();
-            }
+          video.onloadeddata = () => {
+            this.detectFace();
           }
         })
         .catch((e) => {
@@ -743,18 +737,8 @@ export default {
     },
 
     async detectFace() {
-      const video = document.getElementById("video-tag");
-      
-      // Ensure video has valid dimensions before processing
-      if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
-        console.warn('Video not ready yet, waiting...');
-        // Wait a bit and try again
-        await new Promise(resolve => setTimeout(resolve, 100));
-        return this.detectFace(); // Retry
-      }
-      
       const lastPrediction = await this.model.estimateFaces({
-        input: video,
+        input: document.getElementById("video-tag"),
       });
       return lastPrediction
     },
