@@ -240,11 +240,15 @@ export default {
         },
         mockPattern(newMockPattern) {
             const point = this.pattern[this.pointNumber]
-            this.selected = newMockPattern.includes(point)
+            this.selected = newMockPattern.some(
+                (p) => p.x === point.x && p.y === point.y
+            )
         },
         pointNumber(newPointNumber) {
             const point = this.pattern[newPointNumber]
-            this.selected = this.mockPattern.includes(point)
+            this.selected = this.mockPattern.some(
+                (p) => p.x === point.x && p.y === point.y
+            )
         }
     },
     methods: {

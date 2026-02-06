@@ -1,26 +1,10 @@
 <template>
     <div class="scroll-container">
-        <canvas id="canvas" style="width: 100%; height: 100%;" />
-
-        <PointModal
-            :x="Number(x)"
-            :y="Number(y)"
-            :precision="Number(precision)"
-            :accuracy="Number(accuracy)"
-            :dialog="dialog"
-            :pointNumber="pointNumber"
-            @close="dialogCancel"
-            @select="select"
+        <canvas
+            id="canvas"
+            style="width: 100%; height: 100%;"
+            @click="handleCanvasClick"
         />
-
-        <ConfigModal
-            :configDialog="configDialog"
-            @close="configDialogCancel"
-            @recalib="recalibrate"
-            @save="saveCalib"
-        />
-
-        <canvas style="width: 100%; height: 100%;" id="canvas" />
         <div>
             <PointModal :x="Number(x)" :y="Number(y)" :precision="Number(precision)" :accuracy="Number(accuracy)"
                 :dialog="dialog" :pointNumber="pointNumber" :predictionX="predictionX" :predictionY="predictionY"
@@ -29,17 +13,12 @@
         <ConfigModal :configDialog="configDialog" @close="configDialogCancel" @recalib="recalibrate"
             @save="saveCalib" />
         <v-col class="pa-0">
-            <DraggableFloatingButton
-                @click="callConfigModal"
-                icon="mdi-cog"
-            />
+            <DraggableFloatingButton @click="callConfigModal" :icon="'mdi-cog'" />
         </v-col>
 
         <div v-if="redirectingToRuxailab" class="button-overlay">
             <v-btn @click="recalibrate" color="primary">Recalibrate</v-btn>
-            <v-btn @click="sendCalibToRuxailab" color="success">
-                Send this calib to Ruxailab
-            </v-btn>
+            <v-btn @click="sendCalibToRuxailab" color="success">Send this calib to Ruxailab</v-btn>
         </div>
     </div>
 </template>
@@ -192,48 +171,61 @@ export default {
             )
         },
 
+        handleCanvasClick(event) {
+            const canvas = event.currentTarget
+            const rect = canvas.getBoundingClientRect()
+            const scaleX = canvas.width / rect.width
+            const scaleY = canvas.height / rect.height
+            const clickX = (event.clientX - rect.left) * scaleX
+            const clickY = (event.clientY - rect.top) * scaleY
+
+            let closestIndex = -1
+            let minDist = Infinity
+            const hitRadius = 30
+
+            for (let i = 0; i < this.pattern.length; i++) {
+                const p = this.pattern[i]
+                const dist = this.euclidianDistance(p.x, clickX, p.y, clickY)
+                if (dist < minDist) {
+                    minDist = dist
+                    closestIndex = i
+                }
+            }
+
+            if (closestIndex !== -1 && minDist <= hitRadius) {
+                this.callModal(this.pattern[closestIndex], closestIndex)
+            }
+        },
+
         drawCalibPoints() {
-            console.log('🎨 Iniciando drawCalibPoints')
-            console.log('📊 Pattern:', this.pattern)
-            console.log('📈 Threshold:', this.threshold)
-
-            this.initCanvas()
             const pointSize = 3.5
+            this.initCanvas()
+            for (var i = 0; i < this.pattern.length; i++) {
+                // calib points
+                const isSelected = this.mockPattern.some(
+                    (p) => p.x === this.pattern[i].x && p.y === this.pattern[i].y
+                )
+                const crossColor = isSelected ? 'black' : 'grey'
+                const dashColor = isSelected ? 'green' : 'red'
+                const pointsColor = isSelected ? 'green' : 'orange'
+                const centroidColor = isSelected ? 'rgba(0, 0, 255, 0.3)' : 'rgba(128, 128, 128, 0.3)'
+                const deniedPointColor = isSelected ? 'blue' : 'grey'
 
-            this.pattern.forEach((p, idx) => {
-                console.log(`\n🔵 Desenhando ponto ${idx} em (${p.x}, ${p.y})`)
-                console.log(`   predictionX: ${p.predictionX?.length || 0} valores`)
-                console.log(`   predictionY: ${p.predictionY?.length || 0} valores`)
-
-                this.drawCalibMarks(p.x, p.y, 30, 'grey')
-
-                let sumX = 0
-                let sumY = 0
-                let count = 0
-
-                p.predictionX?.forEach((px, i) => {
-                    const py = p.predictionY[i]
-                    const dist = this.euclidianDistance(p.x, px, p.y, py)
-
-                    console.log(`   [${i}] px=${px}, py=${py}, dist=${dist.toFixed(2)}, threshold=${this.threshold}, pass=${dist <= this.threshold}`)
-
-                    this.drawPoints(px, py, pointSize, dist <= this.threshold ? 'green' : 'grey')
-
-                    if (dist <= this.threshold) {
-                        sumX += px
-                        sumY += py
+                this.drawCalibMarks(this.pattern[i].x, this.pattern[i].y, 30, crossColor)
+                var sumX = 0;
+                var sumY = 0;
+                var count = 0;
+                for (var a = 0; a < this.pattern[i].predictionX.length; a++) {
+                    // predicted points
+                    const distance = this.euclidianDistance(this.pattern[i].x, this.pattern[i].predictionX[a], this.pattern[i].y, this.pattern[i].predictionY[a])
+                    if (distance <= this.threshold) {
+                        this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], pointSize, pointsColor)
+                        sumX += this.pattern[i].predictionX[a];
+                        sumY += this.pattern[i].predictionY[a];
                         count++
+                    } else {
+                        this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], pointSize, deniedPointColor)
                     }
-                })
-
-                console.log(`   ✏️ Total pontos dentro threshold: ${count}`)
-
-                if (count > 0) {
-                    const cx = sumX / count
-                    const cy = sumY / count
-                    console.log(`   🎯 Centróide em (${cx.toFixed(2)}, ${cy.toFixed(2)})`)
-                    this.drawDash(cx, cy, p.x, p.y, 'red')
-                    this.drawCentroid(cx, cy, 1 + (p.precision || 0) * 25, 'rgba(0,0,255,0.3)')
                 }
                 var centroidX = sumX / count;
                 var centroidY = sumY / count;
@@ -321,11 +313,6 @@ export default {
         configDialogCancel(v) {
             this.configDialog = v
         },
-
-        async saveCalib() {
-            await this.$store.dispatch('saveCalib')
-            this.$router.push('/dashboard')
-        }
     }
 }
 </script>
