@@ -212,6 +212,9 @@
 
 <script>
 import axios from 'axios';
+const tf = require("@tensorflow/tfjs");
+const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
+require("@tensorflow/tfjs-backend-wasm");
 
 
 export default {
@@ -288,22 +291,35 @@ export default {
   },
   async created() {
     console.log("rodou created");
+
+    // Ensure model is loaded before proceeding
+    if (!this.model) {
+      console.log("Model not loaded, loading now...");
+      try {
+        await tf.setBackend("wasm");
+        const model = await faceLandmarksDetection.load(
+          faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
+          { maxFaces: 1 }
+        );
+        this.$store.commit("setModel", model);
+        this.$store.commit("setLoaded", true);
+        console.log("Model loaded successfully");
+      } catch (err) {
+        console.error("Error loading model:", err);
+      }
+    }
+
     await this.verifyFromRuxailab()
     this.$store.commit('setIndex', 0)
-    this.usedPattern = this.generateRuntimePattern()
+    const width = window.innerWidth
+    const height = window.innerHeight
+    const offset = this.offset || 100
+    const pointCount = this.$store.state.calibration.pointNumber || 9
 
-    if (this.usedPattern.length === 0) {
-      const width = window.innerWidth
-      const height = window.innerHeight
-      const offset = this.offset || 100
-      const pointCount = this.$store.state.calibration.pointNumber
+    const generatedPattern = this.generateCalibrationPattern(pointCount, width, height, offset)
 
-      const generatedPattern = this.generateCalibrationPattern(pointCount, width, height, offset)
-
-      this.$store.commit('setMockPattern', generatedPattern)
-      this.usedPattern = generatedPattern
-
-    }
+    this.$store.commit('setMockPattern', generatedPattern)
+    this.usedPattern = generatedPattern
     await this.startWebCamCapture();
     console.log("chamou drawPoint no created com os valores:", this.usedPattern[0].x, this.usedPattern[0].y);
     this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
@@ -718,6 +734,7 @@ export default {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.has('auth') && urlParams.has('test')) {
         this.fromRuxailab = true
+        this.$store.commit('setCalibName', urlParams.get('auth')) // Set the session ID (user ID)
         await this.getRuxailabConfig(urlParams.get('auth'), urlParams.get('test'));
       }
     },
@@ -752,38 +769,7 @@ export default {
       this.calibFinished = true;
     },
 
-    generateRuntimePattern() {
-      const width = window.innerWidth
-      const height = window.innerHeight
-      const offset = this.offset || 100
-      const points = this.$store.state.calibration.pointNumber || 9
 
-      const minCols = 3
-      const cols = Math.max(minCols, Math.round(Math.sqrt(points)))
-      const rows = Math.ceil(points / cols)
-
-
-      const usableWidth = width - 2 * offset
-      const usableHeight = height - 2 * offset
-
-      const stepX = usableWidth / (cols - 1)
-      const stepY = usableHeight / (rows - 1)
-
-      const pattern = []
-
-      for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < cols; j++) {
-          if (pattern.length < points) {
-            pattern.push({
-              x: offset + j * stepX,
-              y: offset + i * stepY
-            })
-          }
-        }
-      }
-
-      return pattern
-    }
   },
 };
 </script>
