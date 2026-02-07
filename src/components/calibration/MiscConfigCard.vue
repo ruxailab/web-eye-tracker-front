@@ -23,7 +23,7 @@
                 </transition>
                 <div class="custom-outline">
                     <div class="config-label">Model Selection:</div>
-                    <v-select v-model="models" :items="models" outlined clearable placeholder="Select Model"></v-select>
+                    <v-select v-model="selectedModel" :items="modelOptions" outlined clearable placeholder="Select Model"></v-select>
                     <p class="help-text">Choose the regression model for eye tracking predictions</p>
                 </div>
                 <div class="custom-outline note-box">
@@ -45,7 +45,8 @@ export default {
             backgroundColor: '#FFFFFFFF',
             pointColor: '#000000FF',
             customColors: false,
-            models: ['Linear Regression', 'Ridge Regression', 'Lasso Regression', 'Elastic Net', 'Bayesian Ridge', 'SGD Regressor', 'Support Vector Regressor']
+            selectedModel: 'Linear Regression',
+            modelOptions: ['Linear Regression', 'Ridge Regression', 'Lasso Regression', 'Elastic Net', 'Bayesian Ridge', 'SGD Regressor', 'Support Vector Regressor']
         }
     },
     watch: {
@@ -58,7 +59,7 @@ export default {
         customColors(value) {
             this.updateCustomColors(value)
         },
-        models(value){
+        selectedModel(value){
             this.updateModels(value)
         }
     },
