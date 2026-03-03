@@ -6,8 +6,14 @@ import vuetify from './plugins/vuetify'
 import './services/axios'
 import firebase from 'firebase/app'
 import 'firebase/firestore'
+import { envConfig } from './config/environment'
 
 Vue.config.productionTip = false
+
+const firebaseConfig = envConfig.firebase;
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
 
 new Vue({
   router,
