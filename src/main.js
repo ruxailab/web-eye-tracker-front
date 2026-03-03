@@ -4,12 +4,11 @@ import router from './router'
 import store from './store'
 import vuetify from './plugins/vuetify'
 import './services/axios'
-<<<<<<< HEAD
 import firebase from 'firebase/app'
 import 'firebase/firestore'
-=======
+import { envConfig } from './config/environment'
 
->>>>>>> 2b1bb29 (feat(calibration): fullscreen mode and camera preview fix)
+const firebaseConfig = envConfig.firebase;
 
 Vue.config.productionTip = false
 

@@ -281,6 +281,7 @@
 
 <script>
 import axios from 'axios';
+import { envConfig } from '../config/environment';
 
 
 export default {
@@ -1233,7 +1234,7 @@ export default {
     async getRuxailabConfig(userId, testId) {
       this.loadingConfig = true;
       const { data } = await axios.get(
-        `${process.env.VUE_APP_RUXAILAB_URL}/getCalibrationConfig`,
+        `${envConfig.ruxailabUrl}/getCalibrationConfig`,
         { params: { testId } }
       );
 
