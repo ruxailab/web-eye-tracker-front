@@ -370,6 +370,7 @@ export default {
 
     if (!this.isFullscreen()) {
       this.fullscreenRequiredDialog = true;
+      this.attemptAutoFullscreen();
     }
   },
   beforeDestroy() {
@@ -433,6 +434,15 @@ export default {
       if (this.isFullscreen()) {
         this.fullscreenRequiredDialog = false;
       }
+    },
+    attemptAutoFullscreen() {
+      this.requestFullscreen(document.documentElement)
+        .then(() => {
+          if (this.isFullscreen()) {
+            this.fullscreenRequiredDialog = false;
+          }
+        })
+        .catch(() => {});
     },
     onFullscreenChange() {
       if (this.calibrationStarted && !this.calibFinished && !this.isFullscreen()) {
