@@ -32,21 +32,31 @@ export default {
         label: String,
     },
     data() {
+        const num = Number(this.value);
         return {
-            sliderValue: this.value,
+            sliderValue: (num === num ? num : this.min),
         };
     },
     watch: {
         value(newVal) {
-            this.sliderValue = newVal;
+            const num = Number(newVal);
+            if (num === num && num !== this.sliderValue) {
+                this.sliderValue = num;
+            }
         },
         sliderValue(newVal) {
-            this.$emit('input', newVal);
+            const num = Number(newVal);
+            const safe = num === num ? num : this.min;
+            if (this.sliderValue !== safe) {
+                this.sliderValue = safe;
+            }
+            this.$emit('input', safe);
         },
     },
     methods: {
         updateValue() {
-            this.$emit('input', this.sliderValue);
+            const num = Number(this.sliderValue);
+            this.$emit('input', num === num ? num : this.min);
         },
     },
 };
