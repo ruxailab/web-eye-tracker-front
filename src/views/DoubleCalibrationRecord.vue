@@ -250,28 +250,38 @@
         </v-stepper>
       </v-card>
     </v-dialog>
-    <canvas id="canvas" style="z-index: 0;" />
-    <video autoplay id="video-tag" style="display: none;"></video>
+    <calibration-canvas
+      ref="calibrationCanvas"
+      :background-color="backgroundColor"
+      :point-color="pointColor"
+      :radius="radius"
+      :inner-circle-radius="innerCircleRadius"
+      :animation-frames="animationFrames"
+      :animation-refresh-rate="animationRefreshRate"
+    />
+    <webcam-manager
+      ref="webcamManager"
+      @video-ready="onVideoReady"
+      @capture-stopped="onCaptureStopped"
+      @error="onWebcamError"
+    />
   </div>
 </template>
 
 <script>
 import axios from 'axios';
 import { envConfig } from '../config/environment';
-
+import CalibrationCanvas from '@/components/calibration/CalibrationCanvas.vue';
+import WebcamManager from '@/components/calibration/WebcamManager.vue';
+import FaceDetector from '@/services/ml/FaceDetector';
 
 export default {
-
+  components: {
+    CalibrationCanvas,
+    WebcamManager
+  },
   data() {
     return {
-      // camera
-      webcamfile: null,
-      recordWebCam: null,
-      configWebCam: {
-        audio: false,
-        video: true
-      },
-
       // calibration
       circleIrisPoints: [],
       calibPredictionPoints: [],
@@ -293,6 +303,8 @@ export default {
       fullscreenRequiredDialog: false,
       navigationBlockedDialog: false,
       finishingCalibration: false,
+      
+      faceDetectorService: null,
     };
   },
   computed: {
@@ -353,10 +365,25 @@ export default {
       this.$store.commit('setMockPattern', generatedPattern)
       this.usedPattern = generatedPattern
 
+    // Initialize Face Detector when model is ready from Vuex
+    if (this.model) {
+      this.faceDetectorService = new FaceDetector(this.model);
     }
-    await this.startWebCamCapture();
+    
+    // Start webcam natively via component ref
+    this.$nextTick(async () => {
+      if(this.$refs.webcamManager) {
+        await this.$refs.webcamManager.startWebCamCapture();
+      }
+    });
+    
     console.log("chamou drawPoint no created com os valores:", this.usedPattern[0].x, this.usedPattern[0].y);
-    this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
+    // Draw initial point when component ready
+    this.$nextTick(() => {
+      if(this.$refs.calibrationCanvas) {
+        this.$refs.calibrationCanvas.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1);
+      }
+    });
     this.advance(this.usedPattern, this.circleIrisPoints, this.msPerCapture)
     console.log("UsedPattern inteiro", this.usedPattern);
 
@@ -600,15 +627,17 @@ export default {
             i++
 
             if (i < pattern.length) {
-              await th.triggerAnimation(pattern[i - 1], pattern[i], this.animationRefreshRate)
+              if (th.$refs.calibrationCanvas) {
+                await th.$refs.calibrationCanvas.triggerAnimation(pattern[i - 1], pattern[i]);
+              }
               document.addEventListener('keydown', keydownHandler)
             } else {
               // Completed all points - finalize
               th.$store.commit('setIndex', i)
               th.savePoint(whereToSave, th.usedPattern)
-              const canvas = document.getElementById('canvas');
-              const ctx = canvas.getContext('2d');
-              ctx.clearRect(0, 0, canvas.width, canvas.height)
+              if (th.$refs.calibrationCanvas) {
+                th.$refs.calibrationCanvas.clearCanvas();
+              }
               // Show stepper at step 3 (validation) or step 4 (completion)
               if (th.currentStep === 1) {
                 th.nextStep();
@@ -634,8 +663,24 @@ export default {
 
       console.log("nextStep rodou drawPoint com os valores:", this.usedPattern[0].x, this.usedPattern[0].y);
 
-      this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
-      this.advance(this.usedPattern, this.calibPredictionPoints, this.msPerCapture)
+      if (this.$refs.calibrationCanvas) {
+        this.$refs.calibrationCanvas.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1);
+      }
+    async onVideoReady(videoElement) {
+      if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+        // Just verify detector works, extraction triggered by "S" key
+        if(this.faceDetectorService) {
+          const prediction = await this.faceDetectorService.detectFace(videoElement);
+          if (prediction && prediction.length > 0) this.faceDetected = true;
+        }
+      }
+    },
+    onCaptureStopped(webcamfile) {
+      console.log("Webcam capture stopped.");
+      // Could push to Vuex or handle upload here if needed
+    },
+    onWebcamError(error) {
+      console.error("Failed to initialize webcam:", error);
     },
     async extract(point, timeBetweenCaptures) {
       point.data = [];
@@ -643,50 +688,49 @@ export default {
         if (!this.isFullscreen()) {
           throw new Error("fullscreen_required");
         }
-        const prediction = await this.detectFace();
+        
+        // Lazy initialize face detector here if it missed the computed watcher
+        if (!this.faceDetectorService && this.model) {
+          this.faceDetectorService = new FaceDetector(this.model);
+        }
 
-        // 🛡️ DEFENSIVE GUARD: Check if face is detected
-        // When user moves face out of frame, prediction array is empty
-        // This prevents crash: "Cannot read property 'annotations' of undefined"
+        const video = document.getElementById("video-tag");
+        const prediction = await this.faceDetectorService.detectFace(video);
+
         if (!prediction || prediction.length === 0) {
           this.faceDetected = false;
           console.warn('Face not detected. Waiting for face to return...');
           await new Promise(resolve => setTimeout(resolve, 500));
-          continue; // Skip this iteration and retry
+          continue;
         }
 
         this.faceDetected = true;
-        const pred = prediction[0];
+        const processedData = this.faceDetectorService.processPrediction(
+          prediction[0], 
+          this.leftEyeTreshold, 
+          this.rightEyeTreshold
+        );
 
-        // Additional safety check for required annotations
-        if (!pred.annotations || !pred.annotations.leftEyeIris || !pred.annotations.rightEyeIris) {
-          console.warn('Incomplete face landmarks detected. Retrying...');
+        if (!processedData) {
+          console.warn('Incomplete face landmarks. Retrying...');
           await new Promise(resolve => setTimeout(resolve, 500));
           continue;
         }
 
-        // left eye
-        const leftIris = pred.annotations.leftEyeIris;
-        const leftEyelid = pred.annotations.leftEyeUpper0.concat(pred.annotations.leftEyeLower0);
-        const leftEyelidTip = leftEyelid[3];
-        const leftEyelidBottom = leftEyelid[11];
-        const isLeftBlink = this.calculateDistance(leftEyelidTip, leftEyelidBottom) < this.leftEyeTreshold;
-        // right eye
-        const rightIris = pred.annotations.rightEyeIris;
-        const rightEyelid = pred.annotations.rightEyeUpper0.concat(pred.annotations.rightEyeLower0);
-        const rightEyelidTip = rightEyelid[3];
-        const rightEyelidBottom = rightEyelid[11];
-        const isRightBlink = this.calculateDistance(rightEyelidTip, rightEyelidBottom) < this.rightEyeTreshold;
-
-        if (isLeftBlink || isRightBlink) {
-          console.log('eyes closed, disconsidered');
-          // set timer so that when eyes open it doesnt select the unstable values
+        if (processedData.isBlinking) {
+          console.log('Eyes closed or blinking, ignored frame');
           await new Promise(resolve => setTimeout(resolve, 500));
         } else {
-          const newPrediction = { leftIris: leftIris[0], rightIris: rightIris[0] };
-          point.data.push(newPrediction);
-          const radius = (this.radius / this.predByPointCount) * a
-          this.drawPoint(point.x, point.y, radius)
+          // Success
+          point.data.push({ 
+            leftIris: processedData.leftIris, 
+            rightIris: processedData.rightIris 
+          });
+          
+          const currentRadius = (this.radius / this.predByPointCount) * a
+          if (this.$refs.calibrationCanvas) {
+            this.$refs.calibrationCanvas.drawPoint(point.x, point.y, currentRadius);
+          }
           a++;
         }
         await new Promise(resolve => setTimeout(resolve, timeBetweenCaptures));
@@ -714,52 +758,6 @@ export default {
       const yDistance = eyelidBottom[1] - eyelidTip[1];
       const distance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
       return distance;
-    },
-    drawPoint(x, y, radius) {
-      const canvas = document.getElementById('canvas');
-
-      console.log('Window size:', window.innerWidth, 'x', window.innerHeight);
-
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      ctx.fillStyle = this.backgroundColor;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      //circle 
-      ctx.beginPath();
-      ctx.strokeStyle = this.pointColor;
-      ctx.fillStyle = this.pointColor;
-      ctx.arc(
-        x,
-        y,
-        radius,
-        0,
-        Math.PI * 2,
-        false
-      );
-      ctx.stroke();
-      ctx.fill();
-      // inner circle
-      ctx.beginPath();
-      ctx.strokeStyle = "red";
-      ctx.fillStyle = "red";
-      ctx.arc(
-        x,
-        y,
-        this.innerCircleRadius,
-        0,
-        Math.PI * 2,
-        false
-      );
-      ctx.stroke();
-      ctx.fill();
-      // hollow circumference
-      ctx.strokeStyle = this.pointColor;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(x, y, this.radius, 0, 2 * Math.PI, false);
-      ctx.stroke();
     },
     async endCalib() {
       if (this.finishingCalibration) return;
@@ -813,7 +811,9 @@ export default {
         fromRuxailab: this.fromRuxailab,
       })
 
-      await this.stopRecord()
+      if (this.$refs.webcamManager) {
+        await this.$refs.webcamManager.stopRecord();
+      }
       this.calibFinished = true
 
       this.$router.push(
@@ -834,56 +834,6 @@ export default {
           whereToSave.push(data)
         });
       });
-    },
-    // canvas related
-    async startWebCamCapture() {
-      // Request permission for screen capture
-
-      return navigator.mediaDevices
-        .getUserMedia(this.configWebCam)
-        .then(async (mediaStreamObj) => {
-          // Create media recorder object
-          this.recordWebCam = new MediaRecorder(mediaStreamObj, {
-            mimeType: "video/webm;",
-          });
-
-          let recordingWebCam = [];
-          let video = document.getElementById("video-tag");
-          video.srcObject = mediaStreamObj;
-          // Define screen capture events
-          // Save frames to recordingWebCam array
-          this.recordWebCam.ondataavailable = (ev) => {
-            recordingWebCam.push(ev.data);
-          };
-          // OnStop WebCam Record
-          const th = this;
-
-          this.recordWebCam.onstop = () => {
-            // Generate blob from the frames
-            let blob = new Blob(recordingWebCam, { type: "video/webm" });
-            recordingWebCam = [];
-            const uploadMediaWebCam = { blob: blob, name: mediaStreamObj.id };
-            th.webcamfile = uploadMediaWebCam;
-            // End webcam capture
-            mediaStreamObj.getTracks().forEach((track) => track.stop());
-            th.stopRecord();
-          };
-
-          // Init record webcam
-          this.recordWebCam.start();
-          
-          // Wait for video to be fully ready with proper dimensions
-          video.onloadedmetadata = async () =>{
-            // Additional wait to ensure video renders properly
-            await new Promise(resolve => setTimeout(resolve, 200));
-            if (video.videoWidth > 0 && video.videoHeight > 0) {
-              this.detectFace();
-            }
-          }
-        })
-        .catch((e) => {
-          console.error("Error", e);
-        });
     },
 
     async verifyFromRuxailab() {
@@ -906,35 +856,6 @@ export default {
 
       this.$store.commit('setCalibrationConfig', calibrationConfig);
       this.loadingConfig = false;
-    },
-
-    async detectFace() {
-      const video = document.getElementById("video-tag");
-      
-      // Ensure video has valid dimensions before processing
-      if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
-        console.warn('Video not ready yet, waiting...');
-        // Wait a bit and try again
-        await new Promise(resolve => setTimeout(resolve, 100));
-        return this.detectFace(); // Retry
-      }
-      
-      const lastPrediction = await this.model.estimateFaces({
-        input: video,
-      });
-      return lastPrediction
-    },
-
-    async stopRecord() {
-      if (!this.recordWebCam) return;
-      if (this.recordWebCam.state != "inactive") {
-        await this.stopWebCamCapture();
-      }
-    },
-
-    async stopWebCamCapture() {
-      await this.recordWebCam.stop();
-      this.calibFinished = true;
     },
 
     generateRuntimePattern() {
