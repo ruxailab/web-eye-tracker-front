@@ -278,16 +278,21 @@
 <script>
 import axios from 'axios';
 import { envConfig } from '../config/environment';
+import {
+  generateCalibrationPattern,
+  generateRuntimePattern,
+  calculateDistance,
+} from '@/services/CalibrationCalculator';
+import CameraMixin from '@/mixins/CameraMixin';
 
 
 export default {
+  mixins: [CameraMixin],
 
   data() {
     return {
       // camera
       keydownHandlerRef: null,
-      webcamfile: null,
-      recordWebCam: null,
       configWebCam: {
         audio: false,
         video: {
@@ -586,105 +591,7 @@ export default {
       }
     },
     generateCalibrationPattern(pointCount, width, height, offset) {
-      const patterns = [];
-      
-      switch(pointCount) {
-        case 1:
-          // Center point only
-          patterns.push({ x: width/2, y: height/2 });
-          break;
-          
-        case 2:
-          // Left and right edges (horizontal coverage)
-          patterns.push({ x: offset, y: height/2 });
-          patterns.push({ x: width - offset, y: height/2 });
-          break;
-          
-        case 3:
-          // Horizontal line: left, center, right
-          patterns.push({ x: offset, y: height/2 });
-          patterns.push({ x: width/2, y: height/2 });
-          patterns.push({ x: width - offset, y: height/2 });
-          break;
-          
-        case 4:
-          // Four corners (optimal for 4-point calibration)
-          patterns.push({ x: offset, y: offset });
-          patterns.push({ x: width - offset, y: offset });
-          patterns.push({ x: offset, y: height - offset });
-          patterns.push({ x: width - offset, y: height - offset });
-          break;
-          
-        case 5:
-          // Four corners + center (cross pattern)
-          patterns.push({ x: offset, y: offset });
-          patterns.push({ x: width - offset, y: offset });
-          patterns.push({ x: width/2, y: height/2 });
-          patterns.push({ x: offset, y: height - offset });
-          patterns.push({ x: width - offset, y: height - offset });
-          break;
-          
-        case 6: {
-          // 3x2 rectangle pattern
-          const stepX6 = (width - 2 * offset) / 2;
-          const stepY6 = (height - 2 * offset) / 1;
-          for (let i = 0; i < 2; i++) {
-            for (let j = 0; j < 3; j++) {
-              patterns.push({
-                x: offset + j * stepX6,
-                y: offset + i * stepY6,
-              });
-            }
-          }
-          break;
-        }
-          
-        case 7:
-          // Partial 3x3 grid (strategic selection)
-          patterns.push({ x: offset, y: offset });
-          patterns.push({ x: width/2, y: offset });
-          patterns.push({ x: width - offset, y: offset });
-          patterns.push({ x: offset, y: height/2 });
-          patterns.push({ x: width - offset, y: height/2 });
-          patterns.push({ x: offset, y: height - offset });
-          patterns.push({ x: width - offset, y: height - offset });
-          break;
-          
-        case 8:
-          // Partial 3x3 grid (without center)
-          patterns.push({ x: offset, y: offset });
-          patterns.push({ x: width/2, y: offset });
-          patterns.push({ x: width - offset, y: offset });
-          patterns.push({ x: offset, y: height/2 });
-          patterns.push({ x: width - offset, y: height/2 });
-          patterns.push({ x: offset, y: height - offset });
-          patterns.push({ x: width/2, y: height - offset });
-          patterns.push({ x: width - offset, y: height - offset });
-          break;
-          
-        case 9:
-        default: {
-          // Full 3x3 grid (current working pattern)
-          const cols = 3;
-          const rows = 3;
-          const usableWidth = width - 2 * offset;
-          const usableHeight = height - 2 * offset;
-          const stepX = usableWidth / (cols - 1);
-          const stepY = usableHeight / (rows - 1);
-          
-          for (let i = 0; i < rows; i++) {
-            for (let j = 0; j < cols; j++) {
-              patterns.push({
-                x: offset + j * stepX,
-                y: offset + i * stepY,
-              });
-            }
-          }
-          break;
-        }
-      }
-      
-      return patterns;
+      return generateCalibrationPattern(pointCount, width, height, offset);
     },
     
     startTraining() {
@@ -859,10 +766,7 @@ export default {
       }
     },
     calculateDistance(eyelidTip, eyelidBottom) {
-      const xDistance = eyelidBottom[0] - eyelidTip[0];
-      const yDistance = eyelidBottom[1] - eyelidTip[1];
-      const distance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
-      return distance;
+      return calculateDistance(eyelidTip, eyelidBottom);
     },
     drawPoint(x, y, radius) {
       const canvas = document.getElementById('canvas');
@@ -1001,80 +905,8 @@ export default {
         });
       });
     },
-    // canvas related
-    async startWebCamCapture() {
-      // Request permission for screen capture
-      try {
-        let mediaStreamObj;
-        
-        try {
-          // Try with ideal constraints first
-          mediaStreamObj = await navigator.mediaDevices.getUserMedia(this.configWebCam);
-        } catch (error) {
-          console.warn('Failed with ideal constraints, trying basic video:', error);
-          // Fallback to basic video if constraints fail
-          mediaStreamObj = await navigator.mediaDevices.getUserMedia({
-            audio: false,
-            video: true
-          });
-        }
-        
-        // Create media recorder object
-        this.recordWebCam = new MediaRecorder(mediaStreamObj, {
-          mimeType: "video/webm;",
-        });
-
-        let recordingWebCam = [];
-        const video = document.getElementById("video-tag");      // ML
-        const preview = document.getElementById("video-preview"); // UI
-
-        if (!video || !preview) {
-          console.error('Video elements not found');
-          return;
-        }
-
-        video.srcObject = mediaStreamObj;
-        preview.srcObject = mediaStreamObj;
-        
-        // Define screen capture events
-        // Save frames to recordingWebCam array
-        this.recordWebCam.ondataavailable = (ev) => {
-          recordingWebCam.push(ev.data);
-        };
-        
-        // OnStop WebCam Record
-        const th = this;
-
-        this.recordWebCam.onstop = () => {
-          // Generate blob from the frames
-          let blob = new Blob(recordingWebCam, { type: "video/webm" });
-          recordingWebCam = [];
-          const uploadMediaWebCam = { blob: blob, name: mediaStreamObj.id };
-          th.webcamfile = uploadMediaWebCam;
-          // End webcam capture
-          mediaStreamObj.getTracks().forEach((track) => track.stop());
-          th.stopRecord();
-        };
-
-        // Init record webcam
-        this.recordWebCam.start();
-        
-        // Wait for video to load before detecting face
-        return new Promise((resolve) => {
-          video.onloadeddata = () => {
-            console.log('Video loaded with dimensions:', video.videoWidth, 'x', video.videoHeight);
-            this.detectFace();
-            resolve();
-          };
-        });
-        
-      } catch (e) {
-        console.error("Error accessing webcam:", e);
-        // Handle webcam access denied or not available
-        alert("Camera access is required for eye tracking. Please allow camera permissions and refresh the page.");
-        throw e;
-      }
-    },
+    // startWebCamCapture, detectFace, stopRecord, stopWebCamCapture
+    // are provided by CameraMixin
 
     async verifyFromRuxailab() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -1098,75 +930,14 @@ export default {
       this.loadingConfig = false;
     },
 
-    async detectFace() {
-      const video = document.getElementById("video-tag");
-      
-      // Ensure video has valid dimensions before processing
-      if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
-        console.warn('Video not ready yet, waiting...');
-        // Wait a bit and try again
-        await new Promise(resolve => setTimeout(resolve, 100));
-        return this.detectFace(); // Retry
-      }
-      
-      const lastPrediction = await this.model.estimateFaces({
-        input: video,
-      });
-      return lastPrediction
-    },
 
-    async stopRecord() {
-      if (!this.recordWebCam) return;
-      if (this.recordWebCam.state != "inactive") {
-        await this.stopWebCamCapture();
-      }
-    },
-
-    async stopWebCamCapture() {
-      await this.recordWebCam.stop();
-      this.calibFinished = true;
-    },
 
     generateRuntimePattern() {
-      const width = window.innerWidth
-      const height = window.innerHeight
-      
-      // Check if single-point mode is enabled
-      if (this.isSinglePointMode) {
-        return [{
-          x: width / 2,
-          y: height / 2
-        }];
-      }
-      
-      // Multi-point calibration (existing logic)
-      const offset = this.offset || 100
-      const points = this.$store.state.calibration.pointNumber || 9
-
-      const minCols = 3
-      const cols = Math.max(minCols, Math.round(Math.sqrt(points)))
-      const rows = Math.ceil(points / cols)
-
-      const usableWidth = width - 2 * offset
-      const usableHeight = height - 2 * offset
-
-      const stepX = usableWidth / (cols - 1)
-      const stepY = usableHeight / (rows - 1)
-
-      const pattern = []
-
-      for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < cols; j++) {
-          if (pattern.length < points) {
-            pattern.push({
-              x: offset + j * stepX,
-              y: offset + i * stepY
-            })
-          }
-        }
-      }
-
-      return pattern
+      return generateRuntimePattern({
+        isSinglePointMode: this.isSinglePointMode,
+        offset: this.offset || 100,
+        pointNumber: this.$store.state.calibration.pointNumber || 9,
+      });
     }
   },
 };
