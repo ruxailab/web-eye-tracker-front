@@ -1,6 +1,5 @@
 <template>
-<<<<<<< HEAD
-  <div style="height: 100%;">
+  <div class="page-root">
     <!-- Fullscreen required during calibration -->
     <v-dialog v-model="fullscreenRequiredDialog" max-width="520" persistent>
       <v-card>
@@ -38,9 +37,6 @@
       </v-card>
     </v-dialog>
 
-=======
-  <div class="page-root">
->>>>>>> 2b1bb29 (feat(calibration): fullscreen mode and camera preview fix)
     <div v-if="!model" class="center-container">
       <v-progress-circular :size="80" :width="8" indeterminate color="black" class="loading-spinner"
         style="margin-bottom: 16px;"></v-progress-circular>
@@ -319,15 +315,11 @@ export default {
       showStepper: true,
       calibrationStarted: false,
       loadingConfig: false,
-<<<<<<< HEAD
 
       fullscreenRequiredDialog: false,
       navigationBlockedDialog: false,
       finishingCalibration: false,
-=======
-      isFullscreen: false,
       beforeUnloadHandlerRef: null,
->>>>>>> 2b1bb29 (feat(calibration): fullscreen mode and camera preview fix)
     };
   },
   computed: {
@@ -409,57 +401,46 @@ export default {
     },
   },
   async created() {
-<<<<<<< HEAD
-    console.log("rodou created");
-    await this.verifyFromRuxailab()
-    this.$store.commit('setIndex', 0)
-    this.usedPattern = this.generateRuntimePattern()
-
-    if (this.usedPattern.length === 0) {
-      const width = window.innerWidth
-      const height = window.innerHeight
-      const offset = this.offset || 100
-      const pointCount = this.$store.state.calibration.pointNumber
-
-      const generatedPattern = this.generateCalibrationPattern(pointCount, width, height, offset)
-
-      this.$store.commit('setMockPattern', generatedPattern)
-      this.usedPattern = generatedPattern
-
-    }
-    await this.startWebCamCapture();
-    console.log("chamou drawPoint no created com os valores:", this.usedPattern[0].x, this.usedPattern[0].y);
-    this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
-    this.advance(this.usedPattern, this.circleIrisPoints, this.msPerCapture)
-    console.log("UsedPattern inteiro", this.usedPattern);
-=======
     try {
       await this.verifyFromRuxailab()
       this.$store.commit('setIndex', 0)
       this.usedPattern = this.generateRuntimePattern()
->>>>>>> 2b1bb29 (feat(calibration): fullscreen mode and camera preview fix)
+
+      if (this.usedPattern.length === 0) {
+        const width = window.innerWidth
+        const height = window.innerHeight
+        const offset = this.offset || 100
+        const pointCount = this.$store.state.calibration.pointNumber
+
+        const generatedPattern = this.generateCalibrationPattern(pointCount, width, height, offset)
+
+        this.$store.commit('setMockPattern', generatedPattern)
+        this.usedPattern = generatedPattern
+      }
 
       await this.startWebCamCapture();
-      
+
       // Wait for model to be loaded before drawing
       if (!this.model) {
         console.warn('Model not loaded yet, waiting...');
-        // You might want to add a watcher for model loading
         return;
       }
-      
-      console.log("chamou drawPoint no created com os valores:", this.usedPattern[0].x, this.usedPattern[0].y);
+
       this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
       this.advance(this.usedPattern, this.circleIrisPoints, this.msPerCapture)
     } catch (error) {
       console.error('Error during component initialization:', error);
     }
   },
-<<<<<<< HEAD
+
   mounted() {
-    document.addEventListener("fullscreenchange", this.onFullscreenChange);
-    document.addEventListener("webkitfullscreenchange", this.onFullscreenChange);
-    window.addEventListener("beforeunload", this.onBeforeUnload);
+    // Handle window resize events
+    window.addEventListener('resize', this.handleResize);
+    // Track fullscreen changes
+    document.addEventListener('fullscreenchange', this.onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', this.onFullscreenChange);
+    document.addEventListener('mozfullscreenchange', this.onFullscreenChange);
+    document.addEventListener('MSFullscreenChange', this.onFullscreenChange);
 
     this.applyCalibrationScrollLock();
 
@@ -467,14 +448,29 @@ export default {
       this.fullscreenRequiredDialog = true;
     }
   },
+
   beforeDestroy() {
-    document.removeEventListener("fullscreenchange", this.onFullscreenChange);
-    document.removeEventListener("webkitfullscreenchange", this.onFullscreenChange);
-    window.removeEventListener("beforeunload", this.onBeforeUnload);
+    // Clean up event listeners
+    window.removeEventListener('resize', this.handleResize);
+    if (this.keydownHandlerRef) {
+      document.removeEventListener('keydown', this.keydownHandlerRef);
+    }
+    document.removeEventListener('fullscreenchange', this.onFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', this.onFullscreenChange);
+    document.removeEventListener('mozfullscreenchange', this.onFullscreenChange);
+    document.removeEventListener('MSFullscreenChange', this.onFullscreenChange);
+    if (this.beforeUnloadHandlerRef) {
+      window.removeEventListener('beforeunload', this.beforeUnloadHandlerRef);
+    }
 
     this.removeCalibrationScrollLock();
   },
+
   beforeRouteLeave(to, from, next) {
+    this.exitFullscreen();
+    if (this.keydownHandlerRef) {
+      document.removeEventListener('keydown', this.keydownHandlerRef);
+    }
     if (this.calibrationStarted && !this.calibFinished && !this.finishingCalibration) {
       this.navigationBlockedDialog = true;
       next(false);
@@ -482,6 +478,7 @@ export default {
     }
     next();
   },
+
   methods: {
     applyCalibrationScrollLock() {
       const body = document.body;
@@ -511,20 +508,73 @@ export default {
         document.msFullscreenElement
       );
     },
-    requestFullscreen(element) {
-      const el = element || document.documentElement;
-      if (el.requestFullscreen) return el.requestFullscreen();
-      if (el.mozRequestFullScreen) return el.mozRequestFullScreen();
-      if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
-      if (el.msRequestFullscreen) return el.msRequestFullscreen();
-      return Promise.reject(new Error("Fullscreen API not supported"));
+    handleResize() {
+      // Regenerate pattern for new screen size if needed
+      if (this.calibrationStarted) {
+        const canvas = document.getElementById('canvas');
+        if (canvas) {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+        }
+      }
+    },
+    // Note: Fullscreen may be blocked on some mobile browsers (iOS Safari).
+    // Failure is safely ignored.
+    enterFullscreen() {
+      const canvas = document.getElementById('canvas');
+      const el = canvas || document.documentElement;
+
+      // Guard: fullscreen not supported
+      const requestFullscreen =
+        el.requestFullscreen ||
+        el.webkitRequestFullscreen ||
+        el.mozRequestFullScreen ||
+        el.msRequestFullscreen;
+
+      if (!requestFullscreen) {
+        console.warn('Fullscreen API not supported in this browser');
+        return;
+      }
+
+      if (!this.isFullscreen()) {
+        try {
+          requestFullscreen.call(el);
+          if (canvas) {
+            canvas.style.pointerEvents = 'auto';
+          }
+        } catch (err) {
+          console.warn('Fullscreen request failed:', err);
+        }
+      }
+    },
+    exitFullscreen() {
+      const exitFullscreenFn =
+        document.exitFullscreen ||
+        document.webkitExitFullscreen ||
+        document.mozCancelFullScreen ||
+        document.msExitFullscreen;
+
+      const canvas = document.getElementById('canvas');
+      if (canvas) {
+        canvas.style.pointerEvents = 'none';
+      }
+
+      if (this.isFullscreen() && exitFullscreenFn) {
+        try {
+          exitFullscreenFn.call(document);
+        } catch (err) {
+          console.warn('Exit fullscreen failed:', err);
+        }
+      }
     },
     async requestFullscreenAndClose() {
       try {
-        await this.requestFullscreen(document.documentElement);
+        this.enterFullscreen();
       } catch (e) {
         // Keep dialog open; browser will show its own UI hints if blocked.
       }
+      // Small delay to let fullscreen engage
+      await new Promise(resolve => setTimeout(resolve, 200));
       if (this.isFullscreen()) {
         this.fullscreenRequiredDialog = false;
       }
@@ -533,12 +583,6 @@ export default {
       if (this.calibrationStarted && !this.calibFinished && !this.isFullscreen()) {
         this.fullscreenRequiredDialog = true;
         this.showStepper = true;
-      }
-    },
-    onBeforeUnload(e) {
-      if (this.calibrationStarted && !this.calibFinished) {
-        e.preventDefault();
-        e.returnValue = "";
       }
     },
     generateCalibrationPattern(pointCount, width, height, offset) {
@@ -644,147 +688,7 @@ export default {
     },
     
     startTraining() {
-      if (!this.isFullscreen()) {
-        this.fullscreenRequiredDialog = true;
-        return;
-      }
-=======
-
-  mounted() {
-    // Handle window resize events
-    window.addEventListener('resize', this.handleResize);
-    // Track fullscreen changes so we can react if the user exits fullscreen mid-calibration
-    document.addEventListener('fullscreenchange', this.handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', this.handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', this.handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', this.handleFullscreenChange);
-  },
-
-  beforeDestroy() {
-    // Clean up event listeners
-    window.removeEventListener('resize', this.handleResize);
-    if (this.keydownHandlerRef) {
-      document.removeEventListener('keydown', this.keydownHandlerRef);
-    }
-    document.removeEventListener('fullscreenchange', this.handleFullscreenChange);
-    document.removeEventListener('webkitfullscreenchange', this.handleFullscreenChange);
-    document.removeEventListener('mozfullscreenchange', this.handleFullscreenChange);
-    document.removeEventListener('MSFullscreenChange', this.handleFullscreenChange);
-    if (this.beforeUnloadHandlerRef) {
-      window.removeEventListener('beforeunload', this.beforeUnloadHandlerRef);
-    }
-  },
-
-  beforeRouteLeave(to, from, next) {
-  this.exitFullscreen();
-  if (this.keydownHandlerRef) {
-    document.removeEventListener('keydown', this.keydownHandlerRef);
-  }
-  next();
-  },
-
-  methods: {
-    handleFullscreenChange() {
-      const isNowFullscreen =
-        !!document.fullscreenElement ||
-        !!document.webkitFullscreenElement ||
-        !!document.mozFullScreenElement ||
-        !!document.msFullscreenElement;
-
-      this.isFullscreen = isNowFullscreen;
-
-      // If user exits fullscreen in the middle of calibration, pause and return to instructions
-      if (!isNowFullscreen && this.calibrationStarted && !this.showStepper) {
-        this.calibrationStarted = false;
-        this.showStepper = true;
-        // Keep the current stepper step (training or validation) so user can resume explicitly
-        this.exitFullscreen();
-        // Optional lightweight notice – avoid blocking alerts during calibration
-        // eslint-disable-next-line no-console
-        console.warn('Calibration left fullscreen; showing instructions again.');
-      }
-    },
-
-    handleResize() {
-      // Regenerate pattern for new screen size if needed
-      if (this.calibrationStarted) {
-        const canvas = document.getElementById('canvas');
-        if (canvas) {
-          canvas.width = window.innerWidth;
-          canvas.height = window.innerHeight;
-        }
-      }
-    },
-    
-    // Note: Fullscreen may be blocked on some mobile browsers (iOS Safari).
-    // Failure is safely ignored.
-    enterFullscreen() {
-      const canvas = document.getElementById('canvas');
-      const el = canvas || document.documentElement;
-
-      // Guard: fullscreen not supported
-      const requestFullscreen =
-        el.requestFullscreen ||
-        el.webkitRequestFullscreen ||
-        el.mozRequestFullScreen ||
-        el.msRequestFullscreen;
-
-      if (!requestFullscreen) {
-        // eslint-disable-next-line no-console
-        console.warn('Fullscreen API not supported in this browser');
-        return;
-      }
-
-      if (
-        !document.fullscreenElement &&
-        !document.webkitFullscreenElement &&
-        !document.mozFullScreenElement &&
-        !document.msFullscreenElement
-      ) {
-        try {
-          requestFullscreen.call(el);
-          // While in fullscreen, capture pointer events on the canvas to avoid clicking underlying UI
-          if (canvas) {
-            canvas.style.pointerEvents = 'auto';
-          }
-        } catch (err) {
-          // eslint-disable-next-line no-console
-          console.warn('Fullscreen request failed:', err);
-        }
-      }
-    },
-
-    exitFullscreen() {
-      const exitFullscreenFn =
-        document.exitFullscreen ||
-        document.webkitExitFullscreen ||
-        document.mozCancelFullScreen ||
-        document.msExitFullscreen;
-
-      const canvas = document.getElementById('canvas');
-      if (canvas) {
-        canvas.style.pointerEvents = 'none';
-      }
-
-      if (
-        (document.fullscreenElement ||
-          document.webkitFullscreenElement ||
-          document.mozFullScreenElement ||
-          document.msFullscreenElement) &&
-        exitFullscreenFn
-      ) {
-        try {
-          exitFullscreenFn.call(document);
-        } catch (err) {
-          // eslint-disable-next-line no-console
-          console.warn('Exit fullscreen failed:', err);
-        }
-      }
-    },
-
-    startTraining() {
       this.enterFullscreen();
->>>>>>> 2b1bb29 (feat(calibration): fullscreen mode and camera preview fix)
       this.showStepper = false;
       this.calibrationStarted = true;
       // Warn user if they try to refresh/close tab mid-calibration
@@ -798,14 +702,7 @@ export default {
       }
     },
     startValidation() {
-<<<<<<< HEAD
-      if (!this.isFullscreen()) {
-        this.fullscreenRequiredDialog = true;
-        return;
-      }
-=======
       this.enterFullscreen();
->>>>>>> 2b1bb29 (feat(calibration): fullscreen mode and camera preview fix)
       this.showStepper = false;
       this.calibrationStarted = true;
     },
@@ -1026,14 +923,10 @@ export default {
       ctx.stroke();
     },
     async endCalib() {
-<<<<<<< HEAD
       if (this.finishingCalibration) return;
       this.finishingCalibration = true;
       this.calibrationStarted = false;
-
-=======
       this.exitFullscreen();
->>>>>>> 2b1bb29 (feat(calibration): fullscreen mode and camera preview fix)
       this.calibPredictionPoints.forEach(element => {
         delete element.point_x;
         delete element.point_y;
@@ -1124,51 +1017,11 @@ export default {
             audio: false,
             video: true
           });
-<<<<<<< HEAD
-
-          let recordingWebCam = [];
-          let video = document.getElementById("video-tag");
-          video.srcObject = mediaStreamObj;
-          // Define screen capture events
-          // Save frames to recordingWebCam array
-          this.recordWebCam.ondataavailable = (ev) => {
-            recordingWebCam.push(ev.data);
-          };
-          // OnStop WebCam Record
-          const th = this;
-
-          this.recordWebCam.onstop = () => {
-            // Generate blob from the frames
-            let blob = new Blob(recordingWebCam, { type: "video/webm" });
-            recordingWebCam = [];
-            const uploadMediaWebCam = { blob: blob, name: mediaStreamObj.id };
-            th.webcamfile = uploadMediaWebCam;
-            // End webcam capture
-            mediaStreamObj.getTracks().forEach((track) => track.stop());
-            th.stopRecord();
-          };
-
-          // Init record webcam
-          this.recordWebCam.start();
-          
-          // Wait for video to be fully ready with proper dimensions
-          video.onloadedmetadata = async () =>{
-            // Additional wait to ensure video renders properly
-            await new Promise(resolve => setTimeout(resolve, 200));
-            if (video.videoWidth > 0 && video.videoHeight > 0) {
-              this.detectFace();
-            }
-          }
-        })
-        .catch((e) => {
-          console.error("Error", e);
-=======
         }
         
         // Create media recorder object
         this.recordWebCam = new MediaRecorder(mediaStreamObj, {
           mimeType: "video/webm;",
->>>>>>> 2b1bb29 (feat(calibration): fullscreen mode and camera preview fix)
         });
 
         let recordingWebCam = [];
@@ -1320,10 +1173,7 @@ export default {
 </script>
 
 <style scoped>
-<<<<<<< HEAD
-=======
 
->>>>>>> 2b1bb29 (feat(calibration): fullscreen mode and camera preview fix)
 #canvas {
   position: fixed;
   top: 0;

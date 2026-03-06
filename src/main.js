@@ -10,6 +10,7 @@ import { envConfig } from './config/environment'
 
 const firebaseConfig = envConfig.firebase;
 
+
 Vue.config.productionTip = false
 
 new Vue({

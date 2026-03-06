@@ -1,13 +1,8 @@
-<<<<<<< HEAD
 import axios from 'axios';
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 import router from '@/router';
-=======
-import axios from "axios";
-import firebase from "@/firebase";
-import router from "@/router";
->>>>>>> 2b1bb29 (feat(calibration): fullscreen mode and camera preview fix)
+
 export default {
   state: {
     calibName: "",
@@ -128,7 +123,7 @@ export default {
     setFromDashboard(state, newFromDashboard) {
       state.fromDashboard = newFromDashboard;
     },
-    
+
     // New single-point calibration mutations
     setCalibrationMode(state, mode) {
       state.calibrationMode = mode;
@@ -139,11 +134,11 @@ export default {
         state.pointNumber = 9; // Default multi-point
       }
     },
-    
+
     setSinglePointPosition(state, position) {
       state.singlePointPosition = position;
     },
-    
+
     setRuntimeData(state, payload) {
       state.runtime.circleIrisPoints = payload.circleIrisPoints;
       state.runtime.calibPredictionPoints = payload.calibPredictionPoints;
@@ -215,21 +210,21 @@ export default {
         x: width / 2,
         y: height / 2,
       };
-      
+
       commit('setSinglePointPosition', centerPoint);
       return [centerPoint];
     },
- async saveCalib({ state, dispatch }) {
-  try {
-    const data = { ...state };
-    delete data.calibrations;
+    async saveCalib({ state, dispatch }) {
+      try {
+        const data = { ...state };
+        delete data.calibrations;
 
-    await firebase.firestore().collection("calibrations").add(data);
-    dispatch("getAllCalibs");
-  } catch (e) {
-    console.error("Save failed:", e);
-  }
-  },
+        await firebase.firestore().collection("calibrations").add(data);
+        dispatch("getAllCalibs");
+      } catch (e) {
+        console.error("Save failed:", e);
+      }
+    },
 
     async finishCalibration({ state, dispatch }) {
       console.log("[Calibration] finishCalibration started");
@@ -254,7 +249,7 @@ export default {
       state.runtime.usedPattern.forEach((p) => {
         const data =
           predictions[p.x.toString().split(".")[0]][
-            p.y.toString().split(".")[0]
+          p.y.toString().split(".")[0]
           ];
 
         p.precision = Number(data.PrecisionSD).toFixed(2);
@@ -287,63 +282,63 @@ export default {
       commit("setMsPerCapture", calibData.msPerCapture);
       router.push("/postCalibration");
     },
-  async getAllCalibs({ commit }) {
-  try {
-    const snapshot = await firebase
-      .firestore()
-      .collection("calibrations")
-      .get();
+    async getAllCalibs({ commit }) {
+      try {
+        const snapshot = await firebase
+          .firestore()
+          .collection("calibrations")
+          .get();
 
-    const calibrations = [];
+        const calibrations = [];
 
-    snapshot.forEach((doc) => {
-      const data = doc.data();
+        snapshot.forEach((doc) => {
+          const data = doc.data();
 
-      let averageAccuracy = 0;
-      let averagePrecision = 0;
+          let averageAccuracy = 0;
+          let averagePrecision = 0;
 
-      if (data.runtime?.usedPattern?.length) {
-        const total = data.runtime.usedPattern.length;
+          if (data.runtime?.usedPattern?.length) {
+            const total = data.runtime.usedPattern.length;
 
-        averageAccuracy =
-          data.runtime.usedPattern.reduce(
-            (sum, p) => sum + Number(p.accuracy || 0),
-            0
-          ) / total;
+            averageAccuracy =
+              data.runtime.usedPattern.reduce(
+                (sum, p) => sum + Number(p.accuracy || 0),
+                0
+              ) / total;
 
-        averagePrecision =
-          data.runtime.usedPattern.reduce(
-            (sum, p) => sum + Number(p.precision || 0),
-            0
-          ) / total;
+            averagePrecision =
+              data.runtime.usedPattern.reduce(
+                (sum, p) => sum + Number(p.precision || 0),
+                0
+              ) / total;
+          }
+
+          calibrations.push({
+            id: doc.id,
+            ...data,
+            averageAccuracy: Number(averageAccuracy.toFixed(2)),
+            averagePrecision: Number(averagePrecision.toFixed(2)),
+          });
+        });
+
+        commit("setCalibrations", calibrations);
+      } catch (err) {
+        console.error("Error getting calibrations:", err);
       }
+    },
+    async deleteCalib({ dispatch }, calib) {
+      try {
+        await firebase
+          .firestore()
+          .collection("calibrations")
+          .doc(calib.id)
+          .delete();
 
-      calibrations.push({
-        id: doc.id,
-        ...data,
-        averageAccuracy: Number(averageAccuracy.toFixed(2)),
-        averagePrecision: Number(averagePrecision.toFixed(2)),
-      });
-    });
-
-    commit("setCalibrations", calibrations);
-  } catch (err) {
-    console.error("Error getting calibrations:", err);
-  }
-  },
-  async deleteCalib({ dispatch }, calib) {
-  try {
-    await firebase
-      .firestore()
-      .collection("calibrations")
-      .doc(calib.id)
-      .delete();
-
-    dispatch("getAllCalibs");
-  } catch (e) {
-    console.error("Delete failed:", e);
-  }
-  },
+        dispatch("getAllCalibs");
+      } catch (e) {
+        console.error("Delete failed:", e);
+      }
+    },
     async sendData(context, data) {
       let formData = new FormData();
 
