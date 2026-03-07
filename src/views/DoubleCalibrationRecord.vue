@@ -791,6 +791,8 @@ export default {
           console.error('Error parsing predictions string:', error);
         }
       }
+      this.$store.commit('setCalibValidationResult', predictions)
+
       for (var a = 0; a < this.usedPattern.length; a++) {
         const element = predictions[this.usedPattern[a].x.toString().split('.')[0]][this.usedPattern[a].y.toString().split('.')[0]]
 
