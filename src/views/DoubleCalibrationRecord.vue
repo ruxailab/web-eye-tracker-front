@@ -259,6 +259,9 @@
 import axios from 'axios';
 import { envConfig } from '../config/environment';
 
+const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
+require("@tensorflow/tfjs-backend-wasm");
+
 
 export default {
 
@@ -338,6 +341,30 @@ export default {
   },
   async created() {
     console.log("rodou created");
+    
+    // Load TensorFlow.js model if not already loaded
+    if (!this.$store.state.detect.model) {
+      console.log("Loading TensorFlow.js face detection model...");
+      try {
+        const model = await faceLandmarksDetection.load(
+          faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
+          { maxFaces: 1 }
+        );
+        this.$store.commit("setModel", model);
+        this.$store.commit("setLoaded", model != null);
+        console.log("TensorFlow.js model loaded successfully", model);
+        
+        // Wait for Vue to update the computed property
+        await this.$nextTick();
+      } catch (error) {
+        console.error("Failed to load TensorFlow.js model:", error);
+        alert("Failed to load face detection model. Please refresh the page.");
+        return;
+      }
+    } else {
+      console.log("TensorFlow.js model already loaded from store");
+    }
+    
     await this.verifyFromRuxailab()
     this.$store.commit('setIndex', 0)
     this.usedPattern = this.generateRuntimePattern()
@@ -908,15 +935,33 @@ export default {
       this.loadingConfig = false;
     },
 
-    async detectFace() {
+    async detectFace(retryCount = 0) {
+      const maxRetries = 50; // Maximum 5 seconds of retries (50 * 100ms)
+      
       const video = document.getElementById("video-tag");
       
       // Ensure video has valid dimensions before processing
       if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
-        console.warn('Video not ready yet, waiting...');
-        // Wait a bit and try again
-        await new Promise(resolve => setTimeout(resolve, 100));
-        return this.detectFace(); // Retry
+        if (retryCount < maxRetries) {
+          console.warn('Video not ready yet, waiting...');
+          await new Promise(resolve => setTimeout(resolve, 100));
+          return this.detectFace(retryCount + 1); // Retry with incremented count
+        } else {
+          console.error('Video failed to load after maximum retries');
+          throw new Error('Video not ready');
+        }
+      }
+      
+      // Ensure model is loaded before attempting face detection
+      if (!this.model) {
+        if (retryCount < maxRetries) {
+          console.warn('TensorFlow model not loaded yet, waiting...', retryCount);
+          await new Promise(resolve => setTimeout(resolve, 100));
+          return this.detectFace(retryCount + 1); // Retry with incremented count
+        } else {
+          console.error('TensorFlow model failed to load after maximum retries');
+          throw new Error('TensorFlow model not loaded');
+        }
       }
       
       const lastPrediction = await this.model.estimateFaces({
