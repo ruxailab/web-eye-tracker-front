@@ -43,6 +43,7 @@ export const getCurrentUser = () => {
         resolve(mapUser(user))
       },
       (error) => {
+        unsubscribe()
         reject(error)
       }
     )
