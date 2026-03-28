@@ -66,7 +66,7 @@
                 src="@/assets/iconGoogle.svg"
                 alt="Google sign in - icon"
               />
-              <p class="pl-1 pr-1 ma-0 text-center text-capitalize">Sign in with Google</p>
+              <span class="pl-1 pr-1 ma-0 text-center text-capitalize">Sign in with Google</span>
             </v-btn>
           </v-row>
 
