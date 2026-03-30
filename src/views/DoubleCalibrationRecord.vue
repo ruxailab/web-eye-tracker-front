@@ -876,9 +876,6 @@ export default {
           video.onloadedmetadata = async () =>{
             // Additional wait to ensure video renders properly
             await new Promise(resolve => setTimeout(resolve, 200));
-            if (video.videoWidth > 0 && video.videoHeight > 0) {
-              this.detectFace();
-            }
           }
         })
         .catch((e) => {
@@ -922,6 +919,16 @@ export default {
       const lastPrediction = await this.model.estimateFaces({
         input: video,
       });
+
+      // Send to backend for real-time validation
+      if (lastPrediction && lastPrediction.length) {
+        try {
+          await axios.post("/api/realtime-validation", { prediction: lastPrediction });
+        } catch (err) {
+          // Ignore error silently to not interrupt calibration
+        }
+      }
+
       return lastPrediction
     },
 
