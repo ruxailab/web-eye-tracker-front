@@ -792,12 +792,19 @@ export default {
         }
       }
       for (var a = 0; a < this.usedPattern.length; a++) {
-        const element = predictions[this.usedPattern[a].x.toString().split('.')[0]][this.usedPattern[a].y.toString().split('.')[0]]
+        const element = predictions[this.usedPattern[a].x.toString().split('.')[0]]?.[this.usedPattern[a].y.toString().split('.')[0]];
 
-        this.usedPattern[a].precision = element.PrecisionSD.toFixed(2)
-        this.usedPattern[a].accuracy = element.Accuracy.toFixed(2)
-        this.usedPattern[a].predictionX = element.predicted_x
-        this.usedPattern[a].predictionY = element.predicted_y
+        if (element) {
+          this.usedPattern[a].precision = element.PrecisionSD ? element.PrecisionSD.toFixed(2) : "0.00";
+          this.usedPattern[a].accuracy = element.Accuracy ? element.Accuracy.toFixed(2) : "0.00";
+          this.usedPattern[a].predictionX = element.predicted_x || [];
+          this.usedPattern[a].predictionY = element.predicted_y || [];
+        } else {
+          this.usedPattern[a].precision = "0.00";
+          this.usedPattern[a].accuracy = "0.00";
+          this.usedPattern[a].predictionX = [];
+          this.usedPattern[a].predictionY = [];
+        }
       }
       
       // Update the store's pattern with the prediction data

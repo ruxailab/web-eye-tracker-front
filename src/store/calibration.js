@@ -216,14 +216,21 @@ export default {
 
       state.runtime.usedPattern.forEach((p) => {
         const data =
-          predictions[p.x.toString().split(".")[0]][
+          predictions[p.x.toString().split(".")[0]]?.[
             p.y.toString().split(".")[0]
           ];
 
-        p.precision = Number(data.PrecisionSD).toFixed(2);
-        p.accuracy = Number(data.Accuracy).toFixed(2);
-        p.predictionX = data.predicted_x;
-        p.predictionY = data.predicted_y;
+        if (data) {
+          p.precision = data.PrecisionSD ? Number(data.PrecisionSD).toFixed(2) : "0.00";
+          p.accuracy = data.Accuracy ? Number(data.Accuracy).toFixed(2) : "0.00";
+          p.predictionX = data.predicted_x || [];
+          p.predictionY = data.predicted_y || [];
+        } else {
+          p.precision = "0.00";
+          p.accuracy = "0.00";
+          p.predictionX = [];
+          p.predictionY = [];
+        }
       });
 
       console.log("[Calibration] finishCalibration done");
