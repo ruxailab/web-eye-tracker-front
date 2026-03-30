@@ -23,12 +23,14 @@
     "vuex": "^3.4.0"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "^7.16.0",
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^25.5.0",
     "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-plugin-eslint": "~5.0.0",
     "@vue/cli-plugin-router": "~5.0.0",
     "@vue/cli-plugin-vuex": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
-    "@babel/eslint-parser": "^7.16.0",
     "eslint": "^7.32.0",
     "eslint-plugin-vue": "^8.0.3",
     "sass": "~1.32.0",
