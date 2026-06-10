@@ -119,7 +119,8 @@ export default {
 .help-text {
     font-size: 12px;
     color: #666;
-    margin: 12px 0 8px 0;
+    margin-top: 6px;
+    display: block;
     font-style: italic;
 }
 </style>
