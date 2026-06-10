@@ -1,6 +1,6 @@
 ---
 name: Bug report
-description: Something isn't working
+about: Something isn't working
 title: "[Bug] "
 labels: bug, contributor-friendly
 ---
