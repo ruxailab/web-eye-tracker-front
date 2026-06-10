@@ -191,6 +191,12 @@
                       ></v-progress-circular>
                       <h4 class="mt-3">Loading face detection model...</h4>
                     </div>
+                    <div v-if="isCameraOn" class="d-flex justify-center mt-2">
+                      <v-chip small :color="lightingColor" dark>
+                        <v-icon left small>{{ lightingIcon }}</v-icon>
+                        {{ lighting.msg }}
+                      </v-chip>
+                    </div>
                   </v-card-text>
 
                   <v-card-actions class="justify-center py-2">
@@ -201,7 +207,7 @@
                     <v-btn
                       color="#FF425A"
                       dark
-                      :disabled="!isCameraOn"
+                      :disabled="!isCameraOn || !lightingReady"
                       @click="startCalibration"
                     >
                       <v-icon left>mdi-play</v-icon>
@@ -243,6 +249,9 @@ export default {
       showCameraModal: false,
       showFullscreenModal: false,
       fullscreenError: "",
+      lighting: { status: "unknown", msg: "Checking lighting..." },
+      lastLightCheck: 0,
+      goodLightStreak: 0,
     };
   },
   computed: {
@@ -266,6 +275,27 @@ export default {
     },
     rightEyeTreshold() {
       return this.$store.state.calibration.rightEyeTreshold;
+    },
+    lightingColor() {
+      return {
+        good: "green",
+        dark: "#455A64",
+        bright: "orange",
+        lowContrast: "amber darken-2",
+        unknown: "grey",
+      }[this.lighting.status];
+    },
+    lightingIcon() {
+      return {
+        good: "mdi-check-circle",
+        dark: "mdi-weather-night",
+        bright: "mdi-white-balance-sunny",
+        lowContrast: "mdi-contrast-circle",
+        unknown: "mdi-dots-horizontal",
+      }[this.lighting.status];
+    },
+    lightingReady() {
+      return this.goodLightStreak >= 3;
     },
   },
   watch: {
@@ -422,6 +452,17 @@ export default {
         canvas.height = this.video.videoHeight || 400;
         ctx.drawImage(this.video, 0, 0, canvas.width, canvas.height);
 
+        // Sample lighting at 2 Hz to keep the loop cheap.
+        const now = performance.now();
+        if (now - this.lastLightCheck > 500) {
+          this.lastLightCheck = now;
+          this.lighting = this.classifyLighting(
+            this.sampleLighting(ctx, canvas),
+          );
+          this.goodLightStreak =
+            this.lighting.status === "good" ? this.goodLightStreak + 1 : 0;
+        }
+
         const th = this;
 
         this.predictions.forEach((pred) => {
@@ -464,6 +505,33 @@ export default {
       if (this.isCameraOn) {
         requestAnimationFrame(() => this.detectFace());
       }
+    },
+    sampleLighting(ctx, canvas) {
+      // Mean and stddev of luminance over every 10th pixel.
+      const img = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      let sum = 0;
+      let sumSq = 0;
+      let n = 0;
+      for (let i = 0; i < img.length; i += 40) {
+        const y = 0.299 * img[i] + 0.587 * img[i + 1] + 0.114 * img[i + 2];
+        sum += y;
+        sumSq += y * y;
+        n++;
+      }
+      const mean = sum / n;
+      const variance = sumSq / n - mean * mean;
+      return { mean, stddev: Math.sqrt(Math.max(0, variance)) };
+    },
+    classifyLighting({ mean, stddev }) {
+      if (mean < 60) return { status: "dark", msg: "Too dark - add more light" };
+      if (mean > 200)
+        return { status: "bright", msg: "Too bright - reduce backlight" };
+      if (stddev < 18)
+        return {
+          status: "lowContrast",
+          msg: "Low contrast - avoid flat lighting",
+        };
+      return { status: "good", msg: "Lighting OK" };
     },
     calculateDistance(eyelidTip, eyelidBottom) {
       const xDistance = eyelidBottom[0] - eyelidTip[0];
