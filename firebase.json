@@ -15,13 +15,13 @@
   },
   "emulators": {
     "firestore": {
-      "port": 8081
+      "port": 8082
     },
     "hosting": {
       "port": 8000
     },
     "ui": {
-      "enabled": false
+      "enabled": true
     }
   }
 }
