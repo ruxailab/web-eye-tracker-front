@@ -1,5 +1,42 @@
 <template>
   <div style="height: 100%;">
+    <!-- Fullscreen required during calibration -->
+    <v-dialog v-model="fullscreenRequiredDialog" max-width="520" persistent>
+      <v-card>
+        <v-card-title class="d-flex align-center">
+          <v-icon left>mdi-fullscreen</v-icon>
+          Go fullscreen
+        </v-card-title>
+        <v-card-text>
+          Please keep fullscreen on during calibration so the app can measure screen borders correctly.
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn color="#FF425A" dark @click="requestFullscreenAndClose">
+            Enter fullscreen
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Block navigation during active calibration -->
+    <v-dialog v-model="navigationBlockedDialog" max-width="520">
+      <v-card>
+        <v-card-title class="d-flex align-center">
+          <v-icon left>mdi-lock</v-icon>
+          Calibration in progress
+        </v-card-title>
+        <v-card-text>
+          Navigation is disabled during calibration to ensure accurate border
+          positioning. Please finish calibration first.
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn color="#FF425A" dark @click="navigationBlockedDialog = false">
+            OK
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <div v-if="!model" class="center-container">
       <v-progress-circular :size="80" :width="8" indeterminate color="black" class="loading-spinner"
         style="margin-bottom: 16px;"></v-progress-circular>
@@ -194,7 +231,15 @@
                   <p class="text-h6 grey--text mb-4">Processing your calibration data...</p>
                 </v-card-text>
                 <v-card-actions class="justify-center pb-8">
-                  <v-btn x-large color="#FF425A" dark @click="endCalib()" class="px-12">
+                  <v-btn
+                    x-large
+                    color="#FF425A"
+                    dark
+                    :disabled="finishingCalibration || isCollecting"
+                    :loading="finishingCalibration"
+                    @click="endCalib()"
+                    class="px-12"
+                  >
                     <v-icon left size="32">mdi-check-bold</v-icon>
                     <span class="text-h5">Finish</span>
                   </v-btn>
@@ -212,6 +257,7 @@
 
 <script>
 import axios from 'axios';
+import { envConfig } from '../config/environment';
 
 
 export default {
@@ -242,7 +288,11 @@ export default {
       stepperStep: 1,
       showStepper: true,
       calibrationStarted: false,
-      loadingConfig: false
+      loadingConfig: false,
+
+      fullscreenRequiredDialog: false,
+      navigationBlockedDialog: false,
+      finishingCalibration: false,
     };
   },
   computed: {
@@ -287,27 +337,115 @@ export default {
     },
   },
   async created() {
-  console.log("rodou created");
-  await this.verifyFromRuxailab()
-  this.$store.commit('setIndex', 0)
-  
-  // ✅ USE THE WORKING METHOD
-  const pointCount = this.$store.state.calibration.pointNumber || 9;
-  this.usedPattern = this.generateCalibrationPattern(
-    pointCount,
-    window.innerWidth,
-    window.innerHeight,
-    this.offset || 100
-  );
-  
-  await this.startWebCamCapture();
-  console.log("chamou drawPoint no created com os valores:", this.usedPattern[0].x, this.usedPattern[0].y);
-  this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
-  this.advance(this.usedPattern, this.circleIrisPoints, this.msPerCapture)
-  console.log("UsedPattern inteiro", this.usedPattern);
-}
-,
+    console.log("rodou created");
+    await this.verifyFromRuxailab()
+    this.$store.commit('setIndex', 0)
+    this.usedPattern = this.generateRuntimePattern()
+
+    if (this.usedPattern.length === 0) {
+      const width = window.innerWidth
+      const height = window.innerHeight
+      const offset = this.offset || 100
+      const pointCount = this.$store.state.calibration.pointNumber
+
+      const generatedPattern = this.generateCalibrationPattern(pointCount, width, height, offset)
+
+      this.$store.commit('setMockPattern', generatedPattern)
+      this.usedPattern = generatedPattern
+
+    }
+    await this.startWebCamCapture();
+    console.log("chamou drawPoint no created com os valores:", this.usedPattern[0].x, this.usedPattern[0].y);
+    this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
+    this.advance(this.usedPattern, this.circleIrisPoints, this.msPerCapture)
+    console.log("UsedPattern inteiro", this.usedPattern);
+
+  },
+  mounted() {
+    document.addEventListener("fullscreenchange", this.onFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", this.onFullscreenChange);
+    window.addEventListener("beforeunload", this.onBeforeUnload);
+
+    this.applyCalibrationScrollLock();
+
+    if (!this.isFullscreen()) {
+      this.fullscreenRequiredDialog = true;
+    }
+  },
+  beforeDestroy() {
+    document.removeEventListener("fullscreenchange", this.onFullscreenChange);
+    document.removeEventListener("webkitfullscreenchange", this.onFullscreenChange);
+    window.removeEventListener("beforeunload", this.onBeforeUnload);
+
+    this.removeCalibrationScrollLock();
+  },
+  beforeRouteLeave(to, from, next) {
+    if (this.calibrationStarted && !this.calibFinished && !this.finishingCalibration) {
+      this.navigationBlockedDialog = true;
+      next(false);
+      return;
+    }
+    next();
+  },
   methods: {
+    applyCalibrationScrollLock() {
+      const body = document.body;
+      const html = document.documentElement;
+      if (!body || !html) return;
+
+      body.style.overflow = "hidden";
+      html.style.overflow = "hidden";
+      body.style.overscrollBehavior = "none";
+      html.style.overscrollBehavior = "none";
+    },
+    removeCalibrationScrollLock() {
+      const body = document.body;
+      const html = document.documentElement;
+      if (!body || !html) return;
+
+      body.style.overflow = "";
+      html.style.overflow = "";
+      body.style.overscrollBehavior = "";
+      html.style.overscrollBehavior = "";
+    },
+    isFullscreen() {
+      return !!(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+      );
+    },
+    requestFullscreen(element) {
+      const el = element || document.documentElement;
+      if (el.requestFullscreen) return el.requestFullscreen();
+      if (el.mozRequestFullScreen) return el.mozRequestFullScreen();
+      if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
+      if (el.msRequestFullscreen) return el.msRequestFullscreen();
+      return Promise.reject(new Error("Fullscreen API not supported"));
+    },
+    async requestFullscreenAndClose() {
+      try {
+        await this.requestFullscreen(document.documentElement);
+      } catch (e) {
+        // Keep dialog open; browser will show its own UI hints if blocked.
+      }
+      if (this.isFullscreen()) {
+        this.fullscreenRequiredDialog = false;
+      }
+    },
+    onFullscreenChange() {
+      if (this.calibrationStarted && !this.calibFinished && !this.isFullscreen()) {
+        this.fullscreenRequiredDialog = true;
+        this.showStepper = true;
+      }
+    },
+    onBeforeUnload(e) {
+      if (this.calibrationStarted && !this.calibFinished) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    },
     generateCalibrationPattern(pointCount, width, height, offset) {
       const patterns = [];
       
@@ -411,10 +549,18 @@ export default {
     },
     
     startTraining() {
+      if (!this.isFullscreen()) {
+        this.fullscreenRequiredDialog = true;
+        return;
+      }
       this.showStepper = false;
       this.calibrationStarted = true;
     },
     startValidation() {
+      if (!this.isFullscreen()) {
+        this.fullscreenRequiredDialog = true;
+        return;
+      }
       this.showStepper = false;
       this.calibrationStarted = true;
     },
@@ -428,10 +574,26 @@ export default {
         }
 
         if ((event.key === "s" || event.key === "S" || event.key === "Enter")) {
+          if (!th.isFullscreen()) {
+            th.fullscreenRequiredDialog = true;
+            th.showStepper = true;
+            return;
+          }
           if (i < pattern.length) {
             document.removeEventListener('keydown', keydownHandler)
             th.isCollecting = true
-            await th.extract(pattern[i], timeBetweenCaptures)
+            try {
+              await th.extract(pattern[i], timeBetweenCaptures)
+            } catch (e) {
+              th.isCollecting = false
+              if (e && e.message === "fullscreen_required") {
+                th.fullscreenRequiredDialog = true
+                th.showStepper = true
+                document.addEventListener('keydown', keydownHandler)
+                return
+              }
+              throw e
+            }
             th.isCollecting = false
 
             th.$store.commit('setIndex', i)
@@ -478,6 +640,9 @@ export default {
     async extract(point, timeBetweenCaptures) {
       point.data = [];
       for (var a = 0; a < this.predByPointCount;) {
+        if (!this.isFullscreen()) {
+          throw new Error("fullscreen_required");
+        }
         const prediction = await this.detectFace();
 
         // 🛡️ DEFENSIVE GUARD: Check if face is detected
@@ -597,6 +762,10 @@ export default {
       ctx.stroke();
     },
     async endCalib() {
+      if (this.finishingCalibration) return;
+      this.finishingCalibration = true;
+      this.calibrationStarted = false;
+
       this.calibPredictionPoints.forEach(element => {
         delete element.point_x;
         delete element.point_y;
@@ -644,7 +813,8 @@ export default {
         fromRuxailab: this.fromRuxailab,
       })
 
-      this.stopRecord()
+      await this.stopRecord()
+      this.calibFinished = true
 
       this.$router.push(
         `/postCalibration?redirectingToRuxailab=${this.fromRuxailab}`
@@ -701,8 +871,14 @@ export default {
 
           // Init record webcam
           this.recordWebCam.start();
-          video.onloadeddata = () => {
-            this.detectFace();
+          
+          // Wait for video to be fully ready with proper dimensions
+          video.onloadedmetadata = async () =>{
+            // Additional wait to ensure video renders properly
+            await new Promise(resolve => setTimeout(resolve, 200));
+            if (video.videoWidth > 0 && video.videoHeight > 0) {
+              this.detectFace();
+            }
           }
         })
         .catch((e) => {
@@ -721,7 +897,7 @@ export default {
     async getRuxailabConfig(userId, testId) {
       this.loadingConfig = true;
       const { data } = await axios.get(
-        `${process.env.VUE_APP_RUXAILAB_URL}/getCalibrationConfig`,
+        `${envConfig.ruxailabUrl}/getCalibrationConfig`,
         { params: { testId } }
       );
 
@@ -733,14 +909,27 @@ export default {
     },
 
     async detectFace() {
+      const video = document.getElementById("video-tag");
+      
+      // Ensure video has valid dimensions before processing
+      if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
+        console.warn('Video not ready yet, waiting...');
+        // Wait a bit and try again
+        await new Promise(resolve => setTimeout(resolve, 100));
+        return this.detectFace(); // Retry
+      }
+      
       const lastPrediction = await this.model.estimateFaces({
-        input: document.getElementById("video-tag"),
+        input: video,
       });
       return lastPrediction
     },
 
-    stopRecord() {
-      this.recordWebCam.state != "inactive" ? this.stopWebCamCapture() : null;
+    async stopRecord() {
+      if (!this.recordWebCam) return;
+      if (this.recordWebCam.state != "inactive") {
+        await this.stopWebCamCapture();
+      }
     },
 
     async stopWebCamCapture() {
@@ -785,13 +974,6 @@ export default {
 </script>
 
 <style scoped>
-body,
-html {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
 #canvas {
   position: fixed;
   top: 0;

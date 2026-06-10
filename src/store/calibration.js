@@ -1,7 +1,7 @@
-import axios from "axios";
-import firebase from "firebase/app";
-import "firebase/firestore";  // ← ADD THIS LINE
-import router from "@/router";
+import axios from 'axios';
+import firebase from 'firebase/app';
+import 'firebase/firestore';
+import router from '@/router';
 export default {
   state: {
     calibName: "",
@@ -74,10 +74,12 @@ export default {
       state.pattern = newPattern;
     },
     setMockPatternElement(state, newPatternLike) {
-      if (!state.mockPattern.includes(newPatternLike)) {
+      const index = state.mockPattern.findIndex(
+        (p) => p.x === newPatternLike.x && p.y === newPatternLike.y
+      );
+      if (index === -1) {
         state.mockPattern.push(newPatternLike);
       } else {
-        const index = state.mockPattern.indexOf(newPatternLike);
         state.mockPattern.splice(index, 1);
       }
     },
@@ -215,7 +217,7 @@ export default {
       state.runtime.usedPattern.forEach((p) => {
         const data =
           predictions[p.x.toString().split(".")[0]][
-            p.y.toString().split(".")[0]
+          p.y.toString().split(".")[0]
           ];
 
         p.precision = Number(data.PrecisionSD).toFixed(2);
@@ -256,21 +258,25 @@ export default {
           .get();
 
         const calibrations = [];
-        calibrationsCollection.forEach((doc) => {
+        calibrationsCollection.docs.forEach((doc) => {
           var averageAccuracy = 0;
           var averagePrecision = 0;
           var data = doc.data();
-          data.pattern.forEach((element) => {
-            averageAccuracy += Number(element.accuracy);
-            averagePrecision += Number(element.precision);
-          });
-          data.averageAccuracy = averageAccuracy / data.pattern.length;
-          data.averagePrecision = averagePrecision / data.pattern.length;
-          calibrations.push({
-            id: doc.id,
-            model: doc.data().models,
-            ...data,
-          });
+
+          if (data.pattern) {
+            data.pattern.forEach((element) => {
+              averageAccuracy += Number(element.accuracy);
+              averagePrecision += Number(element.precision);
+            });
+
+            data.averageAccuracy = averageAccuracy / data.pattern.length;
+            data.averagePrecision = averagePrecision / data.pattern.length;
+            calibrations.push({
+              id: doc.id,
+              model: doc.data().models,
+              ...data,
+            });
+          }
         });
 
         commit("setCalibrations", calibrations);
