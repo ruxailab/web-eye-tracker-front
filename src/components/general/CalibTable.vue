@@ -48,9 +48,11 @@ export default {
       return this.$store.state.calibration.calibrations
     },
     filteredCalibrations() {
+      const searchTerm = this.search.toLowerCase();
+      if (!searchTerm) return this.calibrations;
       return this.calibrations.filter(calibration =>
         Object.values(calibration).some(value =>
-          value.toLowerCase().includes(this.search.toLowerCase())
+          String(value).toLowerCase().includes(searchTerm)
         )
       );
     },
