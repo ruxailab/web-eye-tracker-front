@@ -1,6 +1,6 @@
 ---
 name: Feature request
-description: Suggest an improvement or new feature
+about: Suggest an improvement or new feature
 title: "[Enhancement] "
 labels: enhancement, contributor-friendly
 ---
