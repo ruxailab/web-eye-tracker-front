@@ -217,7 +217,7 @@ export default {
       state.runtime.usedPattern.forEach((p) => {
         const data =
           predictions[p.x.toString().split(".")[0]][
-            p.y.toString().split(".")[0]
+          p.y.toString().split(".")[0]
           ];
 
         p.precision = Number(data.PrecisionSD).toFixed(2);
@@ -258,21 +258,25 @@ export default {
           .get();
 
         const calibrations = [];
-        calibrationsCollection.forEach((doc) => {
+        calibrationsCollection.docs.forEach((doc) => {
           var averageAccuracy = 0;
           var averagePrecision = 0;
           var data = doc.data();
-          data.pattern.forEach((element) => {
-            averageAccuracy += Number(element.accuracy);
-            averagePrecision += Number(element.precision);
-          });
-          data.averageAccuracy = averageAccuracy / data.pattern.length;
-          data.averagePrecision = averagePrecision / data.pattern.length;
-          calibrations.push({
-            id: doc.id,
-            model: doc.data().models,
-            ...data,
-          });
+
+          if (data.pattern) {
+            data.pattern.forEach((element) => {
+              averageAccuracy += Number(element.accuracy);
+              averagePrecision += Number(element.precision);
+            });
+
+            data.averageAccuracy = averageAccuracy / data.pattern.length;
+            data.averagePrecision = averagePrecision / data.pattern.length;
+            calibrations.push({
+              id: doc.id,
+              model: doc.data().models,
+              ...data,
+            });
+          }
         });
 
         commit("setCalibrations", calibrations);
