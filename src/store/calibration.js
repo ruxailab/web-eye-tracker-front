@@ -216,14 +216,21 @@ export default {
 
       state.runtime.usedPattern.forEach((p) => {
         const data =
-          predictions[p.x.toString().split(".")[0]][
+          predictions[p.x.toString().split(".")[0]]?.[
             p.y.toString().split(".")[0]
           ];
 
-        p.precision = Number(data.PrecisionSD).toFixed(2);
-        p.accuracy = Number(data.Accuracy).toFixed(2);
-        p.predictionX = data.predicted_x;
-        p.predictionY = data.predicted_y;
+        if (data) {
+          p.precision = data.PrecisionSD ? Number(data.PrecisionSD).toFixed(2) : "0.00";
+          p.accuracy = data.Accuracy ? Number(data.Accuracy).toFixed(2) : "0.00";
+          p.predictionX = data.predicted_x || [];
+          p.predictionY = data.predicted_y || [];
+        } else {
+          p.precision = "0.00";
+          p.accuracy = "0.00";
+          p.predictionX = [];
+          p.predictionY = [];
+        }
       });
 
       console.log("[Calibration] finishCalibration done");
@@ -258,21 +265,25 @@ export default {
           .get();
 
         const calibrations = [];
-        calibrationsCollection.forEach((doc) => {
+        calibrationsCollection.docs.forEach((doc) => {
           var averageAccuracy = 0;
           var averagePrecision = 0;
           var data = doc.data();
-          data.pattern.forEach((element) => {
-            averageAccuracy += Number(element.accuracy);
-            averagePrecision += Number(element.precision);
-          });
-          data.averageAccuracy = averageAccuracy / data.pattern.length;
-          data.averagePrecision = averagePrecision / data.pattern.length;
-          calibrations.push({
-            id: doc.id,
-            model: doc.data().models,
-            ...data,
-          });
+
+          if (data.pattern) {
+            data.pattern.forEach((element) => {
+              averageAccuracy += Number(element.accuracy);
+              averagePrecision += Number(element.precision);
+            });
+
+            data.averageAccuracy = averageAccuracy / data.pattern.length;
+            data.averagePrecision = averagePrecision / data.pattern.length;
+            calibrations.push({
+              id: doc.id,
+              model: doc.data().models,
+              ...data,
+            });
+          }
         });
 
         commit("setCalibrations", calibrations);

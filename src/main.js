@@ -15,6 +15,12 @@ const firebaseConfig = envConfig.firebase;
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
+// Connect to Firestore emulator if in development
+if (process.env.VUE_APP_USE_EMULATORS === 'true') {
+  const db = firebase.firestore();
+  db.useEmulator('localhost', 8082);
+}
+
 new Vue({
   router,
   store,
