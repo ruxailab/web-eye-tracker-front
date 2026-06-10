@@ -1,5 +1,9 @@
 {
   "projects": {
-    "default": "web-eye-tracker-front"
-  }
+    "default": "web-eye-tracker-front",
+    "dev": "eye-tracking-28179",
+    "prod": "ruxailab-eye-tracker"
+  },
+  "targets": {},
+  "etags": {}
 }

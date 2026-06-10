@@ -1,84 +1,255 @@
 <template>
   <div style="height: 100%;">
+    <!-- Fullscreen required during calibration -->
+    <v-dialog v-model="fullscreenRequiredDialog" max-width="520" persistent>
+      <v-card>
+        <v-card-title class="d-flex align-center">
+          <v-icon left>mdi-fullscreen</v-icon>
+          Go fullscreen
+        </v-card-title>
+        <v-card-text>
+          Please keep fullscreen on during calibration so the app can measure screen borders correctly.
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn color="#FF425A" dark @click="requestFullscreenAndClose">
+            Enter fullscreen
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Block navigation during active calibration -->
+    <v-dialog v-model="navigationBlockedDialog" max-width="520">
+      <v-card>
+        <v-card-title class="d-flex align-center">
+          <v-icon left>mdi-lock</v-icon>
+          Calibration in progress
+        </v-card-title>
+        <v-card-text>
+          Navigation is disabled during calibration to ensure accurate border
+          positioning. Please finish calibration first.
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn color="#FF425A" dark @click="navigationBlockedDialog = false">
+            OK
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <div v-if="!model" class="center-container">
       <v-progress-circular :size="80" :width="8" indeterminate color="black" class="loading-spinner"
         style="margin-bottom: 16px;"></v-progress-circular>
       <div>Loading model...</div>
     </div>
-    
+
     <div v-if="loadingConfig" class="center-container">
       <v-progress-circular :size="80" :width="8" indeterminate color="black" class="loading-spinner"
         style="margin-bottom: 16px;"></v-progress-circular>
       <div>Loading Ruxailab calibration config...</div>
     </div>
 
-    <div v-if="redirectingToRuxailab" class="center-container">
+    <!-- <div v-if="redirectingToRuxailab" class="center-container">
       <v-progress-circular :size="80" :width="8" indeterminate color="black" class="loading-spinner"
-      style="margin-bottom: 16px;"></v-progress-circular>
+        style="margin-bottom: 16px;"></v-progress-circular>
       <div>Sending calibration data to Ruxailab...</div>
       <div style="margin-top: 16px; font-size: 14px; color: #666;">
-      This window will close automatically or you can close it manually.
+        This window will close automatically or you can close it manually.
       </div>
-    </div>
+    </div> -->
     <!-- loading case ^ -->
 
-    <div v-else>
-      <!-- Progress indicator -->
-      <div class="calibration-header">
-        <div class="progress-container">
-          <div class="progress-text">
-            <span class="step-label">{{ currentStep === 1 ? 'Training Phase' : 'Validation Phase' }}</span>
-            <span class="point-counter">Point {{ index + 1 }} / {{ usedPattern.length }}</span>
-          </div>
-          <v-progress-linear :value="(index / usedPattern.length) * 100" color="green" height="6" rounded
-            class="mt-2"></v-progress-linear>
-        </div>
-      </div>
+    <!-- Calibration Stepper -->
+    <v-dialog v-model="showStepper" persistent max-width="800" :fullscreen="$vuetify.breakpoint.xs">
+      <v-card>
+        <v-stepper v-model="stepperStep" elevation="0" class="calibration-stepper">
+          <v-stepper-header>
+            <v-stepper-step :complete="stepperStep > 1" step="1" color="#FF425A">
+              Overview
+            </v-stepper-step>
+            <v-divider></v-divider>
+            <v-stepper-step :complete="stepperStep > 2" step="2" color="#FF425A">
+              Training
+            </v-stepper-step>
+            <v-divider></v-divider>
+            <v-stepper-step :complete="stepperStep > 3" step="3" color="#FF425A">
+              Validation
+            </v-stepper-step>
+            <v-divider></v-divider>
+            <v-stepper-step :complete="stepperStep > 4" step="4" color="#FF425A">
+              Complete
+            </v-stepper-step>
+          </v-stepper-header>
 
-      <!-- Collecting indicator -->
-      <div v-if="isCollecting" class="collecting-indicator">
-        <v-progress-circular indeterminate color="green" size="24" width="3" class="mr-2"></v-progress-circular>
-        <span>Recording eye position...</span>
-      </div>
+          <v-stepper-items>
+            <!-- Step 1: Overview -->
+            <v-stepper-content step="1">
+              <v-card flat>
+                <v-card-text class="text-center px-6 py-6">
+                  <v-icon size="50" color="#FF425A" class="mb-4">mdi-eye-settings</v-icon>
+                  <h2 class="text-h4 font-weight-bold mb-4">Eye Tracking Calibration</h2>
 
-      <v-row justify="center" align="center" class="ma-0 justify-center align-center">
-        <!-- Initial instruction -->
-        <div v-if="index === 0" class="instruction-box">
-          <v-icon size="48" color="green" class="mb-3">mdi-eye-outline</v-icon>
-          <h2 class="instruction-title">Look at the red dot</h2>
-          <p class="instruction-text">Press <kbd>S</kbd> when ready to start recording</p>
-          <p class="instruction-subtext">Keep your head still and follow each point with your eyes</p>
-        </div>
+                  <v-alert color="#002D51" dark class="mb-4 text-left">
+                    <div class="text-body-1">
+                      <p class="font-weight-bold mb-2">This calibration consists of two phases:</p>
+                      <ol class="pl-4">
+                        <li class="mb-1"><strong>Training Phase:</strong> The system learns your eye movement patterns
+                        </li>
+                        <li><strong>Validation Phase:</strong> The system verifies the calibration accuracy</li>
+                      </ol>
+                    </div>
+                  </v-alert>
 
-        <!-- Last point instruction -->
-        <div v-if="index === usedPattern.length - 1 && index > 0" class="instruction-box-small">
-          <p class="instruction-text-small">Final point! Press <kbd>S</kbd> once more</p>
-        </div>
+                  <v-row class="mb-4">
+                    <v-col cols="6">
+                      <v-alert color="#FF425A" dark dense>
+                        <div class="d-flex align-center">
+                          <v-icon left>mdi-check-circle</v-icon>
+                          <span><strong>Success:</strong> You can use the tool</span>
+                        </div>
+                      </v-alert>
+                    </v-col>
+                    <v-col cols="6">
+                      <v-alert color="#002D51" dark dense>
+                        <div class="d-flex align-center">
+                          <v-icon left>mdi-alert-circle</v-icon>
+                          <span><strong>Failure:</strong> Repeat calibration</span>
+                        </div>
+                      </v-alert>
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+                <v-card-actions class="justify-center pb-6">
+                  <v-btn x-large color="#FF425A" dark @click="stepperStep = 2" class="px-8">
+                    <v-icon left>mdi-arrow-right</v-icon>
+                    Continue
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-stepper-content>
 
-        <!-- Collection complete -->
-        <div v-if="index === usedPattern.length" class="completion-box">
-          <v-icon size="64" color="green" class="mb-4">mdi-check-circle</v-icon>
-          <div v-if="currentStep === 1">
-            <h2 class="completion-title">Training Complete!</h2>
-            <p class="completion-text">Collected {{ circleIrisPoints.length }} training samples</p>
-            <p class="completion-subtext">Now let's validate the calibration</p>
-            <v-btn large color="green" @click="nextStep()" class="mt-4">
-              <v-icon left>mdi-arrow-right</v-icon>
-              Continue to Validation
-            </v-btn>
-          </div>
-          <div v-else>
-            <h2 class="completion-title">Validation Complete!</h2>
-            <p class="completion-text">Collected {{ calibPredictionPoints.length }} validation samples</p>
-            <p class="completion-subtext">Processing your calibration data...</p>
-            <v-btn large color="green" @click="endCalib()" class="mt-4">
-              <v-icon left>mdi-check</v-icon>
-              Finish Calibration
-            </v-btn>
-          </div>
-        </div>
-      </v-row>
-    </div>
+            <!-- Step 2: Training Instructions -->
+            <v-stepper-content step="2">
+              <v-card flat>
+                <v-card-text class="text-center px-6 py-6">
+                  <v-icon size="50" color="#FF425A" class="mb-4">mdi-school</v-icon>
+                  <h2 class="text-h4 font-weight-bold mb-4">Training Phase</h2>
+
+                  <v-card outlined class="pa-4 mb-4 text-left">
+                    <h3 class="text-h6 font-weight-bold mb-3 text-center">Instructions</h3>
+                    <div class="text-body-1">
+                      <p class="mb-2"><v-icon small color="#FF425A">mdi-eye</v-icon> <strong>Look at the red
+                          dot</strong> that appears on screen</p>
+                      <p class="mb-2"><v-icon small color="#FF425A">mdi-keyboard</v-icon> <strong>Press S</strong> when
+                        ready to record each point</p>
+                      <p class="mb-2"><v-icon small color="#FF425A">mdi-head</v-icon> <strong>Keep your head
+                          still</strong> during the entire process</p>
+                      <p class="mb-0"><v-icon small color="#FF425A">mdi-target</v-icon> <strong>Follow the
+                          points</strong> with your eyes only</p>
+                    </div>
+                  </v-card>
+
+                  <v-alert color="#FF425A" dark dense class="text-center">
+                    <strong>Total points to calibrate:</strong> {{ usedPattern.length }}
+                  </v-alert>
+                </v-card-text>
+                <v-card-actions class="justify-space-between px-6 pb-6">
+                  <v-btn text @click="stepperStep = 1">
+                    <v-icon left>mdi-arrow-left</v-icon>
+                    Back
+                  </v-btn>
+                  <v-btn x-large color="#FF425A" dark @click="startTraining" class="px-8">
+                    <v-icon left size="28">mdi-play-circle</v-icon>
+                    <span class="text-h6">Start Training</span>
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-stepper-content>
+
+            <!-- Step 3: Validation Instructions -->
+            <v-stepper-content step="3">
+              <v-card flat>
+                <v-card-text class="text-center px-6 py-6">
+                  <v-icon size="50" color="#FF425A" class="mb-4">mdi-check-decagram</v-icon>
+                  <h2 class="text-h4 font-weight-bold mb-4">Validation Phase</h2>
+
+                  <v-alert color="#FF425A" dark class="mb-4">
+                    <div class="text-center">
+                      <p class="font-weight-bold mb-1">Training Complete!</p>
+                      <p class="mb-0">Successfully collected {{ circleIrisPoints.length }} training samples</p>
+                    </div>
+                  </v-alert>
+
+                  <v-card outlined class="pa-4 mb-4 text-left">
+                    <h3 class="text-h6 font-weight-bold mb-3 text-center">Validation Instructions</h3>
+                    <div class="text-body-1">
+                      <p class="mb-2"><v-icon small color="#FF425A">mdi-eye</v-icon> <strong>Look at the red
+                          dot</strong> that appears on screen</p>
+                      <p class="mb-2"><v-icon small color="#FF425A">mdi-keyboard</v-icon> <strong>Press S</strong> when
+                        ready to record each point</p>
+                      <p class="mb-2"><v-icon small color="#FF425A">mdi-head</v-icon> <strong>Keep your head
+                          still</strong> during the entire process</p>
+                      <p class="mb-0"><v-icon small color="#FF425A">mdi-target</v-icon> <strong>Follow the
+                          points</strong> with your eyes only</p>
+                    </div>
+                  </v-card>
+
+                  <v-alert color="#002D51" dark dense class="text-center">
+                    <strong>This phase verifies the calibration accuracy</strong>
+                  </v-alert>
+                </v-card-text>
+                <v-card-actions class="justify-center pb-6">
+                  <v-btn x-large color="#FF425A" dark @click="startValidation" class="px-8">
+                    <v-icon left size="28">mdi-play-circle</v-icon>
+                    <span class="text-h6">Start Validation</span>
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-stepper-content>
+
+            <!-- Step 4: Completion -->
+            <v-stepper-content step="4">
+              <v-card flat>
+                <v-card-text class="text-center px-6 py-8">
+                  <v-icon size="50" color="#FF425A" class="mb-4">mdi-check-circle</v-icon>
+                  <h2 class="text-h3 font-weight-bold mb-4">Calibration Complete!</h2>
+
+                  <v-alert color="#FF425A" dark class="mb-3">
+                    <div class="text-center">
+                      <p class="font-weight-bold mb-1">Training: {{ circleIrisPoints.length }} samples collected</p>
+                      <p class="mb-0">Validation: {{ calibPredictionPoints.length }} samples collected</p>
+                    </div>
+                  </v-alert>
+
+                  <v-alert color="#002D51" dark class="mb-4">
+                    <div class="text-center">
+                      <v-icon left>mdi-check-circle</v-icon>
+                      <span class="font-weight-bold">Your eye tracking calibration was successful!</span>
+                    </div>
+                  </v-alert>
+
+                  <p class="text-h6 grey--text mb-4">Processing your calibration data...</p>
+                </v-card-text>
+                <v-card-actions class="justify-center pb-8">
+                  <v-btn
+                    x-large
+                    color="#FF425A"
+                    dark
+                    :disabled="finishingCalibration || isCollecting"
+                    :loading="finishingCalibration"
+                    @click="endCalib()"
+                    class="px-12"
+                  >
+                    <v-icon left size="32">mdi-check-bold</v-icon>
+                    <span class="text-h5">Finish</span>
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-stepper-content>
+          </v-stepper-items>
+        </v-stepper>
+      </v-card>
+    </v-dialog>
     <canvas id="canvas" style="z-index: 0;" />
     <video autoplay id="video-tag" style="display: none;"></video>
   </div>
@@ -86,6 +257,7 @@
 
 <script>
 import axios from 'axios';
+import { envConfig } from '../config/environment';
 
 
 export default {
@@ -112,8 +284,15 @@ export default {
       fromRuxailab: false,
       isCollecting: false,
       faceDetected: true,
-      loadingConfig: false,
       redirectingToRuxailab: false,
+      stepperStep: 1,
+      showStepper: true,
+      calibrationStarted: false,
+      loadingConfig: false,
+
+      fullscreenRequiredDialog: false,
+      navigationBlockedDialog: false,
+      finishingCalibration: false,
     };
   },
   computed: {
@@ -125,9 +304,6 @@ export default {
     },
     predByPointCount() {
       return this.$store.state.calibration.samplePerPoint
-    },
-    pattern() {
-      return this.$store.state.calibration.pattern
     },
     mockPattern() {
       return this.$store.state.calibration.mockPattern
@@ -161,68 +337,286 @@ export default {
     },
   },
   async created() {
+    console.log("rodou created");
     await this.verifyFromRuxailab()
     this.$store.commit('setIndex', 0)
-    this.usedPattern = (this.mockPattern.length > 0) ? this.mockPattern : this.pattern
+    this.usedPattern = this.generateRuntimePattern()
 
     if (this.usedPattern.length === 0) {
       const width = window.innerWidth
       const height = window.innerHeight
       const offset = this.offset || 100
+      const pointCount = this.$store.state.calibration.pointNumber
 
-      const cols = 3
-      const rows = 3
-
-      const usableWidth = width - 2 * offset
-      const usableHeight = height - 2 * offset
-
-      const stepX = usableWidth / (cols - 1)
-      const stepY = usableHeight / (rows - 1)
-
-      const generatedPattern = []
-
-      for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < cols; j++) {
-          generatedPattern.push({
-            x: offset + j * stepX,
-            y: offset + i * stepY,
-          })
-        }
-      }
+      const generatedPattern = this.generateCalibrationPattern(pointCount, width, height, offset)
 
       this.$store.commit('setMockPattern', generatedPattern)
       this.usedPattern = generatedPattern
 
     }
     await this.startWebCamCapture();
+    console.log("chamou drawPoint no created com os valores:", this.usedPattern[0].x, this.usedPattern[0].y);
     this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
     this.advance(this.usedPattern, this.circleIrisPoints, this.msPerCapture)
+    console.log("UsedPattern inteiro", this.usedPattern);
+
+  },
+  mounted() {
+    document.addEventListener("fullscreenchange", this.onFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", this.onFullscreenChange);
+    window.addEventListener("beforeunload", this.onBeforeUnload);
+
+    this.applyCalibrationScrollLock();
+
+    if (!this.isFullscreen()) {
+      this.fullscreenRequiredDialog = true;
+    }
+  },
+  beforeDestroy() {
+    document.removeEventListener("fullscreenchange", this.onFullscreenChange);
+    document.removeEventListener("webkitfullscreenchange", this.onFullscreenChange);
+    window.removeEventListener("beforeunload", this.onBeforeUnload);
+
+    this.removeCalibrationScrollLock();
+  },
+  beforeRouteLeave(to, from, next) {
+    if (this.calibrationStarted && !this.calibFinished && !this.finishingCalibration) {
+      this.navigationBlockedDialog = true;
+      next(false);
+      return;
+    }
+    next();
   },
   methods: {
+    applyCalibrationScrollLock() {
+      const body = document.body;
+      const html = document.documentElement;
+      if (!body || !html) return;
+
+      body.style.overflow = "hidden";
+      html.style.overflow = "hidden";
+      body.style.overscrollBehavior = "none";
+      html.style.overscrollBehavior = "none";
+    },
+    removeCalibrationScrollLock() {
+      const body = document.body;
+      const html = document.documentElement;
+      if (!body || !html) return;
+
+      body.style.overflow = "";
+      html.style.overflow = "";
+      body.style.overscrollBehavior = "";
+      html.style.overscrollBehavior = "";
+    },
+    isFullscreen() {
+      return !!(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+      );
+    },
+    requestFullscreen(element) {
+      const el = element || document.documentElement;
+      if (el.requestFullscreen) return el.requestFullscreen();
+      if (el.mozRequestFullScreen) return el.mozRequestFullScreen();
+      if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
+      if (el.msRequestFullscreen) return el.msRequestFullscreen();
+      return Promise.reject(new Error("Fullscreen API not supported"));
+    },
+    async requestFullscreenAndClose() {
+      try {
+        await this.requestFullscreen(document.documentElement);
+      } catch (e) {
+        // Keep dialog open; browser will show its own UI hints if blocked.
+      }
+      if (this.isFullscreen()) {
+        this.fullscreenRequiredDialog = false;
+      }
+    },
+    onFullscreenChange() {
+      if (this.calibrationStarted && !this.calibFinished && !this.isFullscreen()) {
+        this.fullscreenRequiredDialog = true;
+        this.showStepper = true;
+      }
+    },
+    onBeforeUnload(e) {
+      if (this.calibrationStarted && !this.calibFinished) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    },
+    generateCalibrationPattern(pointCount, width, height, offset) {
+      const patterns = [];
+      
+      switch(pointCount) {
+        case 1:
+          // Center point only
+          patterns.push({ x: width/2, y: height/2 });
+          break;
+          
+        case 2:
+          // Left and right edges (horizontal coverage)
+          patterns.push({ x: offset, y: height/2 });
+          patterns.push({ x: width - offset, y: height/2 });
+          break;
+          
+        case 3:
+          // Horizontal line: left, center, right
+          patterns.push({ x: offset, y: height/2 });
+          patterns.push({ x: width/2, y: height/2 });
+          patterns.push({ x: width - offset, y: height/2 });
+          break;
+          
+        case 4:
+          // Four corners (optimal for 4-point calibration)
+          patterns.push({ x: offset, y: offset });
+          patterns.push({ x: width - offset, y: offset });
+          patterns.push({ x: offset, y: height - offset });
+          patterns.push({ x: width - offset, y: height - offset });
+          break;
+          
+        case 5:
+          // Four corners + center (cross pattern)
+          patterns.push({ x: offset, y: offset });
+          patterns.push({ x: width - offset, y: offset });
+          patterns.push({ x: width/2, y: height/2 });
+          patterns.push({ x: offset, y: height - offset });
+          patterns.push({ x: width - offset, y: height - offset });
+          break;
+          
+        case 6: {
+          // 3x2 rectangle pattern
+          const stepX6 = (width - 2 * offset) / 2;
+          const stepY6 = (height - 2 * offset) / 1;
+          for (let i = 0; i < 2; i++) {
+            for (let j = 0; j < 3; j++) {
+              patterns.push({
+                x: offset + j * stepX6,
+                y: offset + i * stepY6,
+              });
+            }
+          }
+          break;
+        }
+          
+        case 7:
+          // Partial 3x3 grid (strategic selection)
+          patterns.push({ x: offset, y: offset });
+          patterns.push({ x: width/2, y: offset });
+          patterns.push({ x: width - offset, y: offset });
+          patterns.push({ x: offset, y: height/2 });
+          patterns.push({ x: width - offset, y: height/2 });
+          patterns.push({ x: offset, y: height - offset });
+          patterns.push({ x: width - offset, y: height - offset });
+          break;
+          
+        case 8:
+          // Partial 3x3 grid (without center)
+          patterns.push({ x: offset, y: offset });
+          patterns.push({ x: width/2, y: offset });
+          patterns.push({ x: width - offset, y: offset });
+          patterns.push({ x: offset, y: height/2 });
+          patterns.push({ x: width - offset, y: height/2 });
+          patterns.push({ x: offset, y: height - offset });
+          patterns.push({ x: width/2, y: height - offset });
+          patterns.push({ x: width - offset, y: height - offset });
+          break;
+          
+        case 9:
+        default: {
+          // Full 3x3 grid (current working pattern)
+          const cols = 3;
+          const rows = 3;
+          const usableWidth = width - 2 * offset;
+          const usableHeight = height - 2 * offset;
+          const stepX = usableWidth / (cols - 1);
+          const stepY = usableHeight / (rows - 1);
+          
+          for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+              patterns.push({
+                x: offset + j * stepX,
+                y: offset + i * stepY,
+              });
+            }
+          }
+          break;
+        }
+      }
+      
+      return patterns;
+    },
+    
+    startTraining() {
+      if (!this.isFullscreen()) {
+        this.fullscreenRequiredDialog = true;
+        return;
+      }
+      this.showStepper = false;
+      this.calibrationStarted = true;
+    },
+    startValidation() {
+      if (!this.isFullscreen()) {
+        this.fullscreenRequiredDialog = true;
+        return;
+      }
+      this.showStepper = false;
+      this.calibrationStarted = true;
+    },
     advance(pattern, whereToSave, timeBetweenCaptures) {
       const th = this
       var i = 0
       async function keydownHandler(event) {
-        if ((event.key === "s" || event.key === "S")) {
-          if (i <= pattern.length - 1) {
+        // Block key press if stepper is shown
+        if (th.showStepper) {
+          return;
+        }
+
+        if ((event.key === "s" || event.key === "S" || event.key === "Enter")) {
+          if (!th.isFullscreen()) {
+            th.fullscreenRequiredDialog = true;
+            th.showStepper = true;
+            return;
+          }
+          if (i < pattern.length) {
             document.removeEventListener('keydown', keydownHandler)
             th.isCollecting = true
-            await th.extract(pattern[i], timeBetweenCaptures)
+            try {
+              await th.extract(pattern[i], timeBetweenCaptures)
+            } catch (e) {
+              th.isCollecting = false
+              if (e && e.message === "fullscreen_required") {
+                th.fullscreenRequiredDialog = true
+                th.showStepper = true
+                document.addEventListener('keydown', keydownHandler)
+                return
+              }
+              throw e
+            }
             th.isCollecting = false
 
             th.$store.commit('setIndex', i)
             i++
-            if (i != pattern.length) {
+
+            if (i < pattern.length) {
               await th.triggerAnimation(pattern[i - 1], pattern[i], this.animationRefreshRate)
+              document.addEventListener('keydown', keydownHandler)
+            } else {
+              // Completed all points - finalize
+              th.$store.commit('setIndex', i)
+              th.savePoint(whereToSave, th.usedPattern)
+              const canvas = document.getElementById('canvas');
+              const ctx = canvas.getContext('2d');
+              ctx.clearRect(0, 0, canvas.width, canvas.height)
+              // Show stepper at step 3 (validation) or step 4 (completion)
+              if (th.currentStep === 1) {
+                th.nextStep();
+              } else {
+                th.stepperStep = 4;
+                th.showStepper = true;
+              }
             }
-            document.addEventListener('keydown', keydownHandler)
-          } else {
-            th.$store.commit('setIndex', i)
-            document.removeEventListener('keydown', keydownHandler)
-            th.savePoint(whereToSave, th.usedPattern)
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height)
           }
         }
       }
@@ -234,12 +628,21 @@ export default {
       });
       this.$store.commit('setIndex', 0)
       this.currentStep = 2
+      this.stepperStep = 3;
+      this.showStepper = true;
+      this.calibrationStarted = false;
+
+      console.log("nextStep rodou drawPoint com os valores:", this.usedPattern[0].x, this.usedPattern[0].y);
+
       this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
       this.advance(this.usedPattern, this.calibPredictionPoints, this.msPerCapture)
     },
     async extract(point, timeBetweenCaptures) {
       point.data = [];
       for (var a = 0; a < this.predByPointCount;) {
+        if (!this.isFullscreen()) {
+          throw new Error("fullscreen_required");
+        }
         const prediction = await this.detectFace();
 
         // 🛡️ DEFENSIVE GUARD: Check if face is detected
@@ -314,6 +717,9 @@ export default {
     },
     drawPoint(x, y, radius) {
       const canvas = document.getElementById('canvas');
+
+      console.log('Window size:', window.innerWidth, 'x', window.innerHeight);
+
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight
       const ctx = canvas.getContext('2d');
@@ -356,25 +762,26 @@ export default {
       ctx.stroke();
     },
     async endCalib() {
-      if(this.fromRuxailab){
-        this.redirectingToRuxailab = true;
-      }
+      if (this.finishingCalibration) return;
+      this.finishingCalibration = true;
+      this.calibrationStarted = false;
+
       this.calibPredictionPoints.forEach(element => {
         delete element.point_x;
         delete element.point_y;
       })
-      const screenHeight = window.screen.height;
-      const screenWidth = window.screen.width;
-      var predictions =
-        await this.$store.dispatch('sendData', {
-          fromRuxailab: this.fromRuxailab,
-          circleIrisPoints: this.circleIrisPoints,
-          calibPredictionPoints: this.calibPredictionPoints,
-          screenHeight: screenHeight,
-          screenWidth: screenWidth,
-          k: this.$store.state.calibration.pointNumber,
-          threshold: this.$store.state.calibration.threshold
-        })
+      const screenHeight = window.innerHeight
+      const screenWidth = window.innerWidth
+
+      let predictions = await this.$store.dispatch('sendData', {
+        fromRuxailab: false,
+        circleIrisPoints: this.circleIrisPoints,
+        calibPredictionPoints: this.calibPredictionPoints,
+        screenHeight,
+        screenWidth,
+        k: this.$store.state.calibration.pointNumber,
+        threshold: this.$store.state.calibration.threshold
+      })
 
       if (typeof predictions === 'string') {
         predictions = predictions.replace(/NaN/g, '1');
@@ -386,16 +793,32 @@ export default {
       }
       for (var a = 0; a < this.usedPattern.length; a++) {
         const element = predictions[this.usedPattern[a].x.toString().split('.')[0]][this.usedPattern[a].y.toString().split('.')[0]]
+
         this.usedPattern[a].precision = element.PrecisionSD.toFixed(2)
         this.usedPattern[a].accuracy = element.Accuracy.toFixed(2)
         this.usedPattern[a].predictionX = element.predicted_x
         this.usedPattern[a].predictionY = element.predicted_y
       }
+      
+      // Update the store's pattern with the prediction data
+      this.$store.commit('setPattern', this.usedPattern)
+      
       this.$store.dispatch('extractXYValues', { extract: this.circleIrisPoints, hasCalib: true })
       this.$store.dispatch('extractXYValues', { extract: this.calibPredictionPoints, hasCalib: false })
-      this.stopRecord()
-      this.$store.commit('setMockPattern', [])
-      if (!this.fromRuxailab) { this.$router.push('/postCalibration') }
+
+      this.$store.commit('setRuntimeData', {
+        usedPattern: this.usedPattern,
+        circleIrisPoints: this.circleIrisPoints,
+        calibPredictionPoints: this.calibPredictionPoints,
+        fromRuxailab: this.fromRuxailab,
+      })
+
+      await this.stopRecord()
+      this.calibFinished = true
+
+      this.$router.push(
+        `/postCalibration?redirectingToRuxailab=${this.fromRuxailab}`
+      )
     },
     savePoint(whereToSave, patternLike) {
       patternLike.forEach(point => {
@@ -448,8 +871,14 @@ export default {
 
           // Init record webcam
           this.recordWebCam.start();
-          video.onloadeddata = () => {
-            this.detectFace();
+          
+          // Wait for video to be fully ready with proper dimensions
+          video.onloadedmetadata = async () =>{
+            // Additional wait to ensure video renders properly
+            await new Promise(resolve => setTimeout(resolve, 200));
+            if (video.videoWidth > 0 && video.videoHeight > 0) {
+              this.detectFace();
+            }
           }
         })
         .catch((e) => {
@@ -468,7 +897,7 @@ export default {
     async getRuxailabConfig(userId, testId) {
       this.loadingConfig = true;
       const { data } = await axios.get(
-        `${process.env.VUE_APP_RUXAILAB_URL}/getCalibrationConfig`,
+        `${envConfig.ruxailabUrl}/getCalibrationConfig`,
         { params: { testId } }
       );
 
@@ -480,32 +909,71 @@ export default {
     },
 
     async detectFace() {
+      const video = document.getElementById("video-tag");
+      
+      // Ensure video has valid dimensions before processing
+      if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
+        console.warn('Video not ready yet, waiting...');
+        // Wait a bit and try again
+        await new Promise(resolve => setTimeout(resolve, 100));
+        return this.detectFace(); // Retry
+      }
+      
       const lastPrediction = await this.model.estimateFaces({
-        input: document.getElementById("video-tag"),
+        input: video,
       });
       return lastPrediction
     },
 
-    stopRecord() {
-      this.recordWebCam.state != "inactive" ? this.stopWebCamCapture() : null;
+    async stopRecord() {
+      if (!this.recordWebCam) return;
+      if (this.recordWebCam.state != "inactive") {
+        await this.stopWebCamCapture();
+      }
     },
 
     async stopWebCamCapture() {
       await this.recordWebCam.stop();
       this.calibFinished = true;
     },
+
+    generateRuntimePattern() {
+      const width = window.innerWidth
+      const height = window.innerHeight
+      const offset = this.offset || 100
+      const points = this.$store.state.calibration.pointNumber || 9
+
+      const minCols = 3
+      const cols = Math.max(minCols, Math.round(Math.sqrt(points)))
+      const rows = Math.ceil(points / cols)
+
+
+      const usableWidth = width - 2 * offset
+      const usableHeight = height - 2 * offset
+
+      const stepX = usableWidth / (cols - 1)
+      const stepY = usableHeight / (rows - 1)
+
+      const pattern = []
+
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          if (pattern.length < points) {
+            pattern.push({
+              x: offset + j * stepX,
+              y: offset + i * stepY
+            })
+          }
+        }
+      }
+
+      return pattern
+    }
   },
 };
 </script>
 
 <style scoped>
-body,
-html {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
 #canvas {
   position: fixed;
   top: 0;
@@ -732,5 +1200,62 @@ kbd {
   font-weight: 600;
   font-size: 16px;
   color: #333;
+}
+
+/* Calibration Stepper */
+.calibration-stepper .v-stepper__header {
+  box-shadow: none !important;
+  background-color: #002D51 !important;
+  border-radius: 0px !important;
+  padding: 0px !important;
+}
+
+.calibration-stepper {
+  box-shadow: none !important;
+  border-radius: 0px !important;
+  overflow: hidden !important;
+}
+
+.calibration-stepper .v-stepper__step__step {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+}
+
+.calibration-stepper .v-stepper__step--active .v-stepper__step__step {
+  background-color: #FF425A !important;
+  color: white !important;
+}
+
+.calibration-stepper .v-stepper__step--complete .v-stepper__step__step {
+  background-color: #FF425A !important;
+  color: white !important;
+}
+
+.calibration-stepper .v-stepper__step .v-stepper__label {
+  color: white !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+}
+
+.calibration-stepper .v-stepper__step--active .v-stepper__label {
+  color: white !important;
+}
+
+.calibration-stepper .v-stepper__step--complete .v-stepper__label {
+  color: white !important;
+}
+
+.calibration-stepper .v-divider {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+</style>
+
+<style>
+/* Fix dialog centering - without scoped */
+.v-dialog__content {
+  width: 100% !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 </style>

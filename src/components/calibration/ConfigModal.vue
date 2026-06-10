@@ -43,14 +43,13 @@ export default {
     data() {
         return {
             aDialog: false,
-            dragging: false,
+            isDragging: false,
+            hasMoved: false,
             initialMouseX: 0,
             initialMouseY: 0,
-            initialClientX: 200,
-            initialClientY: 100,
-            deltaX: 0,
-            deltaY: 0,
-            startTime: 0,
+            initialCardX: 0,
+            initialCardY: 0,
+            cardWidth: 0,
             showInfo: true
         }
     },
@@ -60,6 +59,20 @@ export default {
         },
         aDialog(newAdialog) {
             this.$emit('close', newAdialog);
+            
+            // Reset positioning when modal closes
+            if (!newAdialog && this.$refs.draggableCard) {
+                this.$nextTick(() => {
+                    const cardEl = this.$refs.draggableCard.$el;
+                    if (cardEl) {
+                        cardEl.style.position = '';
+                        cardEl.style.left = '';
+                        cardEl.style.top = '';
+                        cardEl.style.width = '';
+                        cardEl.style.margin = '';
+                    }
+                });
+            }
         },
     },
     computed: {
@@ -87,40 +100,68 @@ export default {
             this.$emit('save');
         },
         startDrag(event) {
-            this.showInfo = false
-            this.dragging = true;
-            this.startTime = new Date();
+            this.showInfo = false;
+            this.isDragging = true;
+            this.hasMoved = false;
+            
+            // Store initial mouse position
             this.initialMouseX = event.clientX;
             this.initialMouseY = event.clientY;
-            const rect = this.$refs.draggableCard.$el.getBoundingClientRect();
-            this.initialClientX = rect.left - 20;
-            this.initialClientY = rect.top - 240;
 
             window.addEventListener("mousemove", this.handleDrag);
             window.addEventListener("mouseup", this.endDrag);
+            
+            // Prevent text selection while dragging
+            event.preventDefault();
         },
         handleDrag(event) {
-            if (this.dragging) {
-                this.deltaX = event.clientX - this.initialMouseX;
-                this.deltaY = event.clientY - this.initialMouseY;
-                this.$refs.draggableCard.$el.style.left = this.initialClientX + this.deltaX + "px";
-                this.$refs.draggableCard.$el.style.top = this.initialClientY + this.deltaY + "px";
+            if (!this.isDragging) return;
+            
+            const deltaX = event.clientX - this.initialMouseX;
+            const deltaY = event.clientY - this.initialMouseY;
+            
+            // Only start actual dragging if moved more than 5 pixels (helps distinguish clicks from drags)
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            if (distance < 5) return;
+            
+            const cardEl = this.$refs.draggableCard.$el;
+            
+            // On first move, set up the card for dragging
+            if (!this.hasMoved) {
+                this.hasMoved = true;
+                const rect = cardEl.getBoundingClientRect();
+                this.initialCardX = rect.left;
+                this.initialCardY = rect.top;
+                this.cardWidth = rect.width;
+                
+                // Apply fixed positioning
+                cardEl.style.position = 'fixed';
+                cardEl.style.width = this.cardWidth + 'px';
+                cardEl.style.margin = '0';
+                cardEl.style.left = this.initialCardX + 'px';
+                cardEl.style.top = this.initialCardY + 'px';
             }
+            
+            // Update position based on mouse movement
+            cardEl.style.left = (this.initialCardX + deltaX) + 'px';
+            cardEl.style.top = (this.initialCardY + deltaY) + 'px';
         },
         endDrag() {
-            if (this.dragging) {
-                this.dragging = false;
-                if (this.deltaX == 0 && this.deltaY == 0) {
-                    this.handleClick()
-                }
-                this.deltaX = 0
-                this.deltaY = 0
+            window.removeEventListener("mousemove", this.handleDrag);
+            window.removeEventListener("mouseup", this.endDrag);
+            
+            this.isDragging = false;
+            
+            // If we didn't move, treat it as a click (not a drag)
+            if (!this.hasMoved) {
+                this.handleClick();
             }
+            
+            this.hasMoved = false;
         },
         handleClick(event) {
-            if (!this.dragging) {
-                this.$emit('click', event);
-            }
+            // This is called when user clicks without dragging
+            this.$emit('click', event);
         },
         closeinfo() {
             this.showInfo = false;
