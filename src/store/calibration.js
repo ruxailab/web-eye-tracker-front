@@ -135,6 +135,9 @@ export default {
       state.runtime.usedPattern = [];
       state.runtime.finished = false;
     },
+    setCalibrationPattern(state, adapted) {
+      state.runtime.usedPattern = adapted;
+    },
     resetAll(state) {
       state.calibName = "";
       state.pointNumber = 9;

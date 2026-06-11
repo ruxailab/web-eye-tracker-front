@@ -3,7 +3,8 @@ export default {
         fixedTrainData: null,
         predictTrainData: null,
         prediction: null,
-        model: null
+        model: null,
+        calibValidationResult: null
     },
     mutations: {
         saveFixed(state, fixedTrainData) {
@@ -17,6 +18,9 @@ export default {
         },
         predictNow(state) {
             console.log(state)
+        },
+        setCalibValidationResult(state, result) {
+            state.calibValidationResult = result
         }
     },
     actions: {
