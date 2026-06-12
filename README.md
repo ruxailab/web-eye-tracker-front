@@ -35,10 +35,19 @@ npm install
 
 ### **2. Run in development mode**
 ```bash
-npm run serve
+npm run serve:development
 ```
 
-### **3. Build for production**
+### **3. Build**
+- Build with development env vars:
+```bash
+npm run build:development
+```
+- Build with production env vars:
+```bash
+npm run build:production
+```
+- Standard production build:
 ```bash
 npm run build
 ```
@@ -47,22 +56,48 @@ npm run build
 
 # ☁️ Deploying to Firebase Hosting
 
-1. Create a `.env` file with your Firebase credentials:
+1. Create `.env` files for each environment. This project reads environment keys using a suffix of `_DEV` or `_PROD`.
 
+`.env.development`
 ```
-VUE_APP_FIREBASE_API_KEY='your-api-key'
-VUE_APP_FIREBASE_AUTH_DOMAIN='your-auth-domain'
-VUE_APP_FIREBASE_PROJECT_ID='your-project-id'
-VUE_APP_FIREBASE_STORAGE_BUCKET='your-storage-bucket'
-VUE_APP_FIREBASE_MESSAGING_SENDER_ID='your-sender-id'
-VUE_APP_FIREBASE_APP_ID='your-app-id'
-VUE_APP_FIREBASE_MEASUREMENT_ID='your-measurement-id'
+VUE_APP_ENV=dev
+VUE_APP_FIREBASE_API_KEY_DEV='your-dev-api-key'
+VUE_APP_FIREBASE_AUTH_DOMAIN_DEV='your-dev-auth-domain'
+VUE_APP_FIREBASE_PROJECT_ID_DEV='your-dev-project-id'
+VUE_APP_FIREBASE_STORAGE_BUCKET_DEV='your-dev-storage-bucket'
+VUE_APP_FIREBASE_MESSAGING_SENDER_ID_DEV='your-dev-sender-id'
+VUE_APP_FIREBASE_APP_ID_DEV='your-dev-app-id'
+VUE_APP_FIREBASE_MEASUREMENT_ID_DEV='your-dev-measurement-id'
+VUE_APP_API_BASE_URL_DEV='https://api-dev.example.com'
+VUE_APP_RUXAILAB_URL_DEV='https://ruxailab-dev.example.com'
 ```
 
-2. Login and deploy:
+`.env.production`
+```
+VUE_APP_ENV=prod
+VUE_APP_FIREBASE_API_KEY_PROD='your-prod-api-key'
+VUE_APP_FIREBASE_AUTH_DOMAIN_PROD='your-prod-auth-domain'
+VUE_APP_FIREBASE_PROJECT_ID_PROD='your-prod-project-id'
+VUE_APP_FIREBASE_STORAGE_BUCKET_PROD='your-prod-storage-bucket'
+VUE_APP_FIREBASE_MESSAGING_SENDER_ID_PROD='your-prod-sender-id'
+VUE_APP_FIREBASE_APP_ID_PROD='your-prod-app-id'
+VUE_APP_FIREBASE_MEASUREMENT_ID_PROD='your-prod-measurement-id'
+VUE_APP_API_BASE_URL_PROD='https://api.example.com'
+VUE_APP_RUXAILAB_URL_PROD='https://ruxailab.example.com'
+```
+
+2. Deploy to the development hosting site:
 ```bash
-firebase deploy --only hosting
+npm run deploy:development
 ```
+
+3. Deploy to the production hosting site:
+```bash
+npm run deploy:production
+```
+
+> `deploy:development` uses `dev` Firebase project alias and the `eye-tracking-calib-dev` hosting target.
+> `deploy:production` uses `prod` Firebase project alias.
 
 ---
 

@@ -1,9 +1,24 @@
 {
   "projects": {
-    "default": "web-eye-tracker-front",
-    "dev": "eye-tracking-28179",
-    "prod": "ruxailab-eye-tracker"
+    "default": "ruxailab-develop",
+    "dev": "ruxailab-develop",
+    "prod": "ruxailab-prod"
   },
-  "targets": {},
+  "targets": {
+    "ruxailab-develop": {
+      "hosting": {
+        "dev": [
+          "eye-tracking-calib-dev"
+        ]
+      }
+    },
+    "ruxailab-prod": {
+      "hosting": {
+        "prod": [
+          "ruxailab-eye-tracker"
+        ]
+      }
+    }
+  },
   "etags": {}
 }
