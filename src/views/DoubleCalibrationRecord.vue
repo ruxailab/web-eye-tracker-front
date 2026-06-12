@@ -975,13 +975,13 @@ export default {
       });
 
       // Send to backend for real-time validation
-      if (lastPrediction && lastPrediction.length) {
-        try {
-          await axios.post("/api/realtime-validation", { prediction: lastPrediction });
-        } catch (err) {
-          // Ignore error silently to not interrupt calibration
-        }
-      }
+      // if (lastPrediction && lastPrediction.length) {
+      //   try {
+      //     await axios.post("/api/realtime-validation", { prediction: lastPrediction });
+      //   } catch (err) {
+      //     // Ignore error silently to not interrupt calibration
+      //   }
+      // }
 
       return lastPrediction
     },
