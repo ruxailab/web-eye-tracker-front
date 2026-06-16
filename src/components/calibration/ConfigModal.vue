@@ -18,10 +18,10 @@
             <Slider :value="threshold" :min="Number(0)" :step="5" :max="Number(1000)" label="Points Distance Threshold"
                 @input="updateThreshold" />
             <v-card-actions class="justify-center">
-                <v-btn color="primary" text class="text-none" :disabled="fromDashboard" @click="recalibrate">RECALIB</v-btn>
-                <v-btn color="primary" text class="text-none" :disabled="fromDashboard" @click="save">SAVE</v-btn>
-                <v-btn color="primary" text class="text-none" @click="aDialog = false">CLOSE</v-btn>
-                <v-btn color="error" text class="text-none" @click="exitToDashboard">EXIT</v-btn>
+                <v-btn color="primary" text class="text-none" :disabled="fromDashboard || saving" @click="recalibrate">RECALIB</v-btn>
+                <v-btn color="primary" text class="text-none" :disabled="fromDashboard || saving" :loading="saving" @click="save">SAVE</v-btn>
+                <v-btn color="primary" text class="text-none" :disabled="saving" @click="aDialog = false">CLOSE</v-btn>
+                <v-btn color="error" text class="text-none" :disabled="saving" @click="exitToDashboard">EXIT</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -36,6 +36,10 @@ export default {
     },
     props: {
         configDialog: {
+            type: Boolean,
+            default: false
+        },
+        saving: {
             type: Boolean,
             default: false
         }

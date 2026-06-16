@@ -227,8 +227,16 @@
                       <span class="font-weight-bold">Your eye tracking calibration was successful!</span>
                     </div>
                   </v-alert>
-
-                  <p class="text-h6 grey--text mb-4">Processing your calibration data...</p>
+                  <v-progress-linear
+                    v-if="finishingCalibration"
+                    indeterminate
+                    color="black"
+                    height="4"
+                    class="mb-4"
+                  />
+                  <p v-if="finishingCalibration" class="subtitle-2 grey--text text-center mb-4">
+                    Preparing your calibration results, please wait...
+                  </p>
                 </v-card-text>
                 <v-card-actions class="justify-center pb-8">
                   <v-btn x-large color="#002D51" dark :disabled="finishingCalibration || isCollecting"

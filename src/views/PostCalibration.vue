@@ -10,7 +10,7 @@
                 :dialog="dialog" :pointNumber="pointNumber" :predictionX="predictionX" :predictionY="predictionY"
                 @close="dialogCancel" @select="select" />
         </div>
-        <ConfigModal :configDialog="configDialog" @close="configDialogCancel" @recalib="recalibrate"
+        <ConfigModal :configDialog="configDialog" :saving="savingCalib" @close="configDialogCancel" @recalib="recalibrate"
             @save="saveCalib" />
         <v-col class="pa-0">
             <DraggableFloatingButton @click="callConfigModal" :icon="'mdi-cog'" />
@@ -47,6 +47,7 @@ export default {
             predictionX: [],
             predictionY: [],
             redirectingToRuxailab: false,
+            savingCalib: false,
         }
     },
 
@@ -235,8 +236,13 @@ export default {
             }
         },
         async saveCalib() {
-            await this.$store.dispatch('saveCalib')
-            this.$router.push('/dashboard')
+            this.savingCalib = true
+            try {
+                await this.$store.dispatch('saveCalib')
+                this.$router.push('/dashboard')
+            } finally {
+                this.savingCalib = false
+            }
         },
         callModal(patternLike, pointNumber) {
             this.x = patternLike.x
