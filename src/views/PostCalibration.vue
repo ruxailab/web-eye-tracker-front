@@ -16,9 +16,9 @@
             <DraggableFloatingButton @click="callConfigModal" :icon="'mdi-cog'" />
         </v-col>
 
-        <div v-if="redirectingToRuxailab" class="button-overlay">
-            <v-btn @click="recalibrate" color="primary">Recalibrate</v-btn>
-            <v-btn @click="sendCalibToRuxailab" color="success">Send this calib to Ruxailab</v-btn>
+        <div class="button-overlay">
+            <v-btn @click="recalibrate" color="primary">Recalibrate all points</v-btn>
+            <v-btn v-if="redirectingToRuxailab" @click="sendCalibToRuxailab" color="success">Send this calib to Ruxailab</v-btn>
         </div>
     </div>
 </template>
@@ -45,7 +45,8 @@ export default {
             configDialog: false,
             pointNumber: 0,
             predictionX: [],
-            predictionY: []
+            predictionY: [],
+            redirectingToRuxailab: false,
         }
     },
 
@@ -138,7 +139,7 @@ export default {
 
         async verifyFromRuxailab() {
             const params = new URLSearchParams(window.location.search)
-            this.redirectingToRuxailab = params.has('redirectingToRuxailab')
+            this.redirectingToRuxailab = params.has('redirectingToRuxailab=true')
         },
 
         callConfigModal() {

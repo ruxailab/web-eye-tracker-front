@@ -199,7 +199,7 @@
                   </v-alert>
                 </v-card-text>
                 <v-card-actions class="justify-center pb-6">
-                  <v-btn x-large color="#FF425A" dark @click="startValidation" class="px-8">
+                  <v-btn x-large color="#002D51" dark @click="startValidation" class="px-8">
                     <v-icon left size="28">mdi-play-circle</v-icon>
                     <span class="text-h6">Start Validation</span>
                   </v-btn>
@@ -231,7 +231,7 @@
                   <p class="text-h6 grey--text mb-4">Processing your calibration data...</p>
                 </v-card-text>
                 <v-card-actions class="justify-center pb-8">
-                  <v-btn x-large color="#FF425A" dark :disabled="finishingCalibration || isCollecting"
+                  <v-btn x-large color="#002D51" dark :disabled="finishingCalibration || isCollecting"
                     :loading="finishingCalibration" @click="endCalib()" class="px-12">
                     <v-icon left size="32">mdi-check-bold</v-icon>
                     <span class="text-h5">Finish</span>
