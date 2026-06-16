@@ -241,13 +241,15 @@ export default {
       return true;
     },
     async selectCalib({ commit }, calibData) {
+      const pattern = calibData.pattern || [];
+
       commit("setThreshold", calibData.threshold);
       commit("setCalibName", calibData.calibName);
       commit("setSamplePerPoint", calibData.samplePerPoint);
       commit("setRadius", calibData.radius);
       commit("setOffset", calibData.offset);
       commit("setPointNumber", calibData.pointNumber);
-      commit("setPattern", calibData.pattern);
+      commit("setPattern", pattern);
       commit("setMockPattern", calibData.mockPattern);
       commit("setBackgroundColor", calibData.backgroundColor);
       commit("setPointColor", calibData.pointColor);
@@ -258,6 +260,13 @@ export default {
       commit("setRightTreshold", calibData.rightTreshold);
       commit("setIndex", calibData.index);
       commit("setMsPerCapture", calibData.msPerCapture);
+      commit("setCalibrationPattern", pattern);
+      commit("setRuntimeData", {
+        usedPattern: pattern,
+        circleIrisPoints: calibData.circleIrisPoints || [],
+        calibPredictionPoints: calibData.calibPredictionPoints || [],
+      });
+
       router.push("/postCalibration");
     },
     async getAllCalibs({ commit }) {

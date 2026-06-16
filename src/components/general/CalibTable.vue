@@ -6,11 +6,11 @@
       <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details outlined
         dense></v-text-field>
     </v-card-title>
-    <v-data-table :headers="headers" :items="filteredCalibrations">
+    <v-data-table :headers="headers" :items="filteredCalibrations" :loading="tableLoading">
       <template v-slot:item="{ item }">
         <tr>
           <td v-for="(header, index) in headers" :key="index">
-            {{ item[header.value] }}
+            {{ formatTableValue(item[header.value]) }}
           </td>
           <td>
             <v-btn icon color="black" @click="select(item)">
@@ -33,6 +33,7 @@ export default {
   data() {
     return {
       search: "",
+      tableLoading: false,
       headers: [
         { text: 'Name', value: 'calibName' },
         { text: 'Id', value: 'id' },
@@ -58,14 +59,8 @@ export default {
     },
   },
   async created() {
-    if (this.calibrations.length == 0) {
-      await this.getAllCalibrations()
-      await this.calibrations.forEach(element => {
-        console.log(element);
-        element.precision = this.getCalibAvgPrecision(element)
-        element.accuracy = this.getCalibAvgAccuracy(element)
-      }
-      )
+    if (this.calibrations.length === 0) {
+      await this.getAllCalibrations();
     }
   },
   methods: {
@@ -94,8 +89,25 @@ export default {
       this.$store.commit('setFromDashboard', true)
       this.$store.dispatch('selectCalib', item)
     },
-    getAllCalibrations() {
-      this.$store.dispatch('getAllCalibs')
+    async getAllCalibrations() {
+      this.tableLoading = true;
+      try {
+        await this.$store.dispatch('getAllCalibs');
+      } finally {
+        this.tableLoading = false;
+      }
+    },
+    formatTableValue(value) {
+      if (value === null || value === undefined) {
+        return "";
+      }
+
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) {
+        return parsed.toFixed(2);
+      }
+
+      return value;
     },
     deleteItem(calib) {
       this.$store.dispatch('deleteCalib', calib)
