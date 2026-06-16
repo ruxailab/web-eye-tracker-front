@@ -231,15 +231,8 @@
                   <p class="text-h6 grey--text mb-4">Processing your calibration data...</p>
                 </v-card-text>
                 <v-card-actions class="justify-center pb-8">
-                  <v-btn
-                    x-large
-                    color="#FF425A"
-                    dark
-                    :disabled="finishingCalibration || isCollecting"
-                    :loading="finishingCalibration"
-                    @click="endCalib()"
-                    class="px-12"
-                  >
+                  <v-btn x-large color="#FF425A" dark :disabled="finishingCalibration || isCollecting"
+                    :loading="finishingCalibration" @click="endCalib()" class="px-12">
                     <v-icon left size="32">mdi-check-bold</v-icon>
                     <span class="text-h5">Finish</span>
                   </v-btn>
@@ -341,7 +334,7 @@ export default {
   },
   async created() {
     console.log("rodou created");
-    
+
     // Load TensorFlow.js model if not already loaded
     if (!this.$store.state.detect.model) {
       console.log("Loading TensorFlow.js face detection model...");
@@ -353,7 +346,7 @@ export default {
         this.$store.commit("setModel", model);
         this.$store.commit("setLoaded", model != null);
         console.log("TensorFlow.js model loaded successfully", model);
-        
+
         // Wait for Vue to update the computed property
         await this.$nextTick();
       } catch (error) {
@@ -364,23 +357,15 @@ export default {
     } else {
       console.log("TensorFlow.js model already loaded from store");
     }
-    
+
     await this.verifyFromRuxailab()
     this.$store.commit('setIndex', 0)
-    this.usedPattern = this.generateRuntimePattern()
+    this.usedPattern = this.generatePoints()
 
-    if (this.usedPattern.length === 0) {
-      const width = window.innerWidth
-      const height = window.innerHeight
-      const offset = this.offset || 100
-      const pointCount = this.$store.state.calibration.pointNumber
-
-      const generatedPattern = this.generateCalibrationPattern(pointCount, width, height, offset)
-
-      this.$store.commit('setMockPattern', generatedPattern)
-      this.usedPattern = generatedPattern
-
+    if (!this.usedPattern.length) {
+      return;
     }
+    
     await this.startWebCamCapture();
     console.log("chamou drawPoint no created com os valores:", this.usedPattern[0].x, this.usedPattern[0].y);
     this.drawPoint(this.usedPattern[0].x, this.usedPattern[0].y, 1)
@@ -473,108 +458,6 @@ export default {
         e.returnValue = "";
       }
     },
-    generateCalibrationPattern(pointCount, width, height, offset) {
-      const patterns = [];
-      
-      switch(pointCount) {
-        case 1:
-          // Center point only
-          patterns.push({ x: width/2, y: height/2 });
-          break;
-          
-        case 2:
-          // Left and right edges (horizontal coverage)
-          patterns.push({ x: offset, y: height/2 });
-          patterns.push({ x: width - offset, y: height/2 });
-          break;
-          
-        case 3:
-          // Horizontal line: left, center, right
-          patterns.push({ x: offset, y: height/2 });
-          patterns.push({ x: width/2, y: height/2 });
-          patterns.push({ x: width - offset, y: height/2 });
-          break;
-          
-        case 4:
-          // Four corners (optimal for 4-point calibration)
-          patterns.push({ x: offset, y: offset });
-          patterns.push({ x: width - offset, y: offset });
-          patterns.push({ x: offset, y: height - offset });
-          patterns.push({ x: width - offset, y: height - offset });
-          break;
-          
-        case 5:
-          // Four corners + center (cross pattern)
-          patterns.push({ x: offset, y: offset });
-          patterns.push({ x: width - offset, y: offset });
-          patterns.push({ x: width/2, y: height/2 });
-          patterns.push({ x: offset, y: height - offset });
-          patterns.push({ x: width - offset, y: height - offset });
-          break;
-          
-        case 6: {
-          // 3x2 rectangle pattern
-          const stepX6 = (width - 2 * offset) / 2;
-          const stepY6 = (height - 2 * offset) / 1;
-          for (let i = 0; i < 2; i++) {
-            for (let j = 0; j < 3; j++) {
-              patterns.push({
-                x: offset + j * stepX6,
-                y: offset + i * stepY6,
-              });
-            }
-          }
-          break;
-        }
-          
-        case 7:
-          // Partial 3x3 grid (strategic selection)
-          patterns.push({ x: offset, y: offset });
-          patterns.push({ x: width/2, y: offset });
-          patterns.push({ x: width - offset, y: offset });
-          patterns.push({ x: offset, y: height/2 });
-          patterns.push({ x: width - offset, y: height/2 });
-          patterns.push({ x: offset, y: height - offset });
-          patterns.push({ x: width - offset, y: height - offset });
-          break;
-          
-        case 8:
-          // Partial 3x3 grid (without center)
-          patterns.push({ x: offset, y: offset });
-          patterns.push({ x: width/2, y: offset });
-          patterns.push({ x: width - offset, y: offset });
-          patterns.push({ x: offset, y: height/2 });
-          patterns.push({ x: width - offset, y: height/2 });
-          patterns.push({ x: offset, y: height - offset });
-          patterns.push({ x: width/2, y: height - offset });
-          patterns.push({ x: width - offset, y: height - offset });
-          break;
-          
-        case 9:
-        default: {
-          // Full 3x3 grid (current working pattern)
-          const cols = 3;
-          const rows = 3;
-          const usableWidth = width - 2 * offset;
-          const usableHeight = height - 2 * offset;
-          const stepX = usableWidth / (cols - 1);
-          const stepY = usableHeight / (rows - 1);
-          
-          for (let i = 0; i < rows; i++) {
-            for (let j = 0; j < cols; j++) {
-              patterns.push({
-                x: offset + j * stepX,
-                y: offset + i * stepY,
-              });
-            }
-          }
-          break;
-        }
-      }
-      
-      return patterns;
-    },
-    
     startTraining() {
       if (!this.isFullscreen()) {
         this.fullscreenRequiredDialog = true;
@@ -835,10 +718,10 @@ export default {
           this.usedPattern[a].predictionY = [];
         }
       }
-      
+
       // Update the store's pattern with the prediction data
       this.$store.commit('setPattern', this.usedPattern)
-      
+
       this.$store.dispatch('extractXYValues', { extract: this.circleIrisPoints, hasCalib: true })
       this.$store.dispatch('extractXYValues', { extract: this.calibPredictionPoints, hasCalib: false })
 
@@ -907,9 +790,9 @@ export default {
 
           // Init record webcam
           this.recordWebCam.start();
-          
+
           // Wait for video to be fully ready with proper dimensions
-          video.onloadedmetadata = async () =>{
+          video.onloadedmetadata = async () => {
             // Additional wait to ensure video renders properly
             await new Promise(resolve => setTimeout(resolve, 200));
           }
@@ -943,9 +826,9 @@ export default {
 
     async detectFace(retryCount = 0) {
       const maxRetries = 50; // Maximum 5 seconds of retries (50 * 100ms)
-      
+
       const video = document.getElementById("video-tag");
-      
+
       // Ensure video has valid dimensions before processing
       if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
         if (retryCount < maxRetries) {
@@ -957,7 +840,7 @@ export default {
           throw new Error('Video not ready');
         }
       }
-      
+
       // Ensure model is loaded before attempting face detection
       if (!this.model) {
         if (retryCount < maxRetries) {
@@ -969,7 +852,7 @@ export default {
           throw new Error('TensorFlow model not loaded');
         }
       }
-      
+
       const lastPrediction = await this.model.estimateFaces({
         input: video,
       });
@@ -997,38 +880,78 @@ export default {
       await this.recordWebCam.stop();
       this.calibFinished = true;
     },
-
-    generateRuntimePattern() {
+    generatePoints() {
       const width = window.innerWidth
       const height = window.innerHeight
       const offset = this.offset || 100
-      const points = this.$store.state.calibration.pointNumber || 9
+      const pointNum = this.$store.state.calibration.pointNumber || 9
 
-      const minCols = 3
-      const cols = Math.max(minCols, Math.round(Math.sqrt(points)))
-      const rows = Math.ceil(points / cols)
+      const possiblePatterns = [
+        [
+          { x: offset, y: height - offset },
+          { x: width - offset, y: offset },
+        ],
+        [
+          { x: offset, y: height - offset },
+          { x: width / 2, y: height / 2 },
+          { x: width - offset, y: offset },
+        ],
+        [
+          { x: offset, y: offset },
+          { x: width - offset, y: offset },
+          { x: offset, y: height - offset },
+          { x: width - offset, y: height - offset },
+        ],
+        [
+          { x: offset, y: offset },
+          { x: width - offset, y: offset },
+          { x: width / 2, y: height / 2 },
+          { x: offset, y: height - offset },
+          { x: width - offset, y: height - offset },
+        ],
+        [
+          { x: offset, y: offset },
+          { x: offset, y: height / 2 },
+          { x: offset, y: height - offset },
+          { x: width - offset, y: offset },
+          { x: width - offset, y: height / 2 },
+          { x: width - offset, y: height - offset },
+        ],
+        [
+          { x: offset, y: offset },
+          { x: offset, y: height / 2 },
+          { x: offset, y: height - offset },
+          { x: width / 2, y: height / 2 },
+          { x: width - offset, y: offset },
+          { x: width - offset, y: height / 2 },
+          { x: width - offset, y: height - offset },
+        ],
+        [
+          { x: offset, y: offset },
+          { x: offset, y: height / 2 },
+          { x: offset, y: height - offset },
+          { x: width / 2, y: offset },
+          { x: width / 2, y: height - offset },
+          { x: width - offset, y: offset },
+          { x: width - offset, y: height / 2 },
+          { x: width - offset, y: height - offset },
+        ],
+        [
+          { x: offset, y: offset },
+          { x: offset, y: height / 2 },
+          { x: offset, y: height - offset },
+          { x: width / 2, y: offset },
+          { x: width / 2, y: height / 2 },
+          { x: width / 2, y: height - offset },
+          { x: width - offset, y: offset },
+          { x: width - offset, y: height / 2 },
+          { x: width - offset, y: height - offset },
+        ]
+      ]
 
-
-      const usableWidth = width - 2 * offset
-      const usableHeight = height - 2 * offset
-
-      const stepX = usableWidth / (cols - 1)
-      const stepY = usableHeight / (rows - 1)
-
-      const pattern = []
-
-      for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < cols; j++) {
-          if (pattern.length < points) {
-            pattern.push({
-              x: offset + j * stepX,
-              y: offset + i * stepY
-            })
-          }
-        }
-      }
-
-      return pattern
+      return possiblePatterns.find(
+        pattern => pattern.length === pointNum
+      ) || []
     }
   },
 };
