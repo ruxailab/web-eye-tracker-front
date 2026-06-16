@@ -134,7 +134,7 @@
                   </v-card-text>
                 </v-card>
                 <div class="text-center pb-2">
-                  <v-btn color="#FF425A" dark @click="startCameraSetup">
+                  <v-btn color="#002d51" dark @click="startCameraSetup">
                     <v-icon left>mdi-arrow-right</v-icon>
                     Continue
                   </v-btn>
@@ -205,7 +205,7 @@
                       Back
                     </v-btn>
                     <v-btn
-                      color="#FF425A"
+                      color="#002d51"
                       dark
                       :disabled="!isCameraOn || !lightingReady"
                       @click="startCalibration"

@@ -102,7 +102,7 @@
 
                   <v-row class="mb-4">
                     <v-col cols="6">
-                      <v-alert color="#FF425A" dark dense>
+                      <v-alert color="#002D51" dark dense>
                         <div class="d-flex align-center">
                           <v-icon left>mdi-check-circle</v-icon>
                           <span><strong>Success:</strong> You can use the tool</span>
@@ -110,7 +110,7 @@
                       </v-alert>
                     </v-col>
                     <v-col cols="6">
-                      <v-alert color="#002D51" dark dense>
+                      <v-alert color="#FF425A" dark dense>
                         <div class="d-flex align-center">
                           <v-icon left>mdi-alert-circle</v-icon>
                           <span><strong>Failure:</strong> Repeat calibration</span>
@@ -120,7 +120,7 @@
                   </v-row>
                 </v-card-text>
                 <v-card-actions class="justify-center pb-6">
-                  <v-btn x-large color="#FF425A" dark @click="stepperStep = 2" class="px-8">
+                  <v-btn x-large color="#002D51" dark @click="stepperStep = 2" class="px-8">
                     <v-icon left>mdi-arrow-right</v-icon>
                     Continue
                   </v-btn>
@@ -158,7 +158,7 @@
                     <v-icon left>mdi-arrow-left</v-icon>
                     Back
                   </v-btn>
-                  <v-btn x-large color="#FF425A" dark @click="startTraining" class="px-8">
+                  <v-btn x-large color="#002D51" dark @click="startTraining" class="px-8">
                     <v-icon left size="28">mdi-play-circle</v-icon>
                     <span class="text-h6">Start Training</span>
                   </v-btn>
