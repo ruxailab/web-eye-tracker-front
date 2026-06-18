@@ -140,7 +140,8 @@ export default {
 
         async verifyFromRuxailab() {
             const params = new URLSearchParams(window.location.search)
-            this.redirectingToRuxailab = params.has('redirectingToRuxailab=true')
+            const redirectParam = params.get('redirectingToRuxailab')
+            this.redirectingToRuxailab = redirectParam === 'true'
         },
 
         callConfigModal() {
@@ -162,7 +163,9 @@ export default {
                 screenHeight,
                 screenWidth,
                 k: this.$store.state.calibration.pointNumber,
-                threshold: this.threshold
+                threshold: this.threshold,
+                userId: this.$store.state.userId,
+                studyId: this.$store.state.studyId,
             })
         },
 

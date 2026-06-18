@@ -29,6 +29,8 @@ export default {
       usedPattern: [],
       finished: false,
     },
+    studyId: null,
+    userId: null,
   },
   mutations: {
     setCalibrationConfig(state, config) {
@@ -57,6 +59,12 @@ export default {
     },
     setCalibName(state, newCalibName) {
       state.calibName = newCalibName;
+    },
+    setStudyId(state, newStudyId) {
+      state.studyId = newStudyId;
+    },
+    setUserId(state, newUserId) {
+      state.userId = newUserId;
     },
     setSamplePerPoint(state, newSamplePerPoint) {
       state.samplePerPoint = newSamplePerPoint;
@@ -211,6 +219,8 @@ export default {
         screenWidth,
         k: state.pointNumber,
         threshold: state.threshold,
+        studyId: state.studyId, 
+        userId: state.userId,
       });
 
       if (typeof predictions === "string") {
@@ -321,6 +331,8 @@ export default {
       formData.append("from_ruxailab", JSON.stringify(!!data.fromRuxailab));
 
       formData.append("file_name", JSON.stringify(context.state.calibName));
+      formData.append("study_id", JSON.stringify(context.state.studyId));
+      formData.append("user_id", JSON.stringify(context.state.userId));
       formData.append(
         "fixed_circle_iris_points",
         JSON.stringify(data.circleIrisPoints)

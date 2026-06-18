@@ -698,7 +698,9 @@ export default {
         screenHeight,
         screenWidth,
         k: this.$store.state.calibration.pointNumber,
-        threshold: this.$store.state.calibration.threshold
+        threshold: this.$store.state.calibration.threshold,
+        userId: this.$store.state.userId,
+        studyId: this.$store.state.studyId,
       })
 
       if (typeof predictions === 'string') {

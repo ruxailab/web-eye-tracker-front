@@ -583,8 +583,11 @@ export default {
     verifyFromRuxailab() {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.has("auth") && urlParams.has("test")) {
-        const auth = urlParams.get("auth");
-        this.$store.commit("setCalibName", auth);
+        const userId = urlParams.get("auth");
+        const studyId = urlParams.get("test");
+        this.$store.commit("setCalibName", userId);
+        this.$store.commit("setStudyId", studyId);
+        this.$store.commit("setUserId", userId);
         this.fromRuxailab = true;
       }
     },
