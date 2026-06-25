@@ -1,24 +1,21 @@
 <template>
     <div class="scroll-container">
-        <canvas
-            id="canvas"
-            style="width: 100%; height: 100%;"
-            @click="handleCanvasClick"
-        />
+        <canvas id="canvas" style="width: 100%; height: 100%;" @click="handleCanvasClick" />
         <div>
             <PointModal :x="Number(x)" :y="Number(y)" :precision="Number(precision)" :accuracy="Number(accuracy)"
                 :dialog="dialog" :pointNumber="pointNumber" :predictionX="predictionX" :predictionY="predictionY"
                 @close="dialogCancel" @select="select" />
         </div>
-        <ConfigModal :configDialog="configDialog" :saving="savingCalib" @close="configDialogCancel" @recalib="recalibrate"
-            @save="saveCalib" />
+        <ConfigModal :configDialog="configDialog" :saving="savingCalib" @close="configDialogCancel"
+            @recalib="recalibrate" @save="saveCalib" />
         <v-col class="pa-0">
             <DraggableFloatingButton @click="callConfigModal" :icon="'mdi-cog'" />
         </v-col>
 
         <div class="button-overlay">
             <v-btn @click="recalibrate" color="primary">Recalibrate all points</v-btn>
-            <v-btn v-if="redirectingToRuxailab" @click="sendCalibToRuxailab" color="success">Send this calib to Ruxailab</v-btn>
+            <v-btn v-if="redirectingToRuxailab" @click="sendCalibToRuxailab" color="success">Send this calib to
+                Ruxailab</v-btn>
         </div>
     </div>
 </template>
@@ -100,22 +97,42 @@ export default {
     methods: {
         applyCalibResult() {
             if (!this.calibValidationResult) {
-                console.warn('❌ calibValidationResult é null/undefined')
+                console.warn('❌ calibValidationResult is null/undefined')
                 return
             }
 
-            console.log('✅ calibValidationResult encontrado:', this.calibValidationResult)
+            console.log('✅ calibValidationResult found:', this.calibValidationResult)
 
             const adapted = this.pattern.map((p, idx) => {
-                const xKey = Math.round(p.x).toString()
-                const yKey = Math.round(p.y).toString()
+                // FIX: Instead of looking for an exact key match, iterate through the object
+                // and find the closest point
+                let bestData = null
+                let minDistance = Infinity
 
-                console.log(`📍 Ponto ${idx}: x=${p.x}, y=${p.y} -> keys: ${xKey}, ${yKey}`)
+                // Iterate through the X keys from the JSON returned by Python
+                Object.keys(this.calibValidationResult).forEach(xStr => {
+                    const xVal = parseFloat(xStr)
 
-                const data = this.calibValidationResult?.[xKey]?.[yKey]
+                    Object.keys(this.calibValidationResult[xStr]).forEach(yStr => {
+                        const yVal = parseFloat(yStr)
 
-                if (!data) {
-                    console.warn(`⚠️ Nenhum dado para ponto ${idx} (${xKey}, ${yKey})`)
+                        // Calculate the distance between the layout point
+                        // and the JSON key coordinates
+                        const dist = Math.hypot(xVal - p.x, yVal - p.y)
+
+                        // Increased tolerance from 5 to 50 pixels
+                        // to absorb backend scaling variations
+                        if (dist < minDistance && dist < 50) {
+                            minDistance = dist
+                            bestData = this.calibValidationResult[xStr][yStr]
+                        }
+                    })
+                })
+
+                if (!bestData) {
+                    console.warn(
+                        `⚠️ No nearby data found for point ${idx} (x=${p.x}, y=${p.y})`
+                    )
                     return {
                         ...p,
                         predictionX: [],
@@ -125,13 +142,17 @@ export default {
                     }
                 }
 
-                console.log(`✅ Dados encontrados para ponto ${idx}:`, data)
+                console.log(
+                    `✅ Data successfully retrieved for point ${idx}:`,
+                    bestData
+                )
+
                 return {
                     ...p,
-                    predictionX: data.predicted_x || [],
-                    predictionY: data.predicted_y || [],
-                    precision: data.PrecisionSD,
-                    accuracy: data.Accuracy
+                    predictionX: bestData.predicted_x || [],
+                    predictionY: bestData.predicted_y || [],
+                    precision: bestData.PrecisionSD,
+                    accuracy: bestData.Accuracy
                 }
             })
 
@@ -214,7 +235,7 @@ export default {
                 const dashColor = isSelected ? 'green' : 'red'
                 const pointsColor = isSelected ? 'green' : 'orange'
                 const centroidColor = isSelected ? 'rgba(0, 0, 255, 0.3)' : 'rgba(128, 128, 128, 0.3)'
-                const deniedPointColor = isSelected ? 'blue' : 'grey'
+                const deniedPointColor = isSelected ? 'blue' : 'red'
 
                 this.drawCalibMarks(this.pattern[i].x, this.pattern[i].y, 30, crossColor)
                 var sumX = 0;
