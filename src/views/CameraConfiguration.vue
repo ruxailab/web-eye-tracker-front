@@ -230,7 +230,7 @@ import BlinkTresholdCard from "@/components/calibration/BlinkTresholdCard.vue";
 
 const tf = require("@tensorflow/tfjs");
 const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
-require("@tensorflow/tfjs-backend-wasm");
+require("@tensorflow/tfjs-backend-webgl");
 
 export default {
   components: {
@@ -357,9 +357,14 @@ export default {
     },
     async setupCamera() {
       // Load the faceLandmarksDetection model assets.
-      const model = await faceLandmarksDetection.load(
-        faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
-        { maxFaces: 1 },
+      const model = await faceLandmarksDetection.createDetector(
+        faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh,
+        {
+          runtime: "mediapipe",
+          solutionPath: "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh",
+          refineLandmarks: true,
+          maxFaces: 1,
+        },
       );
 
       this.$store.commit("setModel", model);
@@ -386,8 +391,8 @@ export default {
             audio: false,
             video: {
               deviceId: this.selectedMediaDevice,
-              width: 600,
-              height: 500,
+              width: 640,
+              height: 480,
             },
           })
           .then((stream) => {
@@ -416,7 +421,7 @@ export default {
       }
 
       const constraints = {
-        video: { deviceId: deviceId, width: 600, height: 500 },
+        video: { deviceId: deviceId, width: 640, height: 480 },
         audio: false,
       };
 
@@ -442,10 +447,41 @@ export default {
       let ctx = canvas.getContext("2d");
 
       try {
-        let prediction = await this.model.estimateFaces({
-          input: this.video,
+        let prediction = await this.model.estimateFaces(this.video, {
+          flipHorizontal: false,
         });
 
+        prediction = prediction.map((face) => {
+          const keypoints = face.keypoints.map((point) => [
+            point.x,
+            point.y,
+            point.z || 0,
+          ]);
+          const annotations = {
+            leftEyeIris: [keypoints[468]],
+            rightEyeIris: [keypoints[473]],
+            leftEyeUpper0: [466, 388, 387, 386, 385, 384, 398].map(
+              (index) => keypoints[index],
+            ),
+            leftEyeLower0: [263, 249, 390, 373, 374, 380, 381, 382, 362].map(
+              (index) => keypoints[index],
+            ),
+            rightEyeUpper0: [246, 161, 160, 159, 158, 157, 173].map(
+              (index) => keypoints[index],
+            ),
+            rightEyeLower0: [33, 7, 163, 144, 145, 153, 154, 155, 133].map(
+              (index) => keypoints[index],
+            ),
+          };
+
+          return {
+            annotations,
+            boundingBox: {
+              topLeft: [face.box.xMin, face.box.yMin],
+              bottomRight: [face.box.xMax, face.box.yMax],
+            },
+          };
+        });
         this.$store.commit("setPredictions", prediction);
 
         canvas.width = this.video.videoWidth || 500;

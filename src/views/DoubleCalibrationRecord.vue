@@ -261,7 +261,7 @@ import axios from 'axios';
 import { envConfig } from '../config/environment';
 
 const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
-require("@tensorflow/tfjs-backend-wasm");
+require("@tensorflow/tfjs-backend-webgl");
 
 
 export default {
@@ -273,7 +273,10 @@ export default {
       recordWebCam: null,
       configWebCam: {
         audio: false,
-        video: true
+        video: {
+          width: 640,
+          height: 480,
+        }
       },
 
       // calibration
@@ -347,9 +350,14 @@ export default {
     if (!this.$store.state.detect.model) {
       console.log("Loading TensorFlow.js face detection model...");
       try {
-        const model = await faceLandmarksDetection.load(
-          faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
-          { maxFaces: 1 }
+        const model = await faceLandmarksDetection.createDetector(
+          faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh,
+          {
+            runtime: "mediapipe",
+            solutionPath: "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh",
+            refineLandmarks: true,
+            maxFaces: 1,
+          }
         );
         this.$store.commit("setModel", model);
         this.$store.commit("setLoaded", model != null);
@@ -577,23 +585,20 @@ export default {
         const pred = prediction[0];
 
         // Additional safety check for required annotations
-        if (!pred.annotations || !pred.annotations.leftEyeIris || !pred.annotations.rightEyeIris) {
+        if (!pred.keypoints || !pred.keypoints[468] || !pred.keypoints[473]) {
           console.warn('Incomplete face landmarks detected. Retrying...');
           await new Promise(resolve => setTimeout(resolve, 500));
           continue;
         }
 
-        // left eye
-        const leftIris = pred.annotations.leftEyeIris;
-        const leftEyelid = pred.annotations.leftEyeUpper0.concat(pred.annotations.leftEyeLower0);
-        const leftEyelidTip = leftEyelid[3];
-        const leftEyelidBottom = leftEyelid[11];
+        const keypoints = pred.keypoints;
+        const leftIris = [keypoints[468].x, keypoints[468].y];
+        const rightIris = [keypoints[473].x, keypoints[473].y];
+        const leftEyelidTip = keypoints[386];
+        const leftEyelidBottom = keypoints[374];
         const isLeftBlink = this.calculateDistance(leftEyelidTip, leftEyelidBottom) < this.leftEyeTreshold;
-        // right eye
-        const rightIris = pred.annotations.rightEyeIris;
-        const rightEyelid = pred.annotations.rightEyeUpper0.concat(pred.annotations.rightEyeLower0);
-        const rightEyelidTip = rightEyelid[3];
-        const rightEyelidBottom = rightEyelid[11];
+        const rightEyelidTip = keypoints[159];
+        const rightEyelidBottom = keypoints[145];
         const isRightBlink = this.calculateDistance(rightEyelidTip, rightEyelidBottom) < this.rightEyeTreshold;
 
         if (isLeftBlink || isRightBlink) {
@@ -601,7 +606,7 @@ export default {
           // set timer so that when eyes open it doesnt select the unstable values
           await new Promise(resolve => setTimeout(resolve, 500));
         } else {
-          const newPrediction = { leftIris: leftIris[0], rightIris: rightIris[0] };
+          const newPrediction = { leftIris, rightIris };
           point.data.push(newPrediction);
           const radius = (this.radius / this.predByPointCount) * a
           this.drawPoint(point.x, point.y, radius)
@@ -863,8 +868,8 @@ export default {
         }
       }
 
-      const lastPrediction = await this.model.estimateFaces({
-        input: video,
+      const lastPrediction = await this.model.estimateFaces(video, {
+        flipHorizontal: false,
       });
 
       // Send to backend for real-time validation
