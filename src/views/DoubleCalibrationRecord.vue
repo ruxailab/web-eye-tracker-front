@@ -251,6 +251,12 @@
         </v-stepper>
       </v-card>
     </v-dialog>
+    <div v-if="showPressReminder && !showStepper" class="press-reminder-overlay">
+      <v-card class="press-reminder-card" elevation="8">
+        <v-icon color="#FF425A" class="mr-2">mdi-keyboard</v-icon>
+        <span>Press S</span>
+      </v-card>
+    </div>
     <canvas id="canvas" style="z-index: 0;" />
     <video autoplay id="video-tag" style="display: none;"></video>
   </div>
@@ -300,6 +306,8 @@ export default {
       fullscreenRequiredDialog: false,
       navigationBlockedDialog: false,
       finishingCalibration: false,
+      showPressReminder: false,
+      pressPromptTimeout: null,
     };
   },
   computed: {
@@ -405,6 +413,7 @@ export default {
     document.removeEventListener("webkitfullscreenchange", this.onFullscreenChange);
     window.removeEventListener("beforeunload", this.onBeforeUnload);
 
+    clearTimeout(this.pressPromptTimeout);
     this.removeCalibrationScrollLock();
   },
   beforeRouteLeave(to, from, next) {
@@ -464,9 +473,20 @@ export default {
     },
     onFullscreenChange() {
       if (this.calibrationStarted && !this.calibFinished && !this.isFullscreen()) {
+        clearTimeout(this.pressPromptTimeout);
+        this.showPressReminder = false;
         this.fullscreenRequiredDialog = true;
         this.showStepper = true;
       }
+    },
+    schedulePressPrompt() {
+      clearTimeout(this.pressPromptTimeout);
+      this.showPressReminder = false;
+      this.pressPromptTimeout = setTimeout(() => {
+        if (this.calibrationStarted && !this.calibFinished && !this.isCollecting && !this.showStepper) {
+          this.showPressReminder = true;
+        }
+      }, 5000);
     },
     onBeforeUnload(e) {
       if (this.calibrationStarted && !this.calibFinished) {
@@ -481,6 +501,7 @@ export default {
       }
       this.showStepper = false;
       this.calibrationStarted = true;
+      this.schedulePressPrompt();
     },
     startValidation() {
       if (!this.isFullscreen()) {
@@ -489,6 +510,7 @@ export default {
       }
       this.showStepper = false;
       this.calibrationStarted = true;
+      this.schedulePressPrompt();
     },
     advance(pattern, whereToSave, timeBetweenCaptures) {
       const th = this
@@ -500,6 +522,8 @@ export default {
         }
 
         if ((event.key === "s" || event.key === "S" || event.key === "Enter")) {
+          clearTimeout(th.pressPromptTimeout);
+          th.showPressReminder = false;
           if (!th.isFullscreen()) {
             th.fullscreenRequiredDialog = true;
             th.showStepper = true;
@@ -526,7 +550,8 @@ export default {
             i++
 
             if (i < pattern.length) {
-              await th.triggerAnimation(pattern[i - 1], pattern[i], this.animationRefreshRate)
+              await th.triggerAnimation(pattern[i - 1], pattern[i], th.animationRefreshRate)
+              th.schedulePressPrompt();
               document.addEventListener('keydown', keydownHandler)
             } else {
               // Completed all points - finalize
@@ -549,6 +574,8 @@ export default {
       document.addEventListener('keydown', keydownHandler)
     },
     nextStep() {
+      clearTimeout(this.pressPromptTimeout);
+      this.showPressReminder = false;
       this.usedPattern.forEach(element => {
         delete element.data;
       });
@@ -979,6 +1006,25 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
+}
+
+.press-reminder-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.press-reminder-card {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .center-container {
