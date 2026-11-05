@@ -2,6 +2,12 @@ import axios from 'axios';
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 import router from '@/router';
+
+const SAVE_TIMEOUT_MS = 15000;
+// Keep the original write (including a late success) so retries cannot add duplicates.
+// This is only in-memory tracking, reset when a new calibration is loaded or recorded.
+const calibrationSaves = new WeakMap();
+
 export default {
   state: {
     calibName: "",
@@ -128,6 +134,7 @@ export default {
       state.fromDashboard = newFromDashboard;
     },
     setRuntimeData(state, payload) {
+      calibrationSaves.delete(state);
       state.runtime.circleIrisPoints = payload.circleIrisPoints;
       state.runtime.calibPredictionPoints = payload.calibPredictionPoints;
       state.runtime.usedPattern = payload.usedPattern;
@@ -138,6 +145,7 @@ export default {
     },
 
     resetRuntime(state) {
+      calibrationSaves.delete(state);
       state.runtime.circleIrisPoints = [];
       state.runtime.calibPredictionPoints = [];
       state.runtime.usedPattern = [];
@@ -147,6 +155,7 @@ export default {
       state.runtime.usedPattern = adapted;
     },
     resetAll(state) {
+      calibrationSaves.delete(state);
       state.calibName = "";
       state.pointNumber = 9;
       state.samplePerPoint = 90;
@@ -193,16 +202,46 @@ export default {
     },
     async saveCalib(context) {
       const state = context.state;
-      const db = firebase.firestore();
-      const calibrationData = { ...state };
-      delete calibrationData.calibrations;
+      if (!firebase.apps.length || !firebase.app().options.projectId) {
+        const error = new Error("Firebase is not configured.");
+        error.code = "calibration/not-configured";
+        throw error;
+      }
+
+      let save = calibrationSaves.get(state);
+      if (!save) {
+        const db = firebase.firestore();
+        const calibrationData = { ...state };
+        delete calibrationData.calibrations;
+        save = db.collection("calibrations").add(calibrationData);
+        calibrationSaves.set(state, save);
+        save.then(() => {
+          // Refresh failures must not turn an acknowledged write into a failed save.
+          context.dispatch("getAllCalibs").catch((error) => {
+            console.error("Error refreshing calibrations after saving:", error);
+          });
+        }, () => {
+          if (calibrationSaves.get(state) === save) {
+            calibrationSaves.delete(state);
+          }
+        });
+      }
+
+      let timeout;
       try {
-        const calibrationsCollection = db.collection("calibrations");
-        await calibrationsCollection.add(calibrationData);
-        console.log("Data successfully saved to calibrations collection!");
-        context.dispatch("getAllCalibs");
-      } catch (error) {
-        console.error("Error saving data to calibrations collection:", error);
+        // Only stop waiting; the SDK write is still pending and must be reused on retry.
+        return await Promise.race([
+          save,
+          new Promise((resolve, reject) => {
+            timeout = setTimeout(() => {
+              const error = new Error("Timed out waiting for save confirmation.");
+              error.code = "calibration/save-timeout";
+              reject(error);
+            }, SAVE_TIMEOUT_MS);
+          }),
+        ]);
+      } finally {
+        clearTimeout(timeout);
       }
     },
     async finishCalibration({ state, dispatch }) {

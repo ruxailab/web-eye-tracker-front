@@ -11,6 +11,16 @@
             </v-card-title>
             
             <v-card-text class="px-6 py-4">
+              <v-alert
+                v-if="!isFirebaseConfigured"
+                type="info"
+                dense
+                outlined
+                class="mb-4"
+              >
+                <strong>Note:</strong> Firebase is not configured in this environment. You can test calibration and gaze tracking, but saving results to the dashboard will be unavailable.
+              </v-alert>
+
               <div class="info-section">
                 <div class="info-item">
                   <v-icon color="green" class="mr-3">mdi-information-outline</v-icon>
@@ -159,6 +169,7 @@ kbd {
 <script>
 import Toolbar from "@/components/general/Toolbar.vue";
 import axios from "axios";
+import firebase from "firebase/app";
 
 export default {
   components: {
@@ -169,6 +180,11 @@ export default {
       errorDialog: false,
       errorMessage: "",
     };
+  },
+  computed: {
+    isFirebaseConfigured() {
+      return Boolean(firebase.apps.length && firebase.app().options.projectId);
+    },
   },
   methods: {
     async goToCameraConfig() {
