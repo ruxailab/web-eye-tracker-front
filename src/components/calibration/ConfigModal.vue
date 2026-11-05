@@ -17,6 +17,7 @@
             </v-card-text>
             <Slider :value="threshold" :min="Number(0)" :step="5" :max="Number(1000)" label="Points Distance Threshold"
                 @input="updateThreshold" />
+            <v-alert v-if="saveError" type="error" role="alert" class="mx-4">{{ saveError }}</v-alert>
             <v-card-actions class="justify-center">
                 <v-btn color="primary" text class="text-none" :disabled="fromDashboard || saving" @click="recalibrate">RECALIB</v-btn>
                 <v-btn color="primary" text class="text-none" :disabled="fromDashboard || saving" :loading="saving" @click="save">SAVE</v-btn>
@@ -42,6 +43,10 @@ export default {
         saving: {
             type: Boolean,
             default: false
+        },
+        saveError: {
+            type: String,
+            default: ''
         }
     },
     data() {

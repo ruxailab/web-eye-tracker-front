@@ -6,7 +6,7 @@
                 :dialog="dialog" :pointNumber="pointNumber" :predictionX="predictionX" :predictionY="predictionY"
                 @close="dialogCancel" @select="select" />
         </div>
-        <ConfigModal :configDialog="configDialog" :saving="savingCalib" @close="configDialogCancel"
+        <ConfigModal :configDialog="configDialog" :saving="savingCalib" :saveError="saveError" @close="configDialogCancel"
             @recalib="recalibrate" @save="saveCalib" />
         <v-col class="pa-0">
             <DraggableFloatingButton @click="callConfigModal" :icon="'mdi-cog'" />
@@ -45,6 +45,7 @@ export default {
             predictionY: [],
             redirectingToRuxailab: false,
             savingCalib: false,
+            saveError: '',
         }
     },
 
@@ -260,12 +261,29 @@ export default {
             }
         },
         async saveCalib() {
+            if (this.savingCalib) return
             this.savingCalib = true
+            this.saveError = ''
             try {
                 await this.$store.dispatch('saveCalib')
-                this.$router.push('/dashboard')
+            } catch (error) {
+                if (error.code === 'calibration/not-configured') {
+                    this.saveError = 'Calibration saving is unavailable because Firebase is not configured. Please contact the site administrator.'
+                } else if (error.code === 'calibration/save-timeout') {
+                    this.saveError = 'Save confirmation timed out. The original save may still complete. Check your connection and click SAVE again to check its status.'
+                } else if (error.code === 'permission-denied') {
+                    this.saveError = 'You do not have permission to save calibrations. Please contact the site administrator and try again.'
+                } else {
+                    this.saveError = 'Could not save the calibration. Check your connection and try again.'
+                }
+                return
             } finally {
                 this.savingCalib = false
+            }
+            try {
+                await this.$router.push('/dashboard')
+            } catch (error) {
+                this.saveError = 'Calibration saved, but the dashboard could not be opened. Click SAVE to try opening it again.'
             }
         },
         callModal(patternLike, pointNumber) {

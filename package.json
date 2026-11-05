@@ -11,7 +11,8 @@
     "build:production": "vue-cli-service build --mode production",
     "deploy:development": "npm run build:development && firebase deploy --project dev --only hosting:dev",
     "deploy:production": "npm run build:production && firebase deploy --project prod --only hosting:prod",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "test": "node tests/calibration-save.test.js"
   },
   "dependencies": {
     "@mediapipe/face_mesh": "^0.4.1633559619",
