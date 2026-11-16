@@ -660,8 +660,13 @@ export default {
       }
     },
     calculateDistance(eyelidTip, eyelidBottom) {
-      const xDistance = eyelidBottom[0] - eyelidTip[0];
-      const yDistance = eyelidBottom[1] - eyelidTip[1];
+      if (!eyelidTip || !eyelidBottom) return 0;
+      const tipX = eyelidTip.x !== undefined ? eyelidTip.x : eyelidTip[0];
+      const tipY = eyelidTip.y !== undefined ? eyelidTip.y : eyelidTip[1];
+      const bottomX = eyelidBottom.x !== undefined ? eyelidBottom.x : eyelidBottom[0];
+      const bottomY = eyelidBottom.y !== undefined ? eyelidBottom.y : eyelidBottom[1];
+      const xDistance = bottomX - tipX;
+      const yDistance = bottomY - tipY;
       const distance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
       return distance;
     },
