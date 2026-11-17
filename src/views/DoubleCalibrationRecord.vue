@@ -308,6 +308,8 @@ export default {
       finishingCalibration: false,
       showPressReminder: false,
       pressPromptTimeout: null,
+      webcamStream: null,
+      keydownHandler: null,
     };
   },
   computed: {
@@ -413,6 +415,24 @@ export default {
     document.removeEventListener("webkitfullscreenchange", this.onFullscreenChange);
     window.removeEventListener("beforeunload", this.onBeforeUnload);
 
+    if (this.keydownHandler) {
+      document.removeEventListener("keydown", this.keydownHandler);
+      this.keydownHandler = null;
+    }
+
+    if (this.recordWebCam && this.recordWebCam.state !== "inactive") {
+      try {
+        this.recordWebCam.stop();
+      } catch (err) {
+        // Ignore if already inactive
+      }
+    }
+
+    if (this.webcamStream) {
+      this.webcamStream.getTracks().forEach((track) => track.stop());
+      this.webcamStream = null;
+    }
+
     clearTimeout(this.pressPromptTimeout);
     this.removeCalibrationScrollLock();
   },
@@ -515,6 +535,12 @@ export default {
     advance(pattern, whereToSave, timeBetweenCaptures) {
       const th = this
       var i = 0
+
+      if (this.keydownHandler) {
+        document.removeEventListener('keydown', this.keydownHandler)
+        this.keydownHandler = null
+      }
+
       async function keydownHandler(event) {
         // Block key press if stepper is shown
         if (th.showStepper) {
@@ -555,6 +581,7 @@ export default {
               document.addEventListener('keydown', keydownHandler)
             } else {
               // Completed all points - finalize
+              th.keydownHandler = null
               th.$store.commit('setIndex', i)
               th.savePoint(whereToSave, th.usedPattern)
               const canvas = document.getElementById('canvas');
@@ -571,6 +598,7 @@ export default {
           }
         }
       }
+      this.keydownHandler = keydownHandler
       document.addEventListener('keydown', keydownHandler)
     },
     nextStep() {
@@ -803,6 +831,7 @@ export default {
       return navigator.mediaDevices
         .getUserMedia(this.configWebCam)
         .then(async (mediaStreamObj) => {
+          this.webcamStream = mediaStreamObj;
           // Create media recorder object
           this.recordWebCam = new MediaRecorder(mediaStreamObj, {
             mimeType: "video/webm;",
@@ -827,6 +856,7 @@ export default {
             th.webcamfile = uploadMediaWebCam;
             // End webcam capture
             mediaStreamObj.getTracks().forEach((track) => track.stop());
+            th.webcamStream = null;
             th.stopRecord();
           };
 
