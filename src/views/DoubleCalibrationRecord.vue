@@ -621,6 +621,10 @@ export default {
         const keypoints = pred.keypoints;
         const leftIris = [keypoints[468].x, keypoints[468].y];
         const rightIris = [keypoints[473].x, keypoints[473].y];
+        const noseTip = keypoints[1]
+          ? [keypoints[1].x, keypoints[1].y, keypoints[1].z ?? 0]
+          : null;
+        const headPose = this.estimateHeadPose(keypoints);
         const leftEyelidTip = keypoints[386];
         const leftEyelidBottom = keypoints[374];
         const isLeftBlink = this.calculateDistance(leftEyelidTip, leftEyelidBottom) < this.leftEyeTreshold;
@@ -633,7 +637,7 @@ export default {
           // set timer so that when eyes open it doesnt select the unstable values
           await new Promise(resolve => setTimeout(resolve, 500));
         } else {
-          const newPrediction = { leftIris, rightIris };
+          const newPrediction = { leftIris, rightIris, noseTip, headPose };
           point.data.push(newPrediction);
           const radius = (this.radius / this.predByPointCount) * a
           this.drawPoint(point.x, point.y, radius)
@@ -658,6 +662,30 @@ export default {
         }
         await new Promise(resolve => setTimeout(resolve, animationRefreshRate));
       }
+    },
+    estimateHeadPose(keypoints) {
+      const nose = keypoints[1];
+      const chin = keypoints[152];
+      const leftEyeOuter = keypoints[33];
+      const rightEyeOuter = keypoints[263];
+
+      if (!nose || !chin || !leftEyeOuter || !rightEyeOuter) {
+        return { yaw: 0, pitch: 0, roll: 0 };
+      }
+
+      const eyeDx = rightEyeOuter.x - leftEyeOuter.x;
+      const eyeDy = rightEyeOuter.y - leftEyeOuter.y;
+      const eyeDist = Math.hypot(eyeDx, eyeDy) || 1e-6;
+
+      const roll = Math.atan2(eyeDy, eyeDx);
+      const midEyeX = (leftEyeOuter.x + rightEyeOuter.x) / 2;
+      const midEyeY = (leftEyeOuter.y + rightEyeOuter.y) / 2;
+
+      const yaw = (nose.x - midEyeX) / eyeDist;
+      const faceHeight = Math.hypot(chin.x - midEyeX, chin.y - midEyeY) || 1e-6;
+      const pitch = (nose.y - midEyeY) / faceHeight;
+
+      return { yaw, pitch, roll };
     },
     calculateDistance(eyelidTip, eyelidBottom) {
       const xDistance = eyelidBottom[0] - eyelidTip[0];
@@ -789,6 +817,12 @@ export default {
             left_iris_y: element.leftIris[1],
             right_iris_x: element.rightIris[0],
             right_iris_y: element.rightIris[1],
+            nose_x: element.noseTip ? element.noseTip[0] : null,
+            nose_y: element.noseTip ? element.noseTip[1] : null,
+            nose_z: element.noseTip ? element.noseTip[2] : null,
+            head_yaw: element.headPose ? element.headPose.yaw : null,
+            head_pitch: element.headPose ? element.headPose.pitch : null,
+            head_roll: element.headPose ? element.headPose.roll : null,
             point_x: point.x,
             point_y: point.y,
           }
