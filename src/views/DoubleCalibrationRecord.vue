@@ -724,7 +724,7 @@ export default {
       const screenWidth = window.innerWidth
 
       let predictions = await this.$store.dispatch('sendData', {
-        fromRuxailab: false,
+        fromRuxailab: this.fromRuxailab,
         circleIrisPoints: this.circleIrisPoints,
         calibPredictionPoints: this.calibPredictionPoints,
         screenHeight,
@@ -746,7 +746,25 @@ export default {
       this.$store.commit('setCalibValidationResult', predictions)
 
       for (var a = 0; a < this.usedPattern.length; a++) {
-        const element = predictions[this.usedPattern[a].x.toString().split('.')[0]]?.[this.usedPattern[a].y.toString().split('.')[0]];
+        let element = predictions?.[this.usedPattern[a].x.toString().split('.')[0]]?.[this.usedPattern[a].y.toString().split('.')[0]];
+
+        if (!element && predictions && typeof predictions === 'object') {
+          let minDistance = Infinity;
+          const p = this.usedPattern[a];
+          Object.keys(predictions).forEach((xStr) => {
+            const xVal = parseFloat(xStr);
+            if (predictions[xStr] && typeof predictions[xStr] === 'object') {
+              Object.keys(predictions[xStr]).forEach((yStr) => {
+                const yVal = parseFloat(yStr);
+                const dist = Math.hypot(xVal - p.x, yVal - p.y);
+                if (dist < minDistance && dist < 50) {
+                  minDistance = dist;
+                  element = predictions[xStr][yStr];
+                }
+              });
+            }
+          });
+        }
 
         if (element) {
           this.usedPattern[a].precision = element.PrecisionSD ? element.PrecisionSD.toFixed(2) : "0.00";
