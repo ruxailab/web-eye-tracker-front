@@ -847,23 +847,31 @@ export default {
     async verifyFromRuxailab() {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.has('auth') && urlParams.has('test')) {
-        this.fromRuxailab = true
-        await this.getRuxailabConfig(urlParams.get('auth'), urlParams.get('test'));
+        const userId = urlParams.get('auth');
+        const studyId = urlParams.get('test');
+        this.$store.commit('setCalibName', userId);
+        this.$store.commit('setStudyId', studyId);
+        this.$store.commit('setUserId', userId);
+        this.fromRuxailab = true;
+        await this.getRuxailabConfig(userId, studyId);
       }
     },
 
     async getRuxailabConfig(userId, testId) {
       this.loadingConfig = true;
-      const { data } = await axios.get(
-        `${envConfig.ruxailabUrl}/getCalibrationConfig`,
-        { params: { testId } }
-      );
+      try {
+        const { data } = await axios.get(
+          `${envConfig.ruxailabUrl}/getCalibrationConfig`,
+          { params: { testId } }
+        );
 
-
-      const calibrationConfig = data.calibrationConfig;
-
-      this.$store.commit('setCalibrationConfig', calibrationConfig);
-      this.loadingConfig = false;
+        const calibrationConfig = data.calibrationConfig;
+        this.$store.commit('setCalibrationConfig', calibrationConfig);
+      } catch (err) {
+        console.error('Error fetching Ruxailab config:', err);
+      } finally {
+        this.loadingConfig = false;
+      }
     },
 
     async detectFace(retryCount = 0) {
