@@ -266,8 +266,14 @@ export default {
       commit("setCustomColors", calibData.customColors);
       commit("setModels", calibData.models);
       commit("setBlinkFilter", calibData.blinkFilter);
-      commit("setLeftTreshold", calibData.leftTreshold);
-      commit("setRightTreshold", calibData.rightTreshold);
+      commit(
+        "setLeftTreshold",
+        calibData.leftEyeTreshold ?? calibData.leftTreshold ?? 5
+      );
+      commit(
+        "setRightTreshold",
+        calibData.rightEyeTreshold ?? calibData.rightTreshold ?? 5
+      );
       commit("setIndex", calibData.index);
       commit("setMsPerCapture", calibData.msPerCapture);
       commit("setCalibrationPattern", pattern);
