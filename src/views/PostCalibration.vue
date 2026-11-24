@@ -238,25 +238,30 @@ export default {
                 const deniedPointColor = isSelected ? 'blue' : 'red'
 
                 this.drawCalibMarks(this.pattern[i].x, this.pattern[i].y, 30, crossColor)
+                const predX = this.pattern[i].predictionX || []
+                const predY = this.pattern[i].predictionY || []
                 var sumX = 0;
                 var sumY = 0;
                 var count = 0;
-                for (var a = 0; a < this.pattern[i].predictionX.length; a++) {
+                for (var a = 0; a < predX.length; a++) {
                     // predicted points
-                    const distance = this.euclidianDistance(this.pattern[i].x, this.pattern[i].predictionX[a], this.pattern[i].y, this.pattern[i].predictionY[a])
+                    const distance = this.euclidianDistance(this.pattern[i].x, predX[a], this.pattern[i].y, predY[a])
                     if (distance <= this.threshold) {
-                        this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], pointSize, pointsColor)
-                        sumX += this.pattern[i].predictionX[a];
-                        sumY += this.pattern[i].predictionY[a];
+                        this.drawPoints(predX[a], predY[a], pointSize, pointsColor)
+                        sumX += predX[a];
+                        sumY += predY[a];
                         count++
                     } else {
-                        this.drawPoints(this.pattern[i].predictionX[a], this.pattern[i].predictionY[a], pointSize, deniedPointColor)
+                        this.drawPoints(predX[a], predY[a], pointSize, deniedPointColor)
                     }
                 }
-                var centroidX = sumX / count;
-                var centroidY = sumY / count;
-                this.drawDash(centroidX, centroidY, this.pattern[i].x, this.pattern[i].y, dashColor)
-                this.drawCentroid(centroidX, centroidY, 1 + this.pattern[i].precision * 25.4, centroidColor)
+                if (count > 0) {
+                    var centroidX = sumX / count;
+                    var centroidY = sumY / count;
+                    const precisionVal = Number(this.pattern[i].precision) || 0
+                    this.drawDash(centroidX, centroidY, this.pattern[i].x, this.pattern[i].y, dashColor)
+                    this.drawCentroid(centroidX, centroidY, 1 + precisionVal * 25.4, centroidColor)
+                }
             }
         },
         async saveCalib() {
