@@ -171,7 +171,8 @@ export default {
             this.showInfo = false;
         },
         exitToDashboard() {
-            this.$store.commit('calibration/resetAll');
+            this.$store.commit('resetAll');
+            this.$store.commit('resetRuntime');
             this.$router.push('/dashboard');
         },
     },
