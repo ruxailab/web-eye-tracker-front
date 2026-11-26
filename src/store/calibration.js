@@ -291,21 +291,27 @@ export default {
           var averageAccuracy = 0;
           var averagePrecision = 0;
           var data = doc.data();
+          var pattern = data.pattern;
+          var hasPattern = pattern && Array.isArray(pattern) && pattern.length > 0;
 
-          if (data.pattern) {
-            data.pattern.forEach((element) => {
-              averageAccuracy += Number(element.accuracy);
-              averagePrecision += Number(element.precision);
+          if (hasPattern) {
+            pattern.forEach((element) => {
+              averageAccuracy += Number(element.accuracy) || 0;
+              averagePrecision += Number(element.precision) || 0;
             });
 
-            data.averageAccuracy = averageAccuracy / data.pattern.length;
-            data.averagePrecision = averagePrecision / data.pattern.length;
-            calibrations.push({
-              id: doc.id,
-              model: doc.data().models,
-              ...data,
-            });
+            data.averageAccuracy = averageAccuracy / pattern.length;
+            data.averagePrecision = averagePrecision / pattern.length;
+          } else {
+            data.averageAccuracy = 0;
+            data.averagePrecision = 0;
           }
+
+          calibrations.push({
+            id: doc.id,
+            model: doc.data().models,
+            ...data,
+          });
         });
 
         commit("setCalibrations", calibrations);
